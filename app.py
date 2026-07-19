@@ -5,10 +5,23 @@ import base64
 from PIL import Image
 import io
 
+def safe_float(val):
+    """Converte in modo sicuro qualsiasi valore in float, prevenendo crash da valori nulli o testo."""
+    if val is None:
+        return 0.0
+    try:
+        # Rimuove spazi, simboli di valuta ed eventuali virgole usate come separatori delle migliaia
+        cleaned = str(val).replace('€', '').replace('$', '').replace(' ', '').replace(',', '.').strip()
+        if not cleaned:
+            return 0.0
+        return float(cleaned)
+    except (ValueError, TypeError):
+        return 0.0
+
 def init_db():
     conn = sqlite3.connect("guitars.db")
     c = conn.cursor()
-    # Crea la tabella principale se non esiste
+    # Crea la tabella principale con tipi di dati sicuri
     c.execute('''
         CREATE TABLE IF NOT EXISTS chitarre (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -16,7 +29,7 @@ def init_db():
             modello TEXT,
             tipo TEXT,
             anno TEXT,
-            prezzo REAL,
+            prezzo REAL DEFAULT 0.0,
             note TEXT,
             foto BLOB,
             marca_corde TEXT DEFAULT '',
@@ -25,14 +38,14 @@ def init_db():
     ''')
     conn.commit()
     
-    # Controllo migrazione colonne per aggiornamenti progressivi del DB
+    # Controllo migrazione per aggiornare dinamicamente vecchi database senza perdita dati
     c.execute("PRAGMA table_info(chitarre)")
     colonne = [colonna[1] for colonna in c.fetchall()]
     
-    # Se mancano le colonne introdotte nei vari aggiornamenti, le aggiungiamo dinamicamente
     migrazioni = {
         "tipo": "ALTER TABLE chitarre ADD COLUMN tipo TEXT DEFAULT 'Elettrica'",
         "anno": "ALTER TABLE chitarre ADD COLUMN anno TEXT DEFAULT ''",
+        "prezzo": "ALTER TABLE chitarre ADD COLUMN prezzo REAL DEFAULT 0.0",
         "marca_corde": "ALTER TABLE chitarre ADD COLUMN marca_corde TEXT DEFAULT ''",
         "spessore_corde": "ALTER TABLE chitarre ADD COLUMN spessore_corde TEXT DEFAULT ''"
     }
@@ -43,12 +56,11 @@ def init_db():
                 c.execute(query)
                 conn.commit()
             except Exception as e:
-                # Log dell'errore per diagnostica interna
-                print(f"Migrazione fallita per {colonna}: {e}")
+                print(f"Migrazione automatica fallita per la colonna '{colonna}': {e}")
                 
     conn.close()
 
-# Inizializza il database
+# Inizializza il database all'avvio
 init_db()
 
 ICON_PATH = "logo.png"
@@ -61,7 +73,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Inizializza gli stati di sessione per modifiche e reset
+# Inizializza gli stati di sessione per le modifiche
 if "edit_guitar_id" not in st.session_state:
     st.session_state.edit_guitar_id = None
 
@@ -174,9 +186,11 @@ st.markdown("""
 def aggiungi_chitarra(marca, modello, tipo, anno, prezzo, note, foto_bytes, marca_corde, spessore_corde):
     conn = sqlite3.connect("guitars.db")
     c = conn.cursor()
+    # Applica cast di sicurezza al prezzo
+    valore_prezzo = safe_float(prezzo)
     c.execute(
         "INSERT INTO chitarre (marca, modello, tipo, anno, prezzo, note, foto, marca_corde, spessore_corde) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (marca, modello, tipo, anno, prezzo, note, foto_bytes, marca_corde, spessore_corde)
+        (marca, modello, tipo, anno, valore_prezzo, note, foto_bytes, marca_corde, spessore_corde)
     )
     conn.commit()
     conn.close()
@@ -184,15 +198,16 @@ def aggiungi_chitarra(marca, modello, tipo, anno, prezzo, note, foto_bytes, marc
 def modifica_chitarra(id_chitarra, marca, modello, tipo, anno, prezzo, note, marca_corde, spessore_corde, foto_bytes=None):
     conn = sqlite3.connect("guitars.db")
     c = conn.cursor()
+    valore_prezzo = safe_float(prezzo)
     if foto_bytes is not None:
         c.execute(
             "UPDATE chitarre SET marca=?, modello=?, tipo=?, anno=?, prezzo=?, note=?, marca_corde=?, spessore_corde=?, foto=? WHERE id=?",
-            (marca, modello, tipo, anno, prezzo, note, marca_corde, spessore_corde, foto_bytes, id_chitarra)
+            (marca, modello, tipo, anno, valore_prezzo, note, marca_corde, spessore_corde, foto_bytes, id_chitarra)
         )
     else:
         c.execute(
             "UPDATE chitarre SET marca=?, modello=?, tipo=?, anno=?, prezzo=?, note=?, marca_corde=?, spessore_corde=? WHERE id=?",
-            (marca, modello, tipo, anno, prezzo, note, marca_corde, spessore_corde, id_chitarra)
+            (marca, modello, tipo, anno, valore_prezzo, note, marca_corde, spessore_corde, id_chitarra)
         )
     conn.commit()
     conn.close()
@@ -248,7 +263,10 @@ with st.sidebar:
             tipo = st.selectbox("Tipo di Strumento", options=lista_tipi, index=indice_tipo)
             
             anno = st.text_input("Anno di Costruzione", value=g_anno, placeholder="es: 1959 o Anni '60")
-            prezzo = st.number_input("Prezzo d'acquisto (€)", min_value=0.0, step=50.0, value=float(g_prezzo or 0.0))
+            
+            # Gestione sicura del prezzo in input
+            prezzo_iniziale = safe_float(g_prezzo)
+            prezzo = st.number_input("Prezzo d'acquisto (€)", min_value=0.0, step=50.0, value=prezzo_iniziale)
             
             marca_corde = st.text_input("Marca Corde", value=g_marca_corde or "", placeholder="Es. D'Addario, Ernie Ball...")
             spessore_corde = st.text_input("Spessore Corde / Scalatura", value=g_spessore_corde or "", placeholder="Es. 09-42, 10-46...")
@@ -281,13 +299,13 @@ with st.sidebar:
             st.session_state.edit_guitar_id = None
             st.rerun()
             
-    # Aggiunta di una nuova chitarra
     else:
         st.markdown("### ➕ Aggiungi Strumento")
         marca = st.text_input("Marca *", placeholder="Es. Fender, Gibson, Ibanez...")
         modello = st.text_input("Modello *", placeholder="Es. Stratocaster, Les Paul...")
         tipo = st.selectbox("Tipo di Strumento", ["Elettrica", "Acustica", "Classica", "Semiacustica", "Basso", "Altro"])
         anno = st.text_input("Anno di Costruzione", placeholder="Es. 1996 o Anni '70")
+        
         prezzo = st.number_input("Prezzo d'acquisto (€)", min_value=0.0, step=50.0, format="%.2f")
         
         marca_corde = st.text_input("Marca Corde", placeholder="Es. Ernie Ball, Elixir, D'Addario...")
@@ -310,7 +328,7 @@ with st.sidebar:
 
     st.markdown("---")
     with st.expander("🛠️ Strumenti di Diagnostica"):
-        st.markdown("<p style='font-size:0.8rem; color:#8e8e93;'>Se l'applicazione non mostra i dati corretti o si blocca, puoi forzare la riparazione del database qui sotto.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:0.8rem; color:#8e8e93;'>Se l'applicazione mostra errori di caricamento, puoi forzare la riparazione o ripristinare il database qui sotto.</p>", unsafe_allow_html=True)
         
         if st.button("🔄 Ripara Struttura Database"):
             init_db()
@@ -332,7 +350,8 @@ guitars = ottieni_chitarre()
 if not guitars:
     st.info("Il tuo caveau è vuoto. Usa il modulo a sinistra nella barra laterale per aggiungere la tua prima chitarra!")
 else:
-    valore_totale = sum(g[5] for g in guitars if g[5] is not None)
+    # Calcolo sicuro del valore complessivo degli strumenti
+    valore_totale = sum(safe_float(g[5]) for g in guitars)
     totale_strumenti = len(guitars)
     
     st.markdown(f"""
@@ -355,12 +374,15 @@ else:
         
         g_id, g_marca, g_modello, g_tipo, g_anno, g_prezzo, g_note, g_foto, g_marca_corde, g_spessore_corde = guitar
         
-        # PRE-FORMATTAZIONE SICURA DELLE VARIABILI (Evita scritte fisse o codice HTML visibile)
+        # PRE-FORMATTAZIONE SICURA DELLE VARIABILI (Previene dati statici o vuoti)
         txt_marca = str(g_marca) if g_marca else "N/D"
         txt_modello = str(g_modello) if g_modello else "N/D"
         txt_tipo = str(g_tipo) if g_tipo else "Elettrica"
         txt_anno = str(g_anno) if g_anno else "N/D"
-        txt_prezzo = f"€ {g_prezzo:,.2f}" if (g_prezzo is not None and g_prezzo > 0) else "N/D"
+        
+        prezzo_num = safe_float(g_prezzo)
+        txt_prezzo = f"€ {prezzo_num:,.2f}" if prezzo_num > 0 else "N/D"
+        
         txt_marca_corde = str(g_marca_corde) if (g_marca_corde and str(g_marca_corde).strip()) else "Non spec."
         txt_spessore_corde = str(g_spessore_corde) if (g_spessore_corde and str(g_spessore_corde).strip()) else "Non spec."
         txt_note = str(g_note) if (g_note and str(g_note).strip()) else "Nessuna nota aggiuntiva."
@@ -372,6 +394,7 @@ else:
             else:
                 img_html = '<div style="width:100%; height:250px; border-radius:12px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; margin-bottom:15px; border: 1px dashed rgba(255,255,255,0.2);"><span style="font-size:3rem;">🎸</span></div>'
                 
+            # Renderizzazione con i dettagli reali recuperati dal database
             st.markdown(f"""
             <div class="guitar-card">
                 {img_html}

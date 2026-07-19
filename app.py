@@ -14,7 +14,6 @@ if not os.path.exists(IMG_DIR):
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    # Aggiunta colonna foto_path
     c.execute('''
         CREATE TABLE IF NOT EXISTS chitarre (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,27 +33,15 @@ init_db()
 
 st.set_page_config(page_title="Guitar Vault", layout="wide")
 st.title("🎸 Il mio Guitar Vault")
-# --- PERSONALIZZAZIONE SFONDO ---
-page_bg_img = """
-<style>
-[data-testid="stAppViewContainer"] {
-    background-color: #f0f2f6; /* Cambia questo colore come preferisci */
-    background-image: linear-gradient(180deg, #f0f2f6 0%, #dcdde1 100%);
-}
-</style>
-"""
-st.markdown(page_bg_img, unsafe_allow_html=True)
 
-# --- FUNZIONI ---
+# --- FUNZIONI DATABASE ---
 def delete_guitar(guitar_id):
-    # Recuperiamo il path della foto per eliminarla insieme al record
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("SELECT foto_path FROM chitarre WHERE id = ?", (guitar_id,))
     row = c.fetchone()
     if row and row[0] and os.path.exists(row[0]):
         os.remove(row[0])
-    
     c.execute("DELETE FROM chitarre WHERE id = ?", (guitar_id,))
     conn.commit()
     conn.close()
@@ -69,26 +56,26 @@ with st.sidebar.expander("➕ Aggiungi una nuova chitarra", expanded=False):
         scalatura_corde = st.text_input("Scalatura Corde")
         data_cambio = st.date_input("Data Ultimo Cambio", datetime.now())
         uploaded_file = st.file_uploader("Carica una foto", type=['jpg', 'jpeg', 'png'])
-        submit = st.form_submit_button("Salva")
         
-        if submit and modello:
-            foto_path = None
-            if uploaded_file is not None:
-                foto_path = os.path.join(IMG_DIR, f"{datetime.now().timestamp()}_{uploaded_file.name}")
-                with open(foto_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
+        if st.form_submit_button("Salva"):
+            if not modello:
+                st.error("Il modello è obbligatorio!")
+            else:
+                foto_path = None
+                if uploaded_file:
+                    foto_path = os.path.join(IMG_DIR, f"{int(datetime.now().timestamp())}_{uploaded_file.name}")
+                    with open(foto_path, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
 
-            info_corde = f"{marca_corde} {scalatura_corde}"
-            prossimo_cambio = data_cambio + timedelta(days=90)
-            
-            conn = sqlite3.connect(DB_NAME)
-            c = conn.cursor()
-            c.execute('INSERT INTO chitarre (marca, modello, serie, corde, data_cambio, prossimo_cambio, foto_path) VALUES (?,?,?,?,?,?,?)', 
-                      (marca, modello, serie, info_corde, str(data_cambio), str(prossimo_cambio), foto_path))
-            conn.commit()
-            conn.close()
-            st.success("Chitarra aggiunta!")
-            st.rerun()
+                info_corde = f"{marca_corde} {scalatura_corde}"
+                prossimo_cambio = data_cambio + timedelta(days=90)
+                
+                conn = sqlite3.connect(DB_NAME)
+                conn.execute('INSERT INTO chitarre (marca, modello, serie, corde, data_cambio, prossimo_cambio, foto_path) VALUES (?,?,?,?,?,?,?)', 
+                             (marca, modello, serie, info_corde, str(data_cambio), str(prossimo_cambio), foto_path))
+                conn.commit()
+                conn.close()
+                st.rerun()
 
 # --- VISUALIZZAZIONE ---
 conn = sqlite3.connect(DB_NAME)
@@ -96,30 +83,31 @@ df = pd.read_sql_query("SELECT * FROM chitarre", conn)
 conn.close()
 
 if df.empty:
-    st.info("Il vault è vuoto.")
+    st.info("Il vault è attualmente vuoto. Aggiungi la tua prima chitarra dalla barra laterale!")
 else:
     for _, row in df.iterrows():
         with st.container(border=True):
-            col1, col2, col3 = st.columns([1, 2, 1])
+            cols = st.columns([1, 3, 1])
             
-            with col1:
+            with cols[0]:
                 if row['foto_path'] and os.path.exists(row['foto_path']):
-                    st.image(row['foto_path'], width=150)
+                    st.image(row['foto_path'], use_container_width=True)
                 else:
-                    st.write("📷 Nessuna foto")
+                    st.write("📷 No image")
+            
+            with cols[1]:
                 st.subheader(f"{row['marca']} {row['modello']}")
                 st.caption(f"S/N: {row['serie']}")
-            
-            with col2:
                 st.write(f"**Corde:** {row['corde']}")
+                
                 data_scadenza = datetime.strptime(row['prossimo_cambio'], "%Y-%m-%d").date()
                 if data_scadenza <= datetime.now().date():
                     st.error(f"⚠️ Cambio necessario dal {row['prossimo_cambio']}")
                 else:
                     st.info(f"📅 Prossimo cambio: {row['prossimo_cambio']}")
             
-            with col3:
-                if st.button("Fatto! Cambio corde", key=f"btn_{row['id']}"):
+            with cols[2]:
+                if st.button("✅ Cambio Eseguito", key=f"btn_{row['id']}"):
                     nuovo_cambio = datetime.now().date()
                     nuova_scadenza = nuovo_cambio + timedelta(days=90)
                     conn = sqlite3.connect(DB_NAME)
@@ -129,6 +117,6 @@ else:
                     conn.close()
                     st.rerun()
                 
-                if st.button("Elimina", key=f"del_{row['id']}"):
+                if st.button("🗑️ Elimina", key=f"del_{row['id']}", type="secondary"):
                     delete_guitar(row['id'])
                     st.rerun()

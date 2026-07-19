@@ -351,6 +351,16 @@ else:
         
         g_id, g_marca, g_modello, g_tipo, g_anno, g_prezzo, g_note, g_foto, g_marca_corde, g_spessore_corde = guitar
         
+        # PRE-FORMATTAZIONE SICURA DELLE VARIABILI (Evita scritte fisse o codice HTML visibile)
+        txt_marca = str(g_marca) if g_marca else "N/D"
+        txt_modello = str(g_modello) if g_modello else "N/D"
+        txt_tipo = str(g_tipo) if g_tipo else "Elettrica"
+        txt_anno = str(g_anno) if g_anno else "N/D"
+        txt_prezzo = f"€ {g_prezzo:,.2f}" if (g_prezzo is not None and g_prezzo > 0) else "N/D"
+        txt_marca_corde = str(g_marca_corde) if (g_marca_corde and str(g_marca_corde).strip()) else "Non spec."
+        txt_spessore_corde = str(g_spessore_corde) if (g_spessore_corde and str(g_spessore_corde).strip()) else "Non spec."
+        txt_note = str(g_note) if (g_note and str(g_note).strip()) else "Nessuna nota aggiuntiva."
+        
         with col:
             if g_foto:
                 base64_image = base64.b64encode(g_foto).decode("utf-8")
@@ -358,38 +368,37 @@ else:
             else:
                 img_html = '<div style="width:100%; height:250px; border-radius:12px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; margin-bottom:15px; border: 1px dashed rgba(255,255,255,0.2);"><span style="font-size:3rem;">🎸</span></div>'
                 
-            # Rendering della scheda iOS curata nei minimi dettagli con icone
             st.markdown(f"""
             <div class="guitar-card">
                 {img_html}
-                <span class="badge">{g_tipo}</span>
-                <h3 style="margin: 5px 0 15px 0; font-size: 1.4rem;">{g_marca} {g_modello}</h3>
+                <span class="badge">{txt_tipo}</span>
+                <h3 style="margin: 5px 0 15px 0; font-size: 1.4rem;">{txt_marca} {txt_modello}</h3>
                 
                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                     <div style="flex: 1;">
                         <div class="details-label">📅 Anno</div>
-                        <div class="details-val">{g_anno if g_anno else "N/D"}</div>
+                        <div class="details-val">{txt_anno}</div>
                     </div>
                     <div style="flex: 1; text-align: right;">
                         <div class="details-label">💰 Acquisto</div>
-                        <div class="details-val">€ {g_prezzo:,.2f}</div>
+                        <div class="details-val">{txt_prezzo}</div>
                     </div>
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; margin-bottom: 12px;">
                     <div style="flex: 1;">
                         <div class="details-label">🧵 Marca Corde</div>
-                        <div class="details-val" style="font-size: 0.95rem;">{g_marca_corde if g_marca_corde else "Non spec."}</div>
+                        <div class="details-val" style="font-size: 0.95rem;">{txt_marca_corde}</div>
                     </div>
                     <div style="flex: 1; text-align: right;">
                         <div class="details-label">📐 Scalatura</div>
-                        <div class="details-val" style="font-size: 0.95rem;">{g_spessore_corde if g_spessore_corde else "Non spec."}</div>
+                        <div class="details-val" style="font-size: 0.95rem;">{txt_spessore_corde}</div>
                     </div>
                 </div>
                 
                 <div class="details-label">📝 Note / Specifiche</div>
                 <p style="font-size: 0.95rem; color:#e5e5ea; min-height: 50px; line-height: 1.4; margin-bottom: 15px;">
-                    {g_note if g_note else "Nessuna nota aggiuntiva."}
+                    {txt_note}
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -397,7 +406,7 @@ else:
             col_actions_1, col_actions_2 = st.columns(2)
             
             with col_actions_1:
-                valore_query = f"{g_marca} {g_modello} {g_anno}".strip()
+                valore_query = f"{txt_marca} {txt_modello} {txt_anno}".strip()
                 reverb_url = f"https://reverb.com/marketplace?query={valore_query.replace(' ', '+')}"
                 google_url = f"https://www.google.com/search?q={valore_query.replace(' ', '+')}+valore+usato"
                 

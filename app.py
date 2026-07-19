@@ -21,6 +21,7 @@ with st.sidebar:
         modello = st.text_input("Modello")
         anno = st.number_input("Anno", min_value=1900, max_value=2026, step=1)
         tipo = st.selectbox("Tipo", ["Elettrica", "Acustica", "Classica", "Basso"])
+        pickup = st.text_input("Pickup")
         setting = st.text_area("Setting")
         valore = st.number_input("Valore (€)", min_value=0, step=50)
         marca_corde = st.text_input("Marca Corde")
@@ -37,7 +38,7 @@ if submit and marca and modello:
     
     nuova_riga = pd.DataFrame([{
         "Marca": marca, "Modello": modello, "Anno": anno, "Tipo": tipo,
-        "Setting": setting, "Valore": valore,
+        "Pickup": pickup, "Setting": setting, "Valore": valore,
         "Marca Corde": marca_corde, "Scalatura": scalatura,
         "Data Cambio": str(data_cambio), "Note": note, "Foto": nome_file
     }])
@@ -53,12 +54,23 @@ if not df.empty:
     
     for i, row in df.iterrows():
         col1, col2 = st.columns([1, 2])
+        
+        # Calcolo scadenza corde (90 giorni = circa 3 mesi)
+        data_ultima = datetime.strptime(row['Data Cambio'], '%Y-%m-%d').date()
+        giorni_trascorsi = (date.today() - data_ultima).days
+        
         with col1:
             percorso = os.path.join("immagini_chitarre", str(row['Foto']))
             if os.path.exists(percorso): st.image(percorso)
         
         with col2:
             st.write(f"### {row['Marca']} {row['Modello']}")
+            
+            # Avviso corde
+            if giorni_trascorsi > 90:
+                st.error(f"⚠️ Corde da cambiare! (Cambiate {giorni_trascorsi} gg fa)")
+            else:
+                st.info(f"✅ Corde ok: cambiate {giorni_trascorsi} giorni fa")
             
             # Pulsanti Azione
             c_mod, c_del = st.columns(2)
@@ -70,7 +82,7 @@ if not df.empty:
                     df.drop(i).to_csv("collezione.csv", index=False)
                     st.rerun()
 
-            # Logica Modifica (Inline)
+            # Logica Modifica
             if 'editing' in st.session_state and st.session_state.editing == i:
                 with st.expander("Modifica dati", expanded=True):
                     with st.form(f"form_mod_{i}"):
@@ -84,6 +96,7 @@ if not df.empty:
             else:
                 st.write(f"💰 **Valore:** {row['Valore']} €")
                 with st.expander("Dettagli"):
+                    st.write(f"**Pickup:** {row['Pickup']}")
                     st.write(f"**Tipo:** {row['Tipo']} | **Setting:** {row['Setting']}")
                     st.write(f"**Corde:** {row['Marca Corde']} ({row['Scalatura']})")
                     st.write(f"**Note:** {row['Note']}")

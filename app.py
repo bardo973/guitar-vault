@@ -23,6 +23,7 @@ def init_db():
             corde TEXT,
             data_cambio TEXT,
             prossimo_cambio TEXT,
+            note_ TEXT,
             foto_path TEXT
         )
     ''')
@@ -54,6 +55,7 @@ with st.sidebar.expander("➕ Aggiungi una nuova chitarra", expanded=False):
         serie = st.text_input("Numero di Serie")
         marca_corde = st.text_input("Marca Corde")
         scalatura_corde = st.text_input("Scalatura Corde")
+        note = st.text_input("action tasti pick up")
         data_cambio = st.date_input("Data Ultimo Cambio", datetime.now())
         uploaded_file = st.file_uploader("Carica una foto", type=['jpg', 'jpeg', 'png'])
         

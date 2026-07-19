@@ -18,6 +18,15 @@ def safe_float(val):
     except (ValueError, TypeError):
         return 0.0
 
+def clean_html(text):
+    """Rimuove tag HTML per evitare che del codice inserito per errore rovini il layout dell'applicazione."""
+    import re
+    if not text:
+        return ""
+    # Rimuove tutti i tag racchiusi tra < e >
+    clean = re.sub(r'<[^>]*>', '', text)
+    return clean.strip()
+
 def init_db():
     conn = sqlite3.connect("guitars.db")
     c = conn.cursor()
@@ -385,7 +394,8 @@ else:
         
         txt_marca_corde = str(g_marca_corde) if (g_marca_corde and str(g_marca_corde).strip()) else "Non spec."
         txt_spessore_corde = str(g_spessore_corde) if (g_spessore_corde and str(g_spessore_corde).strip()) else "Non spec."
-        txt_note = str(g_note) if (g_note and str(g_note).strip()) else "Nessuna nota aggiuntiva."
+        
+        txt_note = clean_html(str(g_note)) if (g_note and str(g_note).strip()) else "Nessuna nota aggiuntiva."
         
         with col:
             if g_foto:

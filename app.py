@@ -4,7 +4,6 @@ import pandas as pd
 from datetime import datetime, timedelta
 import os
 
-# Configurazione
 DB_NAME = "collezione_chitarre.db"
 IMG_DIR = "foto_chitarre"
 
@@ -14,15 +13,13 @@ if not os.path.exists(IMG_DIR):
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
+    # Aggiunto campo spessore
     c.execute('''
         CREATE TABLE IF NOT EXISTS chitarre (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            modello TEXT,
-            serie TEXT,
-            corde TEXT,
-            data_cambio TEXT,
-            prossimo_cambio TEXT,
-            foto_path TEXT
+            modello TEXT, serie TEXT, corde TEXT, 
+            spessore TEXT, data_cambio TEXT, 
+            prossimo_cambio TEXT, foto_path TEXT
         )
     ''')
     conn.commit()
@@ -30,73 +27,73 @@ def init_db():
 
 init_db()
 
-st.set_page_config(page_title="Guitar Vault", layout="wide")
-st.title("🎸 Il mio Guitar Vault")
+st.set_page_config(page_title="Guitar Vault Pro", layout="wide")
+st.title("🎸 Guitar Vault Pro")
 
-# --- FUNZIONI DI SUPPORTO ---
-def delete_guitar(guitar_id):
+# --- LOGICA SALVATAGGIO ---
+def save_guitar(modello, serie, corde, spessore, data_cambio, foto, guitar_id=None):
+    foto_path = None
+    if foto:
+        foto_path = os.path.join(IMG_DIR, f"{serie}_{foto.name}")
+        with open(foto_path, "wb") as f:
+            f.write(foto.getbuffer())
+            
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("DELETE FROM chitarre WHERE id = ?", (guitar_id,))
+    prossimo = data_cambio + timedelta(days=90)
+    
+    if guitar_id:
+        c.execute("UPDATE chitarre SET modello=?, serie=?, corde=?, spessore=?, data_cambio=?, prossimo_cambio=? WHERE id=?",
+                  (modello, serie, corde, spessore, str(data_cambio), str(prossimo), guitar_id))
+    else:
+        c.execute("INSERT INTO chitarre (modello, serie, corde, spessore, data_cambio, prossimo_cambio, foto_path) VALUES (?,?,?,?,?,?,?)",
+                  (modello, serie, corde, spessore, str(data_cambio), str(prossimo), foto_path))
     conn.commit()
     conn.close()
 
 # --- SIDEBAR: AGGIUNTA ---
-with st.sidebar.expander("➕ Aggiungi una nuova chitarra", expanded=False):
-    with st.form("nuova_chitarra", clear_on_submit=True):
-        modello = st.text_input("Modello")
-        serie = st.text_input("Numero di Serie")
-        corde = st.text_input("Corde (Marca/Scalatura)")
-        data_cambio = st.date_input("Data Ultimo Cambio", datetime.now())
-        submit = st.form_submit_button("Salva")
-        
-        if submit and modello:
-            prossimo_cambio = data_cambio + timedelta(days=90)
-            conn = sqlite3.connect(DB_NAME)
-            c = conn.cursor()
-            c.execute('INSERT INTO chitarre (modello, serie, corde, data_cambio, prossimo_cambio) VALUES (?,?,?,?,?)', 
-                      (modello, serie, corde, str(data_cambio), str(prossimo_cambio)))
-            conn.commit()
-            conn.close()
-            st.success("Aggiunta!")
+with st.sidebar.expander("➕ Nuova Chitarra"):
+    with st.form("nuovo_form", clear_on_submit=True):
+        m = st.text_input("Modello")
+        s = st.text_input("S/N")
+        c = st.text_input("Marca Corde")
+        sp = st.text_input("Spessore (es. .010-.046)")
+        d = st.date_input("Ultimo Cambio")
+        f = st.file_uploader("Foto", type=["jpg", "png"])
+        if st.form_submit_button("Salva"):
+            save_guitar(m, s, c, sp, d, f)
             st.rerun()
 
-# --- VISUALIZZAZIONE E AZIONI ---
+# --- VISUALIZZAZIONE ---
 conn = sqlite3.connect(DB_NAME)
 df = pd.read_sql_query("SELECT * FROM chitarre", conn)
 conn.close()
 
-if df.empty:
-    st.info("Il vault è vuoto.")
-else:
-    for _, row in df.iterrows():
-        with st.container(border=True):
-            col1, col2, col3 = st.columns([1, 2, 1])
+for _, row in df.iterrows():
+    with st.container(border=True):
+        c1, c2, c3 = st.columns([1, 2, 1])
+        with c1:
+            if row['foto_path'] and os.path.exists(row['foto_path']):
+                st.image(row['foto_path'], width=200)
+        with c2:
+            st.subheader(row['modello'])
+            st.write(f"**S/N:** {row['serie']} | **Corde:** {row['corde']} ({row['spessore']})")
+            st.caption(f"Ultimo cambio: {row['data_cambio']}")
+        with c3:
+            # Tasto Modifica
+            with st.popover("⚙️ Modifica"):
+                with st.form(f"edit_{row['id']}"):
+                    new_m = st.text_input("Modello", value=row['modello'])
+                    new_s = st.text_input("S/N", value=row['serie'])
+                    new_c = st.text_input("Corde", value=row['corde'])
+                    new_sp = st.text_input("Spessore", value=row['spessore'])
+                    if st.form_submit_button("Aggiorna"):
+                        save_guitar(new_m, new_s, new_c, new_sp, datetime.now(), None, guitar_id=row['id'])
+                        st.rerun()
             
-            with col1:
-                st.subheader(row['modello'])
-                st.caption(f"S/N: {row['serie']}")
-            
-            with col2:
-                st.write(f"**Corde:** {row['corde']}")
-                data_scadenza = datetime.strptime(row['prossimo_cambio'], "%Y-%m-%d").date()
-                if data_scadenza <= datetime.now().date():
-                    st.error(f"⚠️ Cambio necessario dal {row['prossimo_cambio']}")
-                else:
-                    st.info(f"📅 Prossimo cambio: {row['prossimo_cambio']}")
-            
-            with col3:
-                # Bottone per aggiornare il cambio corde (reset data a oggi + 90gg)
-                if st.button("Fatto! Cambio corde", key=f"btn_{row['id']}"):
-                    nuovo_cambio = datetime.now().date()
-                    nuova_scadenza = nuovo_cambio + timedelta(days=90)
-                    conn = sqlite3.connect(DB_NAME)
-                    conn.execute("UPDATE chitarre SET data_cambio = ?, prossimo_cambio = ? WHERE id = ?", 
-                                 (str(nuovo_cambio), str(nuova_scadenza), row['id']))
-                    conn.commit()
-                    conn.close()
-                    st.rerun()
-                
-                if st.button("Elimina", key=f"del_{row['id']}"):
-                    delete_guitar(row['id'])
-                    st.rerun()
+            if st.button("Rimuovi", key=f"del_{row['id']}"):
+                conn = sqlite3.connect(DB_NAME)
+                conn.execute("DELETE FROM chitarre WHERE id=?", (row['id'],))
+                conn.commit()
+                conn.close()
+                st.rerun()

@@ -23,46 +23,34 @@ def init_db():
             spessore_corde TEXT DEFAULT ''
         )
     ''')
+    conn.commit()
     
     # Controllo migrazione colonne per aggiornamenti progressivi del DB
     c.execute("PRAGMA table_info(chitarre)")
     colonne = [colonna[1] for colonna in c.fetchall()]
     
     # Se mancano le colonne introdotte nei vari aggiornamenti, le aggiungiamo dinamicamente
-    if "tipo" not in colonne:
-        try:
-            c.execute("ALTER TABLE chitarre ADD COLUMN tipo TEXT DEFAULT 'Elettrica'")
-            conn.commit()
-        except Exception:
-            pass
-            
-    if "anno" not in colonne:
-        try:
-            c.execute("ALTER TABLE chitarre ADD COLUMN anno TEXT DEFAULT ''")
-            conn.commit()
-        except Exception:
-            pass
-
-    if "marca_corde" not in colonne:
-        try:
-            c.execute("ALTER TABLE chitarre ADD COLUMN marca_corde TEXT DEFAULT ''")
-            conn.commit()
-        except Exception:
-            pass
-
-    if "spessore_corde" not in colonne:
-        try:
-            c.execute("ALTER TABLE chitarre ADD COLUMN spessore_corde TEXT DEFAULT ''")
-            conn.commit()
-        except Exception:
-            pass
-            
+    migrazioni = {
+        "tipo": "ALTER TABLE chitarre ADD COLUMN tipo TEXT DEFAULT 'Elettrica'",
+        "anno": "ALTER TABLE chitarre ADD COLUMN anno TEXT DEFAULT ''",
+        "marca_corde": "ALTER TABLE chitarre ADD COLUMN marca_corde TEXT DEFAULT ''",
+        "spessore_corde": "ALTER TABLE chitarre ADD COLUMN spessore_corde TEXT DEFAULT ''"
+    }
+    
+    for colonna, query in migrazioni.items():
+        if colonna not in colonne:
+            try:
+                c.execute(query)
+                conn.commit()
+            except Exception as e:
+                # Log dell'errore per diagnostica interna
+                print(f"Migrazione fallita per {colonna}: {e}")
+                
     conn.close()
 
-# Esegui l'inizializzazione o la migrazione del DB
+# Inizializza il database
 init_db()
 
-# Gestione dell'icona dell'applicazione (logo.png se presente, altrimenti l'emoji)
 ICON_PATH = "logo.png"
 app_icon = ICON_PATH if os.path.exists(ICON_PATH) else "🎸"
 
@@ -73,7 +61,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Inizializza lo stato per la gestione della modifica se non presente
+# Inizializza gli stati di sessione per modifiche e reset
 if "edit_guitar_id" not in st.session_state:
     st.session_state.edit_guitar_id = None
 
@@ -318,6 +306,22 @@ with st.sidebar:
                 
                 aggiungi_chitarra(marca, modello, tipo, anno, prezzo, note, foto_bytes, marca_corde, spessore_corde)
                 st.success(f"{marca} aggiunta con successo!")
+                st.rerun()
+
+    st.markdown("---")
+    with st.expander("🛠️ Strumenti di Diagnostica"):
+        st.markdown("<p style='font-size:0.8rem; color:#8e8e93;'>Se l'applicazione non mostra i dati corretti o si blocca, puoi forzare la riparazione del database qui sotto.</p>", unsafe_allow_html=True)
+        
+        if st.button("🔄 Ripara Struttura Database"):
+            init_db()
+            st.success("Struttura verificata e riparata!")
+            st.rerun()
+            
+        if st.button("🚨 Cancella e Resetta Tutto"):
+            if os.path.exists("guitars.db"):
+                os.remove("guitars.db")
+                init_db()
+                st.success("Database completamente azzerato!")
                 st.rerun()
 
 st.title("🎸 Guitar Vault Pro")

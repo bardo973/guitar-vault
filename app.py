@@ -18,6 +18,11 @@ with st.sidebar:
         anno = st.number_input("Anno", min_value=1900, max_value=2026, step=1)
         tipo = st.selectbox("Tipo", ["Elettrica", "Acustica", "Classica", "Basso"])
         colore = st.text_input("Colore")
+        
+        # Nuovi campi richiesti
+        marca_corde = st.text_input("Marca Corde")
+        scalatura = st.text_input("Scalatura (es. 09-42)")
+        
         note = st.text_area("Note/Modifiche")
         foto = st.file_uploader("Carica foto", type=['jpg', 'png', 'jpeg'])
         
@@ -31,8 +36,15 @@ if submit and marca and modello:
         img.save(os.path.join("immagini_chitarre", nome_file))
     
     nuova_chitarra = {
-        "Marca": [marca], "Modello": [modello], "Anno": [anno], 
-        "Tipo": [tipo], "Colore": [colore], "Note": [note], "Foto": [nome_file]
+        "Marca": [marca], 
+        "Modello": [modello], 
+        "Anno": [anno], 
+        "Tipo": [tipo], 
+        "Colore": [colore], 
+        "Marca Corde": [marca_corde],
+        "Scalatura": [scalatura],
+        "Note": [note], 
+        "Foto": [nome_file]
     }
     
     df_nuovo = pd.DataFrame(nuova_chitarra)
@@ -43,7 +55,7 @@ if submit and marca and modello:
         df_finale = df_nuovo
     
     df_finale.to_csv("collezione.csv", index=False)
-    st.success("Chitarra aggiunta!")
+    st.success("Chitarra aggiunta con successo!")
 
 # Visualizzazione collezione
 if os.path.exists("collezione.csv"):
@@ -53,11 +65,15 @@ if os.path.exists("collezione.csv"):
     for i, row in df.iterrows():
         col1, col2 = st.columns([1, 2])
         with col1:
-            if os.path.exists(os.path.join("immagini_chitarre", row['Foto'])):
-                st.image(os.path.join("immagini_chitarre", row['Foto']), use_column_width=True)
+            # Gestione errore se l'immagine non è presente
+            percorso_img = os.path.join("immagini_chitarre", str(row['Foto']))
+            if os.path.exists(percorso_img):
+                st.image(percorso_img, use_column_width=True)
+            else:
+                st.write("Nessuna foto")
         with col2:
             st.write(f"### {row['Marca']} {row['Modello']}")
-            st.write(f"**Anno:** {row['Anno']} | **Tipo:** {row['Tipo']}")
-            st.write(f"**Colore:** {row['Colore']}")
+            st.write(f"**Anno:** {row['Anno']} | **Tipo:** {row['Tipo']} | **Colore:** {row['Colore']}")
+            st.write(f"**Corde:** {row['Marca Corde']} - **Scalatura:** {row['Scalatura']}")
             st.write(f"**Note:** {row['Note']}")
         st.divider()

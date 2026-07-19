@@ -1,475 +1,400 @@
 import streamlit as st
 import sqlite3
+import pandas as pd
+from datetime import datetime, timedelta
 import os
-import base64
-from PIL import Image
-import io
 
-def safe_float(val):
-    """Converte in modo sicuro qualsiasi valore in float, prevenendo crash da valori nulli o testo."""
-    if val is None:
-        return 0.0
-    try:
-        # Rimuove spazi, simboli di valuta ed eventuali virgole usate come separatori delle migliaia
-        cleaned = str(val).replace('€', '').replace('$', '').replace(' ', '').replace(',', '.').strip()
-        if not cleaned:
-            return 0.0
-        return float(cleaned)
-    except (ValueError, TypeError):
-        return 0.0
+# Configurazione database e directory per l'archiviazione delle immagini
+DB_NAME = "collezione_chitarre.db"
+IMG_DIR = "foto_chitarre"
 
-def clean_html(text):
-    """Rimuove tag HTML per evitare che del codice inserito per errore rovini il layout dell'applicazione."""
-    import re
-    if not text:
-        return ""
-    # Rimuove tutti i tag racchiusi tra < e >
-    clean = re.sub(r'<[^>]*>', '', text)
-    return clean.strip()
+if not os.path.exists(IMG_DIR):
+    os.makedirs(IMG_DIR)
 
 def init_db():
-    conn = sqlite3.connect("guitars.db")
+    """Inizializza il database e applica le migrazioni necessarie per supportare le nuove funzionalità."""
+    conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    # Crea la tabella principale con tipi di dati sicuri
+    
+    # Abilita le chiavi esterne per la cancellazione a cascata dello storico
+    c.execute("PRAGMA foreign_keys = ON")
+    
+    # Tabella principale chitarre
     c.execute('''
         CREATE TABLE IF NOT EXISTS chitarre (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            marca TEXT,
             modello TEXT,
-            tipo TEXT,
-            anno TEXT,
-            prezzo REAL DEFAULT 0.0,
-            note TEXT,
-            foto BLOB,
-            marca_corde TEXT DEFAULT '',
-            spessore_corde TEXT DEFAULT ''
+            serie TEXT,
+            corde TEXT,
+            data_cambio TEXT,
+            prossimo_cambio TEXT,
+            foto_path TEXT
         )
     ''')
-    conn.commit()
     
-    # Controllo migrazione per aggiornare dinamicamente vecchi database senza perdita dati
+    # Nuova tabella per lo storico delle manutenzioni
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS storico_manutenzioni (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chitarra_id INTEGER,
+            data_evento TEXT,
+            tipo_evento TEXT,
+            note_evento TEXT,
+            FOREIGN KEY (chitarra_id) REFERENCES chitarre (id) ON DELETE CASCADE
+        )
+    ''')
+    
+    # Migrazione dinamica: verifica ed inserisce le colonne aggiunte nei vari aggiornamenti
     c.execute("PRAGMA table_info(chitarre)")
-    colonne = [colonna[1] for colonna in c.fetchall()]
+    columns = [col[1] for col in c.fetchall()]
     
-    migrazioni = {
-        "tipo": "ALTER TABLE chitarre ADD COLUMN tipo TEXT DEFAULT 'Elettrica'",
-        "anno": "ALTER TABLE chitarre ADD COLUMN anno TEXT DEFAULT ''",
-        "prezzo": "ALTER TABLE chitarre ADD COLUMN prezzo REAL DEFAULT 0.0",
-        "marca_corde": "ALTER TABLE chitarre ADD COLUMN marca_corde TEXT DEFAULT ''",
-        "spessore_corde": "ALTER TABLE chitarre ADD COLUMN spessore_corde TEXT DEFAULT ''"
-    }
-    
-    for colonna, query in migrazioni.items():
-        if colonna not in colonne:
-            try:
-                c.execute(query)
-                conn.commit()
-            except Exception as e:
-                print(f"Migrazione automatica fallita per la colonna '{colonna}': {e}")
-                
+    if 'frequenza_mesi' not in columns:
+        c.execute("ALTER TABLE chitarre ADD COLUMN frequenza_mesi INTEGER DEFAULT 3")
+    if 'accordatura' not in columns:
+        c.execute("ALTER TABLE chitarre ADD COLUMN accordatura TEXT DEFAULT 'E Standard'")
+    if 'note_setup' not in columns:
+        c.execute("ALTER TABLE chitarre ADD COLUMN note_setup TEXT DEFAULT ''")
+    if 'marca' not in columns:
+        c.execute("ALTER TABLE chitarre ADD COLUMN marca TEXT DEFAULT ''")
+        
+    conn.commit()
     conn.close()
 
-# Inizializza il database all'avvio
+# Avvia l'inizializzazione o l'aggiornamento strutturale
 init_db()
 
-ICON_PATH = "logo.png"
-app_icon = ICON_PATH if os.path.exists(ICON_PATH) else "🎸"
+st.set_page_config(page_title="Guitar Vault Pro", layout="wide", page_icon="🎸")
 
-st.set_page_config(
-    page_title="Guitar Vault Pro", 
-    layout="wide", 
-    page_icon=app_icon,
-    initial_sidebar_state="expanded"
-)
-
-# Inizializza gli stati di sessione per le modifiche
-if "edit_guitar_id" not in st.session_state:
-    st.session_state.edit_guitar_id = None
-
+# Stile CSS integrato per migliorare l'aspetto visivo delle card e dei badge di stato
 st.markdown("""
-<style>
-    /* Sfondo principale scuro con immagine atmosferica di chitarre */
-    .stApp {
-        background-image: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.85)), 
-                          url('https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=2070&auto=format&fit=crop');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        color: #f5f5f7;
-    }
-    
-    /* Design Glassmorphism per la Sidebar */
-    section[data-testid="stSidebar"] {
-        background: rgba(25, 20, 20, 0.45) !important;
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    /* Titoli dorati premium */
-    h1, h2, h3 {
-        color: #f1c40f !important;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        font-weight: 700;
-        text-shadow: 0px 2px 4px rgba(0,0,0,0.5);
-    }
-    
-    /* Card Chitarre in stile iOS Glassmorphism */
+    <style>
     .guitar-card {
-        background: rgba(255, 255, 255, 0.06);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-radius: 18px;
-        padding: 20px;
+        background-color: #f8fafc;
+        border-radius: 15px;
+        padding: 24px;
+        border: 1px solid #e2e8f0;
         margin-bottom: 25px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    
-    .guitar-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 40px 0 rgba(241, 196, 15, 0.15);
-        border: 1px solid rgba(241, 196, 15, 0.3);
+    .warning-box {
+        background-color: #fff5f5;
+        border-left: 5px solid #e53e3e;
+        padding: 12px;
+        border-radius: 8px;
+        color: #c53030;
     }
-    
-    /* Ottimizzazione immagini delle chitarre */
-    .guitar-img {
-        width: 100%;
-        height: 250px;
-        object-fit: cover;
-        border-radius: 12px;
-        margin-bottom: 15px;
-        border: 1px solid rgba(255,255,255,0.1);
+    .ok-box {
+        background-color: #f0fff4;
+        border-left: 5px solid #38a169;
+        padding: 12px;
+        border-radius: 8px;
+        color: #22543d;
     }
-    
-    /* Badge del tipo di strumento */
-    .badge {
-        background: rgba(241, 196, 15, 0.2);
-        color: #f1c40f;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        display: inline-block;
-        margin-bottom: 10px;
-        border: 1px solid rgba(241, 196, 15, 0.4);
+    .stat-val {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #1a202c;
     }
-    
-    /* Stile dettagli tecnici */
-    .details-label {
-        color: #8e8e93;
-        font-size: 0.85rem;
-        margin-bottom: 2px;
-    }
-    .details-val {
-        color: #ffffff;
-        font-size: 1.05rem;
-        font-weight: 500;
-        margin-bottom: 10px;
-    }
-    
-    /* Pulsanti ottimizzati per dita su iPhone */
-    .stButton>button {
-        border-radius: 12px !important;
-        font-weight: 600 !important;
-        padding: 0.5rem 1rem !important;
-        transition: all 0.2s ease !important;
-    }
-    
-    /* Bottone primario d'inserimento o salvataggio */
-    div[data-testid="stSidebar"] .stButton>button {
-        width: 100%;
-        background-color: #f1c40f !important;
-        color: #000000 !important;
-        border: none !important;
-    }
-    
-    div[data-testid="stSidebar"] .stButton>button:hover {
-        background-color: #f39c12 !important;
-        box-shadow: 0 0 10px rgba(241, 196, 15, 0.5) !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-def aggiungi_chitarra(marca, modello, tipo, anno, prezzo, note, foto_bytes, marca_corde, spessore_corde):
-    conn = sqlite3.connect("guitars.db")
-    c = conn.cursor()
-    # Applica cast di sicurezza al prezzo
-    valore_prezzo = safe_float(prezzo)
-    c.execute(
-        "INSERT INTO chitarre (marca, modello, tipo, anno, prezzo, note, foto, marca_corde, spessore_corde) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (marca, modello, tipo, anno, valore_prezzo, note, foto_bytes, marca_corde, spessore_corde)
-    )
-    conn.commit()
-    conn.close()
-
-def modifica_chitarra(id_chitarra, marca, modello, tipo, anno, prezzo, note, marca_corde, spessore_corde, foto_bytes=None):
-    conn = sqlite3.connect("guitars.db")
-    c = conn.cursor()
-    valore_prezzo = safe_float(prezzo)
-    if foto_bytes is not None:
-        c.execute(
-            "UPDATE chitarre SET marca=?, modello=?, tipo=?, anno=?, prezzo=?, note=?, marca_corde=?, spessore_corde=?, foto=? WHERE id=?",
-            (marca, modello, tipo, anno, valore_prezzo, note, marca_corde, spessore_corde, foto_bytes, id_chitarra)
-        )
-    else:
-        c.execute(
-            "UPDATE chitarre SET marca=?, modello=?, tipo=?, anno=?, prezzo=?, note=?, marca_corde=?, spessore_corde=? WHERE id=?",
-            (marca, modello, tipo, anno, valore_prezzo, note, marca_corde, spessore_corde, id_chitarra)
-        )
-    conn.commit()
-    conn.close()
-
-def elimina_chitarra(id_chitarra):
-    conn = sqlite3.connect("guitars.db")
-    c = conn.cursor()
-    c.execute("DELETE FROM chitarre WHERE id = ?", (id_chitarra,))
-    conn.commit()
-    conn.close()
-
-def ottieni_chitarre():
-    conn = sqlite3.connect("guitars.db")
-    c = conn.cursor()
-    c.execute("SELECT id, marca, modello, tipo, anno, prezzo, note, foto, marca_corde, spessore_corde FROM chitarre ORDER BY id DESC")
-    guitars = c.fetchall()
-    conn.close()
-    return guitars
-
-def ottieni_singola_chitarra(id_chitarra):
-    conn = sqlite3.connect("guitars.db")
-    c = conn.cursor()
-    c.execute("SELECT id, marca, modello, tipo, anno, prezzo, note, foto, marca_corde, spessore_corde FROM chitarre WHERE id = ?", (id_chitarra,))
-    guitar = c.fetchone()
-    conn.close()
-    return guitar
-
-with st.sidebar:
-    if os.path.exists(ICON_PATH):
-        st.image(ICON_PATH, use_container_width=True)
-    else:
-        st.title("🎸 Guitar Vault")
-        
-    st.subheader("La tua Collezione Privata")
-    st.write("Catalogazione e valutazione in tempo reale.")
-    st.markdown("---")
-    
-    is_editing = st.session_state.edit_guitar_id is not None
-    
-    # Modifica di una chitarra esistente
-    if is_editing:
-        st.markdown("### ✏️ Modifica Strumento")
-        guitar_data = ottieni_singola_chitarra(st.session_state.edit_guitar_id)
-        
-        if guitar_data:
-            g_id, g_marca, g_modello, g_tipo, g_anno, g_prezzo, g_note, g_foto, g_marca_corde, g_spessore_corde = guitar_data
-            
-            marca = st.text_input("Marca *", value=g_marca)
-            modello = st.text_input("Modello *", value=g_modello)
-            
-            lista_tipi = ["Elettrica", "Acustica", "Classica", "Semiacustica", "Basso", "Altro"]
-            indice_tipo = lista_tipi.index(g_tipo) if g_tipo in lista_tipi else 0
-            tipo = st.selectbox("Tipo di Strumento", options=lista_tipi, index=indice_tipo)
-            
-            anno = st.text_input("Anno di Costruzione", value=g_anno, placeholder="es: 1959 o Anni '60")
-            
-            # Gestione sicura del prezzo in input
-            prezzo_iniziale = safe_float(g_prezzo)
-            prezzo = st.number_input("Prezzo d'acquisto (€)", min_value=0.0, step=50.0, value=prezzo_iniziale)
-            
-            marca_corde = st.text_input("Marca Corde", value=g_marca_corde or "", placeholder="Es. D'Addario, Ernie Ball...")
-            spessore_corde = st.text_input("Spessore Corde / Scalatura", value=g_spessore_corde or "", placeholder="Es. 09-42, 10-46...")
-            
-            note = st.text_area("Note e Specifiche", value=g_note, placeholder="Es. Pickup sostituiti, liutaio...")
-            
-            st.markdown("<p style='font-size:0.85rem; color:#8e8e93;'>Carica una nuova foto solo se desideri sostituire quella attuale.</p>", unsafe_allow_html=True)
-            foto_upload = st.file_uploader("Sostituisci Foto (opzionale)", type=["png", "jpg", "jpeg"])
-            
-            col_save, col_cancel = st.columns(2)
-            with col_save:
-                if st.button("Salva Modifiche"):
-                    if not marca or not modello:
-                        st.error("Inserisci Marca e Modello!")
-                    else:
-                        foto_bytes = None
-                        if foto_upload is not None:
-                            foto_bytes = foto_upload.read()
-                            
-                        modifica_chitarra(g_id, marca, modello, tipo, anno, prezzo, note, marca_corde, spessore_corde, foto_bytes)
-                        st.success("Strumento aggiornato!")
-                        st.session_state.edit_guitar_id = None
-                        st.rerun()
-            with col_cancel:
-                if st.button("Annulla"):
-                    st.session_state.edit_guitar_id = None
-                    st.rerun()
-        else:
-            st.error("Strumento non trovato.")
-            st.session_state.edit_guitar_id = None
-            st.rerun()
-            
-    else:
-        st.markdown("### ➕ Aggiungi Strumento")
-        marca = st.text_input("Marca *", placeholder="Es. Fender, Gibson, Ibanez...")
-        modello = st.text_input("Modello *", placeholder="Es. Stratocaster, Les Paul...")
-        tipo = st.selectbox("Tipo di Strumento", ["Elettrica", "Acustica", "Classica", "Semiacustica", "Basso", "Altro"])
-        anno = st.text_input("Anno di Costruzione", placeholder="Es. 1996 o Anni '70")
-        
-        prezzo = st.number_input("Prezzo d'acquisto (€)", min_value=0.0, step=50.0, format="%.2f")
-        
-        marca_corde = st.text_input("Marca Corde", placeholder="Es. Ernie Ball, Elixir, D'Addario...")
-        spessore_corde = st.text_input("Spessore Corde / Scalatura", placeholder="Es. 09-42, 10-46...")
-        
-        note = st.text_area("Note / Specifiche", placeholder="Es. Setup appena fatto, tasti 90%...")
-        foto_upload = st.file_uploader("Foto dello Strumento", type=["png", "jpg", "jpeg"])
-        
-        if st.button("Aggiungi alla Collezione"):
-            if not marca or not modello:
-                st.error("La marca e il modello sono obbligatori!")
-            else:
-                foto_bytes = None
-                if foto_upload is not None:
-                    foto_bytes = foto_upload.read()
-                
-                aggiungi_chitarra(marca, modello, tipo, anno, prezzo, note, foto_bytes, marca_corde, spessore_corde)
-                st.success(f"{marca} aggiunta con successo!")
-                st.rerun()
-
-    st.markdown("---")
-    with st.expander("🛠️ Strumenti di Diagnostica"):
-        st.markdown("<p style='font-size:0.8rem; color:#8e8e93;'>Se l'applicazione mostra errori di caricamento, puoi forzare la riparazione o ripristinare il database qui sotto.</p>", unsafe_allow_html=True)
-        
-        if st.button("🔄 Ripara Struttura Database"):
-            init_db()
-            st.success("Struttura verificata e riparata!")
-            st.rerun()
-            
-        if st.button("🚨 Cancella e Resetta Tutto"):
-            if os.path.exists("guitars.db"):
-                os.remove("guitars.db")
-                init_db()
-                st.success("Database completamente azzerato!")
-                st.rerun()
+    </style>
+""", unsafe_allowed_html=True)
 
 st.title("🎸 Guitar Vault Pro")
-st.write("Il tuo caveau digitale personale per catalogare, tracciare e valutare i tuoi strumenti musicali.")
+st.subheader("La tua collezione sotto controllo: manutenzione, setup e storico")
 
-guitars = ottieni_chitarre()
+conn = sqlite3.connect(DB_NAME)
+df_stats = pd.read_sql_query("SELECT * FROM chitarre", conn)
+conn.close()
 
-if not guitars:
-    st.info("Il tuo caveau è vuoto. Usa il modulo a sinistra nella barra laterale per aggiungere la tua prima chitarra!")
+if not df_stats.empty:
+    oggi = datetime.now().date()
+    da_cambiare_count = sum(
+        datetime.strptime(x, "%Y-%m-%d").date() <= oggi 
+        for x in df_stats['prossimo_cambio']
+    )
+    
+    st.markdown("### 📊 Stato della Collezione")
+    col_stat1, col_stat2, col_stat3 = st.columns(3)
+    with col_stat1:
+        st.metric("Chitarre totali nel Vault", len(df_stats))
+    with col_stat2:
+        st.metric("Corde da sostituire immediatamente ⚠️", da_cambiare_count, delta=-da_cambiare_count if da_cambiare_count > 0 else 0, delta_color="inverse")
+    with col_stat3:
+        # Trova la data di scadenza più vicina in assoluto
+        date_scadenze = [datetime.strptime(x, "%Y-%m-%d").date() for x in df_stats['prossimo_cambio']]
+        prossima_scadenza = min(date_scadenze) if date_scadenze else "N/D"
+        st.metric("Prossimo intervento programmato", prossima_scadenza.strftime("%d/%m/%Y") if isinstance(prossima_scadenza, datetime) or hasattr(prossima_scadenza, 'strftime') else prossima_scadenza)
+    st.markdown("---")
+
+with st.sidebar.expander("➕ Inserisci una nuova chitarra", expanded=False):
+    with st.form("nuova_chitarra"):
+        col_m1, col_m2 = st.columns(2)
+        with col_m1:
+            marca = st.text_input("Marca dello Strumento", placeholder="Es. Fender, Gibson, Ibanez")
+        with col_m2:
+            modello = st.text_input("Modello della Chitarra", placeholder="Es. Stratocaster Custom Shop")
+            
+        serie = st.text_input("Numero di Serie (S/N)", placeholder="Es. CZ543210")
+        
+        col_side1, col_side2 = st.columns(2)
+        with col_side1:
+            corde = st.text_input("Corde Montate", placeholder="Es. Elixir Optiweb 09-42")
+        with col_side2:
+            accordatura = st.selectbox(
+                "Accordatura", 
+                ["E Standard", "Eb Standard", "D Standard", "Drop D", "Drop C", "Open G", "DADGAD", "Altro"]
+            )
+            
+        col_form1, col_form2 = st.columns(2)
+        with col_form1:
+            data_cambio = st.date_input("Ultimo Cambio Corde", datetime.now())
+        with col_form2:
+            frequenza_mesi = st.number_input("Frequenza cambio (mesi)", min_value=1, max_value=12, value=3)
+        
+        note_setup = st.text_area("Note di Setup & Liuteria", placeholder="Es. Action: 1.5mm cantino / 1.8mm bassone. Truss rod regolato a Gennaio.", height=100)
+        foto = st.file_uploader("Carica una foto dello strumento", type=["jpg", "jpeg", "png"])
+        
+        submit = st.form_submit_button("Metti al sicuro nel Vault")
+        
+        if submit and (marca or modello):
+            prossimo_cambio = data_cambio + timedelta(days=int(frequenza_mesi) * 30)
+            
+            foto_path = ""
+            if foto is not None:
+                safe_serie = serie if serie else "noserial"
+                foto_path = os.path.join(IMG_DIR, f"{safe_serie}_{foto.name}")
+                with open(foto_path, "wb") as f:
+                    f.write(foto.getbuffer())
+            
+            conn = sqlite3.connect(DB_NAME)
+            c = conn.cursor()
+            c.execute('''
+                INSERT INTO chitarre (marca, modello, serie, corde, data_cambio, prossimo_cambio, foto_path, frequenza_mesi, accordatura, note_setup)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (marca, modello, serie, corde, str(data_cambio), str(prossimo_cambio), foto_path, int(frequenza_mesi), accordatura, note_setup))
+            
+            # Registra la creazione anche nello storico delle manutenzioni
+            nuovo_id = c.lastrowid
+            nome_completo = f"{marca} {modello}".strip()
+            c.execute('''
+                INSERT INTO storico_manutenzioni (chitarra_id, data_evento, tipo_evento, note_evento)
+                VALUES (?, ?, ?, ?)
+            ''', (nuovo_id, str(data_cambio), "Primo Setup & Cambio Corde", f"Chitarra {nome_completo} aggiunta al database con corde {corde} in accordatura {accordatura}."))
+            
+            conn.commit()
+            conn.close()
+            st.success(f"La tua {nome_completo} è stata blindata nel Vault!")
+            st.rerun()
+
+st.markdown("### 🔍 Trova e Gestisci i tuoi Strumenti")
+col_search1, col_search2 = st.columns([2, 1])
+
+with col_search1:
+    ricerca = st.text_input("Cerca per modello, numero di serie o corde...", placeholder="Scrivi una chiave di ricerca...")
+with col_search2:
+    solo_da_cambiare = st.checkbox("📅 Mostra solo chitarre da sostituire corde")
+
+# Caricamento aggiornato dei dati dal database
+conn = sqlite3.connect(DB_NAME)
+df = pd.read_sql_query("SELECT * FROM chitarre", conn)
+conn.close()
+
+if df.empty:
+    st.info("Il tuo Vault è vuoto. Apri il pannello a comparsa di sinistra per inserire il tuo primo strumento!")
 else:
-    # Calcolo sicuro del valore complessivo degli strumenti
-    valore_totale = sum(safe_float(g[5]) for g in guitars)
-    totale_strumenti = len(guitars)
+    df_filtrato = df.copy()
     
-    st.markdown(f"""
-    <div style='display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;'>
-        <div style='background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); flex: 1; min-width: 200px;'>
-            <div style='color:#8e8e93; font-size: 0.9rem;'>Valore Totale Stimato</div>
-            <div style='color:#f1c40f; font-size: 1.8rem; font-weight: 700;'>€ {valore_totale:,.2f}</div>
-        </div>
-        <div style='background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); flex: 1; min-width: 200px;'>
-            <div style='color:#8e8e93; font-size: 0.9rem;'>Strumenti in Custodia</div>
-            <div style='color:#ffffff; font-size: 1.8rem; font-weight: 700;'>{totale_strumenti}</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    cols = st.columns(3)
-    
-    for idx, guitar in enumerate(guitars):
-        col = cols[idx % 3]
+    if ricerca:
+        df_filtrato = df_filtrato[
+            df_filtrato['marca'].str.contains(ricerca, case=False, na=False) | 
+            df_filtrato['modello'].str.contains(ricerca, case=False, na=False) | 
+            df_filtrato['serie'].str.contains(ricerca, case=False, na=False) |
+            df_filtrato['corde'].str.contains(ricerca, case=False, na=False)
+        ]
         
-        g_id, g_marca, g_modello, g_tipo, g_anno, g_prezzo, g_note, g_foto, g_marca_corde, g_spessore_corde = guitar
+    if solo_da_cambiare:
+        oggi = datetime.now().date()
+        df_filtrato = df_filtrato[df_filtrato['prossimo_cambio'].apply(
+            lambda x: datetime.strptime(x, "%Y-%m-%d").date() <= oggi
+        )]
+
+    if df_filtrato.empty:
+        st.warning("Nessuna chitarra corrisponde ai filtri impostati.")
+    else:
+        st.write(f"Strumenti filtrati: **{len(df_filtrato)}**")
+        st.markdown("---")
         
-        # PRE-FORMATTAZIONE SICURA DELLE VARIABILI (Previene dati statici o vuoti)
-        txt_marca = str(g_marca) if g_marca else "N/D"
-        txt_modello = str(g_modello) if g_modello else "N/D"
-        txt_tipo = str(g_tipo) if g_tipo else "Elettrica"
-        txt_anno = str(g_anno) if g_anno else "N/D"
-        
-        prezzo_num = safe_float(g_prezzo)
-        txt_prezzo = f"€ {prezzo_num:,.2f}" if prezzo_num > 0 else "N/D"
-        
-        txt_marca_corde = str(g_marca_corde) if (g_marca_corde and str(g_marca_corde).strip()) else "Non spec."
-        txt_spessore_corde = str(g_spessore_corde) if (g_spessore_corde and str(g_spessore_corde).strip()) else "Non spec."
-        
-        txt_note = clean_html(str(g_note)) if (g_note and str(g_note).strip()) else "Nessuna nota aggiuntiva."
-        
-        with col:
-            if g_foto:
-                base64_image = base64.b64encode(g_foto).decode("utf-8")
-                img_html = f'<img class="guitar-img" src="data:image/png;base64,{base64_image}" />'
-            else:
-                img_html = '<div style="width:100%; height:250px; border-radius:12px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; margin-bottom:15px; border: 1px dashed rgba(255,255,255,0.2);"><span style="font-size:3rem;">🎸</span></div>'
-                
-            # Renderizzazione con i dettagli reali recuperati dal database
-            st.markdown(f"""
-            <div class="guitar-card">
-                {img_html}
-                <span class="badge">{txt_tipo}</span>
-                <h3 style="margin: 5px 0 15px 0; font-size: 1.4rem;">{txt_marca} {txt_modello}</h3>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                    <div style="flex: 1;">
-                        <div class="details-label">📅 Anno</div>
-                        <div class="details-val">{txt_anno}</div>
-                    </div>
-                    <div style="flex: 1; text-align: right;">
-                        <div class="details-label">💰 Acquisto</div>
-                        <div class="details-val">{txt_prezzo}</div>
-                    </div>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; margin-bottom: 12px;">
-                    <div style="flex: 1;">
-                        <div class="details-label">🧵 Marca Corde</div>
-                        <div class="details-val" style="font-size: 0.95rem;">{txt_marca_corde}</div>
-                    </div>
-                    <div style="flex: 1; text-align: right;">
-                        <div class="details-label">📐 Scalatura</div>
-                        <div class="details-val" style="font-size: 0.95rem;">{txt_spessore_corde}</div>
-                    </div>
-                </div>
-                
-                <div class="details-label">📝 Note / Specifiche</div>
-                <p style="font-size: 0.95rem; color:#e5e5ea; min-height: 50px; line-height: 1.4; margin-bottom: 15px;">
-                    {txt_note}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+        for index, row in df_filtrato.iterrows():
+            # Layout diviso in 4 sezioni: Foto, Specifiche, Stato Manutenzione, Azioni Veloci
+            col_img, col_info, col_status, col_actions = st.columns([1.5, 2.5, 2, 1.5])
             
-            col_actions_1, col_actions_2 = st.columns(2)
+            # 1. Foto dello strumento
+            with col_img:
+                if row['foto_path'] and os.path.exists(row['foto_path']):
+                    st.image(row['foto_path'], use_column_width=True)
+                else:
+                    # Immagine segnaposto stilosa in caso di assenza foto
+                    st.image("https://images.unsplash.com/photo-1550985616-10810253b84d?w=400&auto=format&fit=crop&q=60", use_column_width=True)
             
-            with col_actions_1:
-                valore_query = f"{txt_marca} {txt_modello} {txt_anno}".strip()
-                reverb_url = f"https://reverb.com/marketplace?query={valore_query.replace(' ', '+')}"
-                google_url = f"https://www.google.com/search?q={valore_query.replace(' ', '+')}+valore+usato"
+            # 2. Informazioni tecniche ed estetiche
+            with col_info:
+                nome_marca = row.get('marca', '')
+                nome_modello = row['modello']
+                if nome_marca:
+                    st.markdown(f"### {nome_marca} {nome_modello}")
+                else:
+                    st.markdown(f"### {nome_modello}")
+                st.markdown(f"🆔 **S/N:** `{row['serie'] if row['serie'] else 'N/D'}`")
+                st.markdown(f"🎸 **Corde:** `{row['corde'] if row['corde'] else 'N/D'}`")
+                st.markdown(f"🎵 **Accordatura:** `{row.get('accordatura', 'E Standard')}`")
+                st.caption(f"Frequenza manutenzione programmata: ogni {row['frequenza_mesi']} mesi")
+
+            # 3. Stato usura corde e notifiche
+            with col_status:
+                data_scadenza = datetime.strptime(row['prossimo_cambio'], "%Y-%m-%d").date()
+                oggi = datetime.now().date()
                 
-                st.markdown(f"""
-                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                    <a href="{reverb_url}" target="_blank" style="flex: 1; text-decoration: none;">
-                        <button style="width: 100%; height: 35px; background: #e15400; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Valuta Reverb</button>
-                    </a>
-                    <a href="{google_url}" target="_blank" style="flex: 1; text-decoration: none;">
-                        <button style="width: 100%; height: 35px; background: #34a853; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Valuta Google</button>
-                    </a>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown("##### 📅 Stato Corde")
+                if data_scadenza <= oggi:
+                    st.markdown(
+                        f"""<div class='warning-box'>
+                        <strong>DA SOSTITUIRE!</strong><br>
+                        Termine scaduto il: {row['prossimo_cambio']}<br>
+                        <small>Ultimo cambio: {row['data_cambio']}</small>
+                        </div>""", 
+                        unsafe_allowed_html=True
+                    )
+                else:
+                    st.markdown(
+                        f"""<div class='ok-box'>
+                        <strong>Stato: Ottimale</strong><br>
+                        Prossimo cambio: {row['prossimo_cambio']}<br>
+                        <small>Ultimo cambio: {row['data_cambio']}</small>
+                        </div>""", 
+                        unsafe_allowed_html=True
+                    )
+            
+            # 4. Pulsantiera azioni rapide
+            with col_actions:
+                st.markdown("##### ⚙️ Azioni")
                 
-            with col_actions_2:
-                col_btn_edit, col_btn_del = st.columns(2)
+                # Azione 1: Registrazione rapida cambio corde
+                key_cambio = f"cambio_{row['id']}"
+                if st.button("🧼 Corde Cambiate!", key=key_cambio, help="Resetta la scadenza impostando la data odierna"):
+                    nuova_data = datetime.now().date()
+                    nuovo_prossimo = nuova_data + timedelta(days=int(row['frequenza_mesi']) * 30)
+                    
+                    conn = sqlite3.connect(DB_NAME)
+                    c = conn.cursor()
+                    # Aggiorna date nella tabella principale
+                    c.execute('''
+                        UPDATE chitarre 
+                        SET data_cambio = ?, prossimo_cambio = ? 
+                        WHERE id = ?
+                    ''', (str(nuova_data), str(nuovo_prossimo), row['id']))
+                    
+                    # Salva l'evento nello storico
+                    c.execute('''
+                        INSERT INTO storico_manutenzioni (chitarra_id, data_evento, tipo_evento, note_evento)
+                        VALUES (?, ?, ?, ?)
+                    ''', (row['id'], str(nuova_data), "Cambio Corde", f"Sostituita muta completa di corde ({row['corde']})."))
+                    
+                    conn.commit()
+                    conn.close()
+                    st.success("Storico aggiornato e scadenze reimpostate!")
+                    st.rerun()
                 
-                with col_btn_edit:
-                    if st.button("✏️ Modifica", key=f"edit_btn_{g_id}", use_container_width=True):
-                        st.session_state.edit_guitar_id = g_id
+                # Azione 2: Rimozione della chitarra
+                key_del = f"del_{row['id']}"
+                if st.button("🗑️ Rimuovi Chitarra", key=key_del, type="secondary"):
+                    if row['foto_path'] and os.path.exists(row['foto_path']):
+                        try:
+                            os.remove(row['foto_path'])
+                        except Exception:
+                            pass
+                    
+                    conn = sqlite3.connect(DB_NAME)
+                    c = conn.cursor()
+                    c.execute("DELETE FROM chitarre WHERE id = ?", (row['id'],))
+                    conn.commit()
+                    conn.close()
+                    st.success("Strumento eliminato permanentemente.")
+                    st.rerun()
+
+            # Expander in fondo ad ogni card per mostrare i dettagli della chitarra, storici e note setup
+            with st.expander("🛠️ Note di Setup & Registro Storico Manutenzioni", expanded=False):
+                tab_setup, tab_storico = st.tabs(["📋 Scheda di Setup", "📜 Storico Interventi"])
+                
+                # TAB SETUP: Permette anche di modificare le note di setup al volo
+                with tab_setup:
+                    st.markdown("##### Informazioni e misure di Setup")
+                    nuove_note = st.text_area(
+                        "Dettagli Setup (Action, Truss rod, ponti, pickup, modifiche)", 
+                        value=row.get('note_setup', ''), 
+                        key=f"setup_notes_{row['id']}",
+                        height=120
+                    )
+                    
+                    # Salva le note modificate
+                    if st.button("Aggiorna Scheda Setup", key=f"save_setup_{row['id']}"):
+                        conn = sqlite3.connect(DB_NAME)
+                        c = conn.cursor()
+                        c.execute("UPDATE chitarre SET note_setup = ? WHERE id = ?", (nuove_note, row['id']))
+                        conn.commit()
+                        conn.close()
+                        st.success("Scheda di setup aggiornata!")
                         st.rerun()
+                
+                # TAB STORICO: Mostra tutti gli eventi passati legati alla chitarra
+                with tab_storico:
+                    st.markdown("##### Registro cronologico delle manutenzioni")
+                    
+                    # Form veloce per registrare interventi extra (es. regolazione truss rod, lucidatura tasti)
+                    with st.form(f"nuovo_evento_storico_{row['id']}"):
+                        col_ev1, col_ev2 = st.columns(2)
+                        with col_ev1:
+                            tipo_evento = st.text_input("Tipo Intervento", placeholder="Es. Regolazione Truss Rod, Pulizia")
+                        with col_ev2:
+                            data_evento = st.date_input("Data Intervento", datetime.now())
                         
-                with col_btn_del:
-                    if st.button("🗑️ Elimina", key=f"del_btn_{g_id}", use_container_width=True):
-                        elimina_chitarra(g_id)
-                        st.success("Strumento eliminato.")
-                        st.rerun()
+                        desc_evento = st.text_area("Dettagli dell'intervento fatto", placeholder="Es. Allentato truss rod di 1/4 di giro. Pulito tastiera con olio di limone.")
+                        aggiungi_evento = st.form_submit_button("Registra nel diario")
                         
-            st.markdown("<br>", unsafe_allow_html=True)
+                        if aggiungi_evento and tipo_evento:
+                            conn = sqlite3.connect(DB_NAME)
+                            c = conn.cursor()
+                            c.execute('''
+                                INSERT INTO storico_manutenzioni (chitarra_id, data_evento, tipo_evento, note_evento)
+                                VALUES (?, ?, ?, ?)
+                            ''', (row['id'], str(data_evento), tipo_evento, desc_evento))
+                            conn.commit()
+                            conn.close()
+                            st.success("Evento registrato con successo!")
+                            st.rerun()
+                    
+                    st.markdown("---")
+                    
+                    # Caricamento e rendering degli eventi dello storico registrati
+                    conn = sqlite3.connect(DB_NAME)
+                    df_history = pd.read_sql_query(
+                        "SELECT data_evento, tipo_evento, note_evento FROM storico_manutenzioni WHERE chitarra_id = ? ORDER BY data_evento DESC", 
+                        conn, 
+                        params=(row['id'],)
+                    )
+                    conn.close()
+                    
+                    if df_history.empty:
+                        st.info("Nessuna manutenzione registrata in archivio.")
+                    else:
+                        for _, h_row in df_history.iterrows():
+                            # Conversione formattazione data per visualizzazione italiana
+                            try:
+                                data_f = datetime.strptime(h_row['data_evento'], "%Y-%m-%d").strftime("%d/%m/%Y")
+                            except Exception:
+                                data_f = h_row['data_evento']
+                                
+                            st.markdown(f"📅 **{data_f}** - **{h_row['tipo_evento']}**")
+                            if h_row['note_evento']:
+                                st.caption(h_row['note_evento'])
+                            st.markdown(" ")
+            
+            st.markdown("---")

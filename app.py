@@ -20,7 +20,9 @@ with st.sidebar:
         tipo = st.selectbox("Tipo", ["Elettrica", "Acustica", "Classica", "Basso"])
         
         # Nuovi campi
-        setting = st.text_area("Setting (es. Action, Pickup, Ponte)")
+        pickup = st.text_input("Pickup (es. Humbucker, Single Coil)")
+        custodia = st.selectbox("Custodia", ["Rigida", "Morbida", "Nessuna"])
+        setting = st.text_area("Setting (es. Action, Ponte)")
         valore = st.number_input("Valore Attuale (€)", min_value=0, step=50)
         
         marca_corde = st.text_input("Marca Corde")
@@ -41,7 +43,8 @@ if submit and marca and modello:
     
     nuova_chitarra = {
         "Marca": [marca], "Modello": [modello], "Anno": [anno], 
-        "Tipo": [tipo], "Setting": [setting], "Valore": [valore],
+        "Tipo": [tipo], "Pickup": [pickup], "Custodia": [custodia],
+        "Setting": [setting], "Valore": [valore],
         "Marca Corde": [marca_corde], "Scalatura": [scalatura], 
         "Data Cambio": [str(data_cambio)], "Note": [note], "Foto": [nome_file]
     }
@@ -61,7 +64,6 @@ if os.path.exists("collezione.csv"):
     df = pd.read_csv("collezione.csv")
     st.subheader("La tua collezione")
     
-    # Calcolo valore totale collezione
     st.metric("Valore Totale Collezione", f"{df['Valore'].sum():,.2f} €")
     
     for i, row in df.iterrows():
@@ -79,9 +81,8 @@ if os.path.exists("collezione.csv"):
         
         with col2:
             st.write(f"### {row['Marca']} {row['Modello']} ({row['Anno']})")
-            st.write(f"💰 **Valore:** {row['Valore']} €")
+            st.write(f"💰 **Valore:** {row['Valore']} € | 🛡️ **Custodia:** {row['Custodia']}")
             
-            # Stato Corde
             if giorni_trascorsi > 90:
                 st.error(f"⚠️ Corde da cambiare! ({giorni_trascorsi} gg)")
             else:
@@ -89,6 +90,7 @@ if os.path.exists("collezione.csv"):
                 
             with st.expander("Dettagli Tecnici"):
                 st.write(f"**Tipo:** {row['Tipo']}")
+                st.write(f"**Pickup:** {row['Pickup']}")
                 st.write(f"**Setting:** {row['Setting']}")
                 st.write(f"**Corde:** {row['Marca Corde']} ({row['Scalatura']})")
                 st.write(f"**Note:** {row['Note']}")

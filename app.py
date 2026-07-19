@@ -58,6 +58,9 @@ def init_db():
         c.execute("ALTER TABLE chitarre ADD COLUMN marca TEXT DEFAULT ''")
     if 'tipo' not in columns:
         c.execute("ALTER TABLE chitarre ADD COLUMN tipo TEXT DEFAULT 'Elettrica'")
+    
+    if 'anno' not in columns:
+        c.execute("ALTER TABLE chitarre ADD COLUMN anno TEXT DEFAULT ''")
         
     conn.commit()
     conn.close()
@@ -75,6 +78,28 @@ st.set_page_config(
 # Stile CSS integrato per migliorare l'aspetto visivo delle card, renderle responsive per smartphone
 st.markdown("""
     <style>
+    /* Sfondo dell'intera applicazione con immagine premium di chitarra in penombra */
+    .stApp {
+        background-image: linear-gradient(rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.94)), url('https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=1600&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+    
+    /* Forza il testo dell'app ad essere chiaro e leggibile */
+    .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, .stApp p, .stApp span, .stApp label, .stApp li {
+        color: #f8fafc !important;
+    }
+    
+    /* Ottimizzazioni per i widget delle statistiche (Metrics) */
+    [data-testid="stMetricValue"] {
+        color: #f8fafc !important;
+        font-weight: 800 !important;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #94a3b8 !important;
+    }
+    
     /* Ottimizzazioni generali per mobile */
     .reportview-container .main .block-container {
         padding-top: 1rem;
@@ -82,15 +107,23 @@ st.markdown("""
         padding-left: 1rem;
     }
     
-    /* Card Chitarra con design moderno stile iOS/Material */
+    /* Card Chitarra con design moderno stile iOS/Material Glassmorphism (Vetro Satinato) */
     .guitar-card {
-        background-color: #f8fafc;
+        background: rgba(30, 41, 59, 0.65) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border-radius: 18px;
         padding: 20px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid rgba(255, 255, 255, 0.08);
         margin-bottom: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .guitar-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.15);
     }
     
     @media (max-width: 768px) {
@@ -100,24 +133,26 @@ st.markdown("""
         }
     }
     
-    /* Box di stato con angoli arrotondati e colori vivaci */
+    /* Box di stato aggiornati per integrarsi con il tema scuro */
     .warning-box {
-        background-color: #fff5f5;
-        border-left: 6px solid #e53e3e;
+        background-color: rgba(220, 38, 38, 0.15);
+        border-left: 6px solid #ef4444;
         padding: 12px;
         border-radius: 10px;
-        color: #c53030;
+        color: #fca5a5;
         font-weight: 500;
         margin-bottom: 10px;
+        border: 1px solid rgba(220, 38, 38, 0.2);
     }
     .ok-box {
-        background-color: #f0fff4;
-        border-left: 6px solid #38a169;
+        background-color: rgba(16, 185, 129, 0.15);
+        border-left: 6px solid #10b981;
         padding: 12px;
         border-radius: 10px;
-        color: #22543d;
+        color: #a7f3d0;
         font-weight: 500;
         margin-bottom: 10px;
+        border: 1px solid rgba(16, 185, 129, 0.2);
     }
     
     /* Rende le immagini delle chitarre stabili e uniformi */
@@ -126,6 +161,14 @@ st.markdown("""
         object-fit: cover;
         max-height: 250px;
         width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Rende più leggibili i form e gli input nel tema scuro */
+    div[data-baseweb="input"], div[data-baseweb="select"], textarea {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
     }
     
     /* Nasconde elementi superflui su mobile per un look più pulito */
@@ -166,6 +209,8 @@ with st.sidebar.expander("➕ Inserisci una nuova chitarra", expanded=False):
     with st.form("nuova_chitarra"):
         marca = st.text_input("Marca dello Strumento", placeholder="Es. Fender, Gibson")
         modello = st.text_input("Modello della Chitarra", placeholder="Es. Stratocaster")
+        
+        anno = st.text_input("Anno di Costruzione", placeholder="Es. 1996 o Anni '90")
             
         tipo = st.selectbox(
             "Tipo di Strumento",
@@ -203,9 +248,9 @@ with st.sidebar.expander("➕ Inserisci una nuova chitarra", expanded=False):
             conn = sqlite3.connect(DB_NAME)
             c = conn.cursor()
             c.execute('''
-                INSERT INTO chitarre (marca, modello, serie, corde, data_cambio, prossimo_cambio, foto_path, frequenza_mesi, accordatura, note_setup, tipo)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (marca, modello, serie, corde, str(data_cambio), str(prossimo_cambio), foto_path, int(frequenza_mesi), accordatura, note_setup, tipo))
+                INSERT INTO chitarre (marca, modello, serie, corde, data_cambio, prossimo_cambio, foto_path, frequenza_mesi, accordatura, note_setup, tipo, anno)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (marca, modello, serie, corde, str(data_cambio), str(prossimo_cambio), foto_path, int(frequenza_mesi), accordatura, note_setup, tipo, anno))
             
             # Registra la creazione anche nello storico delle manutenzioni
             nuovo_id = c.lastrowid
@@ -270,10 +315,12 @@ else:
             with col_info:
                 nome_marca = row.get('marca', '')
                 nome_modello = row['modello']
+                anno_strumento = row.get('anno', '') if row.get('anno') else 'N/D'
                 st.markdown(f"### {nome_marca} {nome_modello}".strip())
                 
                 st.markdown(f"🏷️ **Marca:** `{nome_marca if nome_marca else 'N/D'}`")
                 st.markdown(f"🎸 **Modello:** `{nome_modello if nome_modello else 'N/D'}`")
+                st.markdown(f"📅 **Anno:** `{anno_strumento}`")
                 st.markdown(f"📁 **Tipo:** `{row.get('tipo', 'Elettrica')}`")
                 st.markdown(f"🆔 **S/N:** `{row['serie'] if row['serie'] else 'N/D'}`")
                 st.markdown(f"🧵 **Corde:** `{row['corde'] if row['corde'] else 'N/D'}`")
@@ -350,6 +397,23 @@ else:
                     conn.close()
                     st.success("Strumento eliminato.")
                     st.rerun()
+
+                st.markdown("---")
+                st.markdown("##### 💰 Valore Usato")
+                query_parti = [nome_marca, nome_modello]
+                if anno_strumento != 'N/D':
+                    query_parti.append(anno_strumento)
+                search_query = " ".join([p for p in query_parti if p]).strip()
+                
+                if search_query:
+                    reverb_url = f"https://reverb.com/marketplace?query={search_query.replace(' ', '+')}"
+                    google_url = f"https://www.google.com/search?q={search_query.replace(' ', '+')}+valore+usato+prezzo"
+                    
+                    col_btn1, col_btn2 = st.columns(2)
+                    with col_btn1:
+                        st.link_button("🌐 Reverb", reverb_url, help="Controlla i prezzi di listino e dell'usato su Reverb.com")
+                    with col_btn2:
+                        st.link_button("🔍 Google", google_url, help="Cerca prezzi dell'usato nei mercatini su Google")
 
             with st.expander("🛠️ Note Setup e Storico", expanded=False):
                 tab_setup, tab_storico = st.tabs(["📋 Setup", "📜 Diario"])

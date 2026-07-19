@@ -21,7 +21,6 @@ with st.sidebar:
         modello = st.text_input("Modello")
         anno = st.number_input("Anno", min_value=1900, max_value=2026, step=1)
         tipo = st.selectbox("Tipo", ["Elettrica", "Acustica", "Classica", "Basso"])
-        pickup = st.text_input("Pickup")
         setting = st.text_area("Setting")
         valore = st.number_input("Valore (€)", min_value=0, step=50)
         marca_corde = st.text_input("Marca Corde")
@@ -38,7 +37,7 @@ if submit and marca and modello:
     
     nuova_riga = pd.DataFrame([{
         "Marca": marca, "Modello": modello, "Anno": anno, "Tipo": tipo,
-        "Pickup": pickup, "Setting": setting, "Valore": valore,
+        "Setting": setting, "Valore": valore,
         "Marca Corde": marca_corde, "Scalatura": scalatura,
         "Data Cambio": str(data_cambio), "Note": note, "Foto": nome_file
     }])
@@ -85,6 +84,7 @@ if not df.empty:
             else:
                 st.write(f"💰 **Valore:** {row['Valore']} €")
                 with st.expander("Dettagli"):
-                    st.write(f"**Pickup:** {row['Pickup']} | **Setting:** {row['Setting']}")
+                    st.write(f"**Tipo:** {row['Tipo']} | **Setting:** {row['Setting']}")
                     st.write(f"**Corde:** {row['Marca Corde']} ({row['Scalatura']})")
+                    st.write(f"**Note:** {row['Note']}")
         st.divider()

@@ -1,59 +1,59 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
-# --- CONFIGURAZIONE ---
+# Configurazione database e directory per l'archiviazione delle immagini
 DB_NAME = "collezione_chitarre.db"
+IMG_DIR = "foto_chitarre"
 
-# --- STREAMING_CHUNK: Inizializzazione database ---
+if not os.path.exists(IMG_DIR):
+    os.makedirs(IMG_DIR)
+
 def init_db():
+    """Inizializza il database e applica le migrazioni necessarie per supportare le nuove funzionalità."""
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    # Tabella chitarre con campi corretti per prezzi e dettagli
-    c.execute('''CREATE TABLE IF NOT EXISTS chitarre (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    marca TEXT, modello TEXT, serie TEXT, corde TEXT,
-                    marca_corde TEXT, spessore_corde TEXT, 
-                    valore REAL, anno INTEGER, note_setup TEXT, foto_path TEXT)''')
+    
+    # Abilita le chiavi esterne per la cancellazione a cascata dello storico
+    c.execute("PRAGMA foreign_keys = ON")
+    
+    # Tabella principale chitarre
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS chitarre (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            modello TEXT,
+            serie TEXT,
+            corde TEXT,
+            data_cambio TEXT,
+            prossimo_cambio TEXT,
+            foto_path TEXT
+        )
+    ''')
+    
+    # Nuova tabella per lo storico delle manutenzioni
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS storico_manutenzioni (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chitarra_id INTEGER,
+            data_evento TEXT,
+            tipo_evento TEXT,
+            note_evento TEXT,
+            FOREIGN KEY (chitarra_id) REFERENCES chitarre (id) ON DELETE CASCADE
+        )
+    ''')
+    
+    # Migrazione dinamica: verifica ed inserisce le colonne aggiunte nei vari aggiornamenti
+    c.execute("PRAGMA table_info(chitarre)")
+    columns = [col[1] for col in c.fetchall()]
+    
+    if 'frequenza_mesi' not in columns:
+        c.execute("ALTER TABLE chitarre ADD COLUMN frequenza_mesi INTEGER DEFAULT 3")
+    if 'accordatura' not in columns:
+        c.execute("ALTER TABLE chitarre ADD COLUMN accordatura TEXT DEFAULT 'E Standard'")
+    if 'note_setup' not in columns:
+        c.execute("ALTER TABLE chitarre ADD COLUMN note_setup TEXT DEFAULT ''")
+        
     conn.commit()
     conn.close()
-
-init_db()
-
-st.set_page_config(page_title="Guitar Vault Pro", layout="wide")
-
-# --- STREAMING_CHUNK: Interfaccia e Logica ---
-st.title("🎸 Guitar Vault Pro")
-
-# Caricamento dati
-conn = sqlite3.connect(DB_NAME)
-df = pd.read_sql_query("SELECT * FROM chitarre", conn)
-conn.close()
-
-# Visualizzazione card
-for _, row in df.iterrows():
-    with st.container():
-        st.markdown(f"### {row['marca']} {row['modello']}")
-        
-        # Righe di dati pulite (usiamo colonne native per evitare HTML rotto)
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Anno", row['anno'] or "N/D")
-        col2.metric("Valore", f"€ {row['valore']:,.2f}" if row['valore'] else "N/D")
-        col3.markdown(f"**Corde:** {row['marca_corde'] or 'N/D'}")
-        col4.markdown(f"**Spessore:** {row['spessore_corde'] or 'N/D'}")
-        
-        st.markdown(f"**Note:** {row['note_setup']}")
-        
-        # Tasto Modifica
-        if st.button(f"✏️ Modifica {row['modello']}", key=f"edit_{row['id']}"):
-            st.session_state.edit_id = row['id']
-            st.rerun()
-        
-        st.divider()
-
-# --- STREAMING_CHUNK: Gestione Modifica ---
-if 'edit_id' in st.session_state:
-    st.sidebar.subheader("✏️ Modifica Strumento")
-    # ... Qui andrebbe il form di edit collegato a st.session_state.edit_id

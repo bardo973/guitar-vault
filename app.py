@@ -34,6 +34,16 @@ init_db()
 
 st.set_page_config(page_title="Guitar Vault", layout="wide")
 st.title("🎸 Il mio Guitar Vault")
+# --- PERSONALIZZAZIONE SFONDO ---
+page_bg_img = """
+<style>
+[data-testid="stAppViewContainer"] {
+    background-color: #f0f2f6; /* Cambia questo colore come preferisci */
+    background-image: linear-gradient(180deg, #f0f2f6 0%, #dcdde1 100%);
+}
+</style>
+"""
+st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # --- FUNZIONI ---
 def delete_guitar(guitar_id):

@@ -14,14 +14,12 @@ if not os.path.exists(IMG_DIR):
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    # Aggiornamento schema per includere marca e spessore
     c.execute('''
         CREATE TABLE IF NOT EXISTS chitarre (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             modello TEXT,
             serie TEXT,
-            marca_corde TEXT,
-            spessore_corde TEXT,
+            corde TEXT,
             data_cambio TEXT,
             prossimo_cambio TEXT,
             foto_path TEXT
@@ -34,17 +32,21 @@ init_db()
 
 st.set_page_config(page_title="Guitar Vault", layout="wide")
 st.title("🎸 Il mio Guitar Vault")
+st.subheader("Gestisci la tua collezione e la manutenzione delle tue chitarre")
 
 # --- SEZIONE INSERIMENTO ---
 with st.sidebar.expander("➕ Aggiungi una nuova chitarra", expanded=False):
     with st.form("nuova_chitarra"):
-        modello = st.text_input("Modello")
+        modello = st.text_input("Modello della Chitarra")
         serie = st.text_input("Numero di Serie")
-        marca = st.text_input("Marca Corde")
-        spessore = st.text_input("Spessore Corde (es. 10-46)")
-        data_cambio = st.date_input("Data Ultimo Cambio", datetime.now())
-        prossimo_cambio = st.date_input("Data Prossimo Cambio", data_cambio + timedelta(days=90))
-        foto = st.file_uploader("Foto", type=["jpg", "jpeg", "png"])
+        corde = st.text_input("Corde Montate (Marca/Scalatura)")
+        data_cambio = st.date_input("Data Ultimo Cambio Corde", datetime.now())
+        
+        # Calcolo automatico suggerito a 3 mesi di distanza
+        prossimo_suggerito = data_cambio + timedelta(days=90)
+        prossimo_cambio = st.date_input("Data Prossimo Cambio", prossimo_suggerito)
+        
+        foto = st.file_uploader("Carica una fotografia", type=["jpg", "jpeg", "png"])
         
         submit = st.form_submit_button("Salva nel Vault")
         
@@ -58,37 +60,47 @@ with st.sidebar.expander("➕ Aggiungi una nuova chitarra", expanded=False):
             conn = sqlite3.connect(DB_NAME)
             c = conn.cursor()
             c.execute('''
-                INSERT INTO chitarre (modello, serie, marca_corde, spessore_corde, data_cambio, prossimo_cambio, foto_path)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (modello, serie, marca, spessore, str(data_cambio), str(prossimo_cambio), foto_path))
+                INSERT INTO chitarre (modello, serie, corde, data_cambio, prossimo_cambio, foto_path)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (modello, serie, corde, str(data_cambio), str(prossimo_cambio), foto_path))
             conn.commit()
             conn.close()
+            st.success(f"{modello} aggiunta con successo!")
             st.rerun()
 
-# --- VISUALIZZAZIONE ---
+# --- SEZIONE VISUALIZZAZIONE ---
 conn = sqlite3.connect(DB_NAME)
 df = pd.read_sql_query("SELECT * FROM chitarre", conn)
 conn.close()
 
 if df.empty:
-    st.info("Vault vuoto. Aggiungi la tua prima chitarra!")
+    st.info("Il tuo vault è vuoto. Aggiungi la tua prima chitarra dal menu a sinistra!")
 else:
+    # Mostra le chitarre in una griglia di card
     for index, row in df.iterrows():
         with st.container():
-            col1, col2 = st.columns([1, 3])
+            col1, col2, col3 = st.columns([1, 2, 1])
+            
             with col1:
                 if row['foto_path'] and os.path.exists(row['foto_path']):
                     st.image(row['foto_path'], use_column_width=True)
+                else:
+                    st.image("https://via.placeholder.com/300x200.png?text=Nessuna+Foto", use_column_width=True)
+            
             with col2:
-                st.subheader(row['modello'])
-                st.write(f"**Serial:** {row['serie']}")
+                st.markdown(f"### {row['modello']}")
+                st.markdown(f"**Serial Number:** `{row['serie']}`")
+                st.markdown(f"**Corde attuali:** {row['corde']}")
+            
+            with col3:
+                st.markdown("📅 **Manutenzione**")
+                st.caption(f"Ultimo cambio: {row['data_cambio']}")
                 
-                # Visualizzazione nativa dei dettagli corde
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Marca Corde", row['marca_corde'] or "-")
-                c2.metric("Spessore", row['spessore_corde'] or "-")
-                c3.caption(f"Ultimo cambio: {row['data_cambio']}")
-                
-                if st.button(f"✏️ Modifica {row['modello']}", key=f"edit_{row['id']}"):
-                    st.warning("Funzione modifica in arrivo!")
-            st.divider()
+                # Evidenzia se le corde sono da cambiare
+                data_scadenza = datetime.strptime(row['prossimo_cambio'], "%Y-%m-%d").date()
+                if data_scadenza <= datetime.now().date():
+                    st.error(f"Cambiare corde entro il: {row['prossimo_cambio']}")
+                else:
+                    st.success(f"Prossimo cambio: {row['prossimo_cambio']}")
+            
+            st.markdown("---")

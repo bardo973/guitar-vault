@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import os
 
-# Configurazione database
+# Configurazione
 DB_NAME = "collezione_chitarre.db"
 IMG_DIR = "foto_chitarre"
 
@@ -32,75 +32,71 @@ init_db()
 
 st.set_page_config(page_title="Guitar Vault", layout="wide")
 st.title("🎸 Il mio Guitar Vault")
-st.subheader("Gestisci la tua collezione e la manutenzione delle tue chitarre")
 
-# --- SEZIONE INSERIMENTO ---
+# --- FUNZIONI DI SUPPORTO ---
+def delete_guitar(guitar_id):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("DELETE FROM chitarre WHERE id = ?", (guitar_id,))
+    conn.commit()
+    conn.close()
+
+# --- SIDEBAR: AGGIUNTA ---
 with st.sidebar.expander("➕ Aggiungi una nuova chitarra", expanded=False):
-    with st.form("nuova_chitarra"):
-        modello = st.text_input("Modello della Chitarra")
+    with st.form("nuova_chitarra", clear_on_submit=True):
+        modello = st.text_input("Modello")
         serie = st.text_input("Numero di Serie")
-        corde = st.text_input("Corde Montate (Marca/Scalatura)")
-        data_cambio = st.date_input("Data Ultimo Cambio Corde", datetime.now())
-        
-        # Calcolo automatico suggerito a 3 mesi di distanza
-        prossimo_suggerito = data_cambio + timedelta(days=90)
-        prossimo_cambio = st.date_input("Data Prossimo Cambio", prossimo_suggerito)
-        
-        foto = st.file_uploader("Carica una fotografia", type=["jpg", "jpeg", "png"])
-        
-        submit = st.form_submit_button("Salva nel Vault")
+        corde = st.text_input("Corde (Marca/Scalatura)")
+        data_cambio = st.date_input("Data Ultimo Cambio", datetime.now())
+        submit = st.form_submit_button("Salva")
         
         if submit and modello:
-            foto_path = ""
-            if foto is not None:
-                foto_path = os.path.join(IMG_DIR, f"{serie}_{foto.name}")
-                with open(foto_path, "wb") as f:
-                    f.write(foto.getbuffer())
-            
+            prossimo_cambio = data_cambio + timedelta(days=90)
             conn = sqlite3.connect(DB_NAME)
             c = conn.cursor()
-            c.execute('''
-                INSERT INTO chitarre (modello, serie, corde, data_cambio, prossimo_cambio, foto_path)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (modello, serie, corde, str(data_cambio), str(prossimo_cambio), foto_path))
+            c.execute('INSERT INTO chitarre (modello, serie, corde, data_cambio, prossimo_cambio) VALUES (?,?,?,?,?)', 
+                      (modello, serie, corde, str(data_cambio), str(prossimo_cambio)))
             conn.commit()
             conn.close()
-            st.success(f"{modello} aggiunta con successo!")
+            st.success("Aggiunta!")
             st.rerun()
 
-# --- SEZIONE VISUALIZZAZIONE ---
+# --- VISUALIZZAZIONE E AZIONI ---
 conn = sqlite3.connect(DB_NAME)
 df = pd.read_sql_query("SELECT * FROM chitarre", conn)
 conn.close()
 
 if df.empty:
-    st.info("Il tuo vault è vuoto. Aggiungi la tua prima chitarra dal menu a sinistra!")
+    st.info("Il vault è vuoto.")
 else:
-    # Mostra le chitarre in una griglia di card
-    for index, row in df.iterrows():
-        with st.container():
+    for _, row in df.iterrows():
+        with st.container(border=True):
             col1, col2, col3 = st.columns([1, 2, 1])
             
             with col1:
-                if row['foto_path'] and os.path.exists(row['foto_path']):
-                    st.image(row['foto_path'], use_column_width=True)
-                else:
-                    st.image("https://via.placeholder.com/300x200.png?text=Nessuna+Foto", use_column_width=True)
+                st.subheader(row['modello'])
+                st.caption(f"S/N: {row['serie']}")
             
             with col2:
-                st.markdown(f"### {row['modello']}")
-                st.markdown(f"**Serial Number:** `{row['serie']}`")
-                st.markdown(f"**Corde attuali:** {row['corde']}")
-            
-            with col3:
-                st.markdown("📅 **Manutenzione**")
-                st.caption(f"Ultimo cambio: {row['data_cambio']}")
-                
-                # Evidenzia se le corde sono da cambiare
+                st.write(f"**Corde:** {row['corde']}")
                 data_scadenza = datetime.strptime(row['prossimo_cambio'], "%Y-%m-%d").date()
                 if data_scadenza <= datetime.now().date():
-                    st.error(f"Cambiare corde entro il: {row['prossimo_cambio']}")
+                    st.error(f"⚠️ Cambio necessario dal {row['prossimo_cambio']}")
                 else:
-                    st.success(f"Prossimo cambio: {row['prossimo_cambio']}")
+                    st.info(f"📅 Prossimo cambio: {row['prossimo_cambio']}")
             
-            st.markdown("---")
+            with col3:
+                # Bottone per aggiornare il cambio corde (reset data a oggi + 90gg)
+                if st.button("Fatto! Cambio corde", key=f"btn_{row['id']}"):
+                    nuovo_cambio = datetime.now().date()
+                    nuova_scadenza = nuovo_cambio + timedelta(days=90)
+                    conn = sqlite3.connect(DB_NAME)
+                    conn.execute("UPDATE chitarre SET data_cambio = ?, prossimo_cambio = ? WHERE id = ?", 
+                                 (str(nuovo_cambio), str(nuova_scadenza), row['id']))
+                    conn.commit()
+                    conn.close()
+                    st.rerun()
+                
+                if st.button("Elimina", key=f"del_{row['id']}"):
+                    delete_guitar(row['id'])
+                    st.rerun()

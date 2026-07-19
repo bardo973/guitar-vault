@@ -14,9 +14,11 @@ if not os.path.exists(IMG_DIR):
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
+    # Aggiunta colonna foto_path
     c.execute('''
         CREATE TABLE IF NOT EXISTS chitarre (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            marca TEXT,
             modello TEXT,
             serie TEXT,
             corde TEXT,
@@ -33,10 +35,16 @@ init_db()
 st.set_page_config(page_title="Guitar Vault", layout="wide")
 st.title("🎸 Il mio Guitar Vault")
 
-# --- FUNZIONI DI SUPPORTO ---
+# --- FUNZIONI ---
 def delete_guitar(guitar_id):
+    # Recuperiamo il path della foto per eliminarla insieme al record
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
+    c.execute("SELECT foto_path FROM chitarre WHERE id = ?", (guitar_id,))
+    row = c.fetchone()
+    if row and row[0] and os.path.exists(row[0]):
+        os.remove(row[0])
+    
     c.execute("DELETE FROM chitarre WHERE id = ?", (guitar_id,))
     conn.commit()
     conn.close()
@@ -47,23 +55,32 @@ with st.sidebar.expander("➕ Aggiungi una nuova chitarra", expanded=False):
         marca = st.text_input("Marca")
         modello = st.text_input("Modello")
         serie = st.text_input("Numero di Serie")
-        corde = st.text_input("Corde (Marca)")
-        corde = st.text_input("Corde (Scalatura)")
+        marca_corde = st.text_input("Marca Corde")
+        scalatura_corde = st.text_input("Scalatura Corde")
         data_cambio = st.date_input("Data Ultimo Cambio", datetime.now())
+        uploaded_file = st.file_uploader("Carica una foto", type=['jpg', 'jpeg', 'png'])
         submit = st.form_submit_button("Salva")
         
         if submit and modello:
+            foto_path = None
+            if uploaded_file is not None:
+                foto_path = os.path.join(IMG_DIR, f"{datetime.now().timestamp()}_{uploaded_file.name}")
+                with open(foto_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+
+            info_corde = f"{marca_corde} {scalatura_corde}"
             prossimo_cambio = data_cambio + timedelta(days=90)
+            
             conn = sqlite3.connect(DB_NAME)
             c = conn.cursor()
-            c.execute('INSERT INTO chitarre (modello, serie, corde, data_cambio, prossimo_cambio) VALUES (?,?,?,?,?)', 
-                      (modello, serie, corde, str(data_cambio), str(prossimo_cambio)))
+            c.execute('INSERT INTO chitarre (marca, modello, serie, corde, data_cambio, prossimo_cambio, foto_path) VALUES (?,?,?,?,?,?,?)', 
+                      (marca, modello, serie, info_corde, str(data_cambio), str(prossimo_cambio), foto_path))
             conn.commit()
             conn.close()
-            st.success("Aggiunta!")
+            st.success("Chitarra aggiunta!")
             st.rerun()
 
-# --- VISUALIZZAZIONE E AZIONI ---
+# --- VISUALIZZAZIONE ---
 conn = sqlite3.connect(DB_NAME)
 df = pd.read_sql_query("SELECT * FROM chitarre", conn)
 conn.close()
@@ -76,7 +93,11 @@ else:
             col1, col2, col3 = st.columns([1, 2, 1])
             
             with col1:
-                st.subheader(row['modello'])
+                if row['foto_path'] and os.path.exists(row['foto_path']):
+                    st.image(row['foto_path'], width=150)
+                else:
+                    st.write("📷 Nessuna foto")
+                st.subheader(f"{row['marca']} {row['modello']}")
                 st.caption(f"S/N: {row['serie']}")
             
             with col2:
@@ -88,7 +109,6 @@ else:
                     st.info(f"📅 Prossimo cambio: {row['prossimo_cambio']}")
             
             with col3:
-                # Bottone per aggiornare il cambio corde (reset data a oggi + 90gg)
                 if st.button("Fatto! Cambio corde", key=f"btn_{row['id']}"):
                     nuovo_cambio = datetime.now().date()
                     nuova_scadenza = nuovo_cambio + timedelta(days=90)

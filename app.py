@@ -4,34 +4,27 @@ import os
 from datetime import date, datetime
 from PIL import Image
 
-# Configurazione cartella
 CARTELLA_IMG = "guitar_valute"
 if not os.path.exists(CARTELLA_IMG):
     os.makedirs(CARTELLA_IMG)
 
 st.title("🎸 La mia Collezione di Chitarre")
 
-# --- FUNZIONI DI GESTIONE ---
 def carica_dati():
     return pd.read_csv("collezione.csv") if os.path.exists("collezione.csv") else pd.DataFrame()
 
 df = carica_dati()
 
-# --- RIASSUNTO E NAVIGAZIONE ---
+# --- NAVIGAZIONE RAPIDA ---
 if not df.empty:
-    st.subheader("Navigazione rapida")
+    st.subheader("Vai a:")
     cols = st.columns(len(df))
     for idx, (i, row) in enumerate(df.iterrows()):
-        percorso = os.path.join(CARTELLA_IMG, str(row['Foto']))
-        if os.path.exists(percorso):
-            # Bottone con immagine (link al segnaposto HTML)
-            if cols[idx].button(f"{row['Marca']} {row['Modello']}", key=f"nav_{i}"):
-                st.write(f'<a href="#chitarra-{i}">Vai a {row["Marca"]}</a>', unsafe_allow_html=True)
-                st.rerun()
+        if cols[idx].button(f"{row['Marca']} {row['Modello']}", key=f"nav_{i}"):
+            st.query_params["target"] = i
+            st.rerun()
 
-st.divider()
-
-# Sidebar per Aggiunta
+# --- SIDEBAR (AGGIUNTA) ---
 with st.sidebar:
     st.header("Aggiungi nuova chitarra")
     with st.form("nuova_chitarra", clear_on_submit=True):
@@ -68,9 +61,11 @@ if submit and marca and modello:
 if not df.empty:
     st.metric("Valore Totale", f"{df['Valore'].sum():,.2f} €")
     
+    target_id = st.query_params.get("target")
+    
     for i, row in df.iterrows():
-        # Segnaposto HTML per il salto (ancora)
-        st.write(f'<div id="chitarra-{i}"></div>', unsafe_allow_html=True)
+        # Crea un ancora visibile per il browser
+        is_target = str(i) == target_id
         
         col1, col2 = st.columns([1, 2])
         
@@ -83,6 +78,7 @@ if not df.empty:
         
         with col2:
             st.write(f"### {row['Marca']} {row['Modello']}")
+            if is_target: st.write("🎯 *Qui trovi la chitarra selezionata*")
             
             if giorni_trascorsi > 90:
                 st.error(f"⚠️ Corde da cambiare! ({giorni_trascorsi} gg)")
@@ -98,8 +94,16 @@ if not df.empty:
                     st.rerun()
 
             if 'editing' in st.session_state and st.session_state.editing == i:
-                # [Codice Modifica omesso per brevità, resta uguale al precedente]
-                pass 
+                with st.expander("Modifica dati", expanded=True):
+                    with st.form(f"form_mod_{i}"):
+                        new_marca = st.text_input("Marca", row['Marca'])
+                        new_valore = st.number_input("Valore", row['Valore'])
+                        if st.form_submit_button("Salva"):
+                            df.at[i, 'Marca'] = new_marca
+                            df.at[i, 'Valore'] = new_valore
+                            df.to_csv("collezione.csv", index=False)
+                            del st.session_state.editing
+                            st.rerun()
             else:
                 st.write(f"💰 **Valore:** {row['Valore']} €")
                 with st.expander("Dettagli"):

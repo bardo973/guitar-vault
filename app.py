@@ -12,20 +12,22 @@ st.title("🎸 La mia Collezione di Chitarre")
 
 # Form per aggiungere una chitarra
 with st.sidebar:
-    st.header("Aggiungi/Modifica chitarra")
+    st.header("Aggiungi nuova chitarra")
     with st.form("nuova_chitarra"):
         marca = st.text_input("Marca")
         modello = st.text_input("Modello")
         anno = st.number_input("Anno", min_value=1900, max_value=2026, step=1)
         tipo = st.selectbox("Tipo", ["Elettrica", "Acustica", "Classica", "Basso"])
-        colore = st.text_input("Colore")
+        
+        # Nuovi campi
+        setting = st.text_area("Setting (es. Action, Pickup, Ponte)")
+        valore = st.number_input("Valore Attuale (€)", min_value=0, step=50)
+        
         marca_corde = st.text_input("Marca Corde")
         scalatura = st.text_input("Scalatura (es. 09-42)")
-        
-        # Nuovo campo data
         data_cambio = st.date_input("Ultimo cambio corde", value=date.today())
         
-        note = st.text_area("Note/Modifiche")
+        note = st.text_area("Note aggiuntive")
         foto = st.file_uploader("Carica foto", type=['jpg', 'png', 'jpeg'])
         
         submit = st.form_submit_button("Salva Chitarra")
@@ -39,9 +41,9 @@ if submit and marca and modello:
     
     nuova_chitarra = {
         "Marca": [marca], "Modello": [modello], "Anno": [anno], 
-        "Tipo": [tipo], "Colore": [colore], "Marca Corde": [marca_corde],
-        "Scalatura": [scalatura], "Data Cambio": [str(data_cambio)],
-        "Note": [note], "Foto": [nome_file]
+        "Tipo": [tipo], "Setting": [setting], "Valore": [valore],
+        "Marca Corde": [marca_corde], "Scalatura": [scalatura], 
+        "Data Cambio": [str(data_cambio)], "Note": [note], "Foto": [nome_file]
     }
     
     df_nuovo = pd.DataFrame(nuova_chitarra)
@@ -59,10 +61,12 @@ if os.path.exists("collezione.csv"):
     df = pd.read_csv("collezione.csv")
     st.subheader("La tua collezione")
     
+    # Calcolo valore totale collezione
+    st.metric("Valore Totale Collezione", f"{df['Valore'].sum():,.2f} €")
+    
     for i, row in df.iterrows():
         col1, col2 = st.columns([1, 2])
         
-        # Calcolo giorni trascorsi
         data_ultima = datetime.strptime(row['Data Cambio'], '%Y-%m-%d').date()
         giorni_trascorsi = (date.today() - data_ultima).days
         
@@ -70,18 +74,22 @@ if os.path.exists("collezione.csv"):
             percorso_img = os.path.join("immagini_chitarre", str(row['Foto']))
             if os.path.exists(percorso_img):
                 st.image(percorso_img, use_column_width=True)
+            else:
+                st.write("Nessuna foto")
         
         with col2:
-            st.write(f"### {row['Marca']} {row['Modello']}")
-            st.write(f"**Corde:** {row['Marca Corde']} ({row['Scalatura']})")
+            st.write(f"### {row['Marca']} {row['Modello']} ({row['Anno']})")
+            st.write(f"💰 **Valore:** {row['Valore']} €")
             
-            # Logica avviso cambio corde
+            # Stato Corde
             if giorni_trascorsi > 90:
-                st.error(f"⚠️ Corde vecchie: cambiate {giorni_trascorsi} giorni fa!")
+                st.error(f"⚠️ Corde da cambiare! ({giorni_trascorsi} gg)")
             else:
-                st.info(f"✅ Corde ok: cambiate {giorni_trascorsi} giorni fa.")
+                st.info(f"✅ Corde ok: {giorni_trascorsi} giorni dall'ultimo cambio")
                 
-            with st.expander("Vedi dettagli"):
-                st.write(f"**Anno:** {row['Anno']} | **Tipo:** {row['Tipo']} | **Colore:** {row['Colore']}")
+            with st.expander("Dettagli Tecnici"):
+                st.write(f"**Tipo:** {row['Tipo']}")
+                st.write(f"**Setting:** {row['Setting']}")
+                st.write(f"**Corde:** {row['Marca Corde']} ({row['Scalatura']})")
                 st.write(f"**Note:** {row['Note']}")
         st.divider()

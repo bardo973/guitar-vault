@@ -103,7 +103,7 @@ if not df.empty:
       col1, col2, col3 = st.columns([1, 2, 1])
       with col1:
         if row["foto_path"] and os.path.exists(row["foto_path"]):
-          st.image(row["foto_path"], width=None)
+          st.image(row["foto_path"], use_container_width=True)
         else:
           st.info("No Photo")
       with col2:

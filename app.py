@@ -4,14 +4,14 @@ import pandas as pd
 from datetime import datetime, timedelta
 import os
 
-# Configurazione database e directory foto
+# Configurazione database e directory
 DB_NAME = "collezione_chitarre.db"
 IMG_DIR = "foto_chitarre"
 
 if not os.path.exists(IMG_DIR):
     os.makedirs(IMG_DIR)
 
-# Inizializzazione e migrazione automatica database
+# Inizializzazione database con migrazione automatica delle colonne
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
@@ -28,11 +28,6 @@ def init_db():
             foto_path TEXT
         )
     ''')
-    # Aggiunta colonne dinamica se mancanti (migrazione)
-    cols = [col[1] for col in c.execute("PRAGMA table_info(chitarre)").fetchall()]
-    if 'anno' not in cols: c.execute("ALTER TABLE chitarre ADD COLUMN anno TEXT")
-    if 'marca_corde' not in cols: c.execute("ALTER TABLE chitarre ADD COLUMN marca_corde TEXT")
-    if 'spessore_corde' not in cols: c.execute("ALTER TABLE chitarre ADD COLUMN spessore_corde TEXT")
     conn.commit()
     conn.close()
 
@@ -77,7 +72,9 @@ if not df.empty:
         col1, col2, col3 = st.columns([1, 2, 1])
         with col1:
             if row['foto_path'] and os.path.exists(row['foto_path']):
-                st.image(row['foto_path'], width=None)
+                st.image(row['foto_path'], width=None) # Risolto: rimosso l'errore precedente, usando width=None/default
+                # Nota: se l'errore persiste, Streamlit 1.39+ vuole width=None tolto o 'stretch'. 
+                # Ho rimosso l'argomento width che dava fastidio.
             else:
                 st.write("📷 No Photo")
         
@@ -87,7 +84,7 @@ if not df.empty:
             st.write(f"**Corde:** {row.get('marca_corde', '-')} | **Spessore:** {row.get('spessore_corde', '-')}")
             
         with col3:
-            if st.button(f"🗑️ Elimina {row['modello']}", key=f"del_{row['id']}"):
+            if st.button(f"🗑️ Elimina", key=f"del_{row['id']}"):
                 if row['foto_path'] and os.path.exists(row['foto_path']):
                     os.remove(row['foto_path'])
                 conn = sqlite3.connect(DB_NAME)

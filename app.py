@@ -11,7 +11,6 @@ IMG_DIR = "foto_chitarre"
 if not os.path.exists(IMG_DIR):
     os.makedirs(IMG_DIR)
 
-# Inizializzazione database con migrazione automatica delle colonne
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
@@ -36,7 +35,6 @@ init_db()
 st.set_page_config(page_title="Guitar Vault", layout="wide")
 st.title("🎸 Guitar Vault")
 
-# --- SEZIONE INSERIMENTO ---
 with st.sidebar.expander("➕ Aggiungi Chitarra", expanded=True):
     with st.form("nuova_chitarra", clear_on_submit=True):
         modello = st.text_input("Modello")
@@ -61,7 +59,6 @@ with st.sidebar.expander("➕ Aggiungi Chitarra", expanded=True):
             conn.close()
             st.rerun()
 
-# --- SEZIONE VISUALIZZAZIONE ---
 conn = sqlite3.connect(DB_NAME)
 df = pd.read_sql_query("SELECT * FROM chitarre", conn)
 conn.close()
@@ -72,9 +69,8 @@ if not df.empty:
         col1, col2, col3 = st.columns([1, 2, 1])
         with col1:
             if row['foto_path'] and os.path.exists(row['foto_path']):
-                st.image(row['foto_path'], width=None) # Risolto: rimosso l'errore precedente, usando width=None/default
-                # Nota: se l'errore persiste, Streamlit 1.39+ vuole width=None tolto o 'stretch'. 
-                # Ho rimosso l'argomento width che dava fastidio.
+                # Corretto l'uso di width='stretch' per le nuove versioni di Streamlit
+                st.image(row['foto_path'], width='stretch')
             else:
                 st.write("📷 No Photo")
         

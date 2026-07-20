@@ -14,6 +14,7 @@ if not os.path.exists(IMG_DIR):
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
+    # Creazione tabella base
     c.execute('''
         CREATE TABLE IF NOT EXISTS chitarre (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,12 +23,20 @@ def init_db():
             anno TEXT,
             marca_corde TEXT,
             spessore_corde TEXT,
-            pickups TEXT,
             data_cambio TEXT,
             prossimo_cambio TEXT,
             foto_path TEXT
         )
     ''')
+    
+    # Migrazione sicura: aggiunta colonne mancanti
+    columns_to_add = [("pickups", "TEXT")]
+    for col_name, col_type in columns_to_add:
+        try:
+            c.execute(f"ALTER TABLE chitarre ADD COLUMN {col_name} {col_type}")
+        except sqlite3.OperationalError:
+            pass # La colonna esiste già
+            
     conn.commit()
     conn.close()
 
@@ -36,14 +45,14 @@ init_db()
 st.set_page_config(page_title="Guitar Vault", layout="wide")
 st.title("🎸 Il mio Guitar Vault")
 
+# --- SEZIONE INSERIMENTO ---
 with st.sidebar.expander("➕ Aggiungi Chitarra", expanded=True):
     with st.form("nuova_chitarra", clear_on_submit=True):
         modello = st.text_input("Modello")
         serie = st.text_input("Numero di Serie")
         anno = st.text_input("Anno")
         marca = st.text_input("Marca Corde")
-        spessore = st.selectbox("Scalatura Corde", 
-                                ["008", "009", "010", "011", "012", "013", "Altro"])
+        spessore = st.selectbox("Scalatura Corde", ["008", "009", "010", "011", "012", "013", "Altro"])
         pickups = st.text_input("Pick-up montati")
         data_cambio = st.date_input("Ultimo Cambio Corde", datetime.now())
         foto = st.file_uploader("Foto", type=["jpg", "png", "jpeg"])
@@ -63,6 +72,7 @@ with st.sidebar.expander("➕ Aggiungi Chitarra", expanded=True):
             conn.close()
             st.rerun()
 
+# --- SEZIONE VISUALIZZAZIONE ---
 conn = sqlite3.connect(DB_NAME)
 df = pd.read_sql_query("SELECT * FROM chitarre", conn)
 conn.close()

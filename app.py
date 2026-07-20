@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import os
 
+# Configurazione database
 DB_NAME = "collezione_chitarre.db"
 IMG_DIR = "foto_chitarre"
 
@@ -13,7 +14,6 @@ if not os.path.exists(IMG_DIR):
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    # Aggiunta colonne mancanti se necessario
     c.execute('''
         CREATE TABLE IF NOT EXISTS chitarre (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,7 +34,7 @@ def init_db():
 init_db()
 
 st.set_page_config(page_title="Guitar Vault", layout="wide")
-st.title("🎸 Guitar Vault")
+st.title("🎸 Il mio Guitar Vault")
 
 with st.sidebar.expander("➕ Aggiungi Chitarra", expanded=True):
     with st.form("nuova_chitarra", clear_on_submit=True):
@@ -42,7 +42,8 @@ with st.sidebar.expander("➕ Aggiungi Chitarra", expanded=True):
         serie = st.text_input("Numero di Serie")
         anno = st.text_input("Anno")
         marca = st.text_input("Marca Corde")
-        spessore = st.text_input("Spessore Corde")
+        spessore = st.selectbox("Scalatura Corde", 
+                                ["008", "009", "010", "011", "012", "013", "Altro"])
         pickups = st.text_input("Pick-up montati")
         data_cambio = st.date_input("Ultimo Cambio Corde", datetime.now())
         foto = st.file_uploader("Foto", type=["jpg", "png", "jpeg"])
@@ -55,8 +56,9 @@ with st.sidebar.expander("➕ Aggiungi Chitarra", expanded=True):
             
             conn = sqlite3.connect(DB_NAME)
             c = conn.cursor()
+            prossimo = data_cambio + timedelta(days=90)
             c.execute("INSERT INTO chitarre (modello, serie, anno, marca_corde, spessore_corde, pickups, data_cambio, prossimo_cambio, foto_path) VALUES (?,?,?,?,?,?,?,?,?)",
-                      (modello, serie, anno, marca, spessore, pickups, str(data_cambio), str(data_cambio + timedelta(days=90)), foto_path))
+                      (modello, serie, anno, marca, spessore, pickups, str(data_cambio), str(prossimo), foto_path))
             conn.commit()
             conn.close()
             st.rerun()
@@ -69,6 +71,7 @@ if not df.empty:
     for _, row in df.iterrows():
         st.divider()
         col1, col2, col3 = st.columns([1, 2, 1])
+        
         with col1:
             if row['foto_path'] and os.path.exists(row['foto_path']):
                 st.image(row['foto_path'], width='stretch')
@@ -78,18 +81,17 @@ if not df.empty:
         with col2:
             st.subheader(row['modello'])
             st.write(f"**S/N:** {row['serie']} | **Anno:** {row.get('anno', '-')}")
-            st.write(f"**Corde:** {row.get('marca_corde', '-')} | **Spessore:** {row.get('spessore_corde', '-')}")
+            st.write(f"**Corde:** {row.get('marca_corde', '-')} ({row.get('spessore_corde', '-')})")
             st.write(f"**Pick-up:** {row.get('pickups', '-')}")
             
         with col3:
-            # Alert scadenza cambio corde
             scadenza = datetime.strptime(row['prossimo_cambio'], "%Y-%m-%d").date()
             if scadenza <= datetime.now().date():
-                st.error(f"⚠️ Cambio corde scaduto!")
+                st.error(f"⚠️ Cambio corde scaduto il: {row['prossimo_cambio']}")
             else:
-                st.info(f"📅 Cambio: {row['prossimo_cambio']}")
+                st.info(f"📅 Cambio previsto: {row['prossimo_cambio']}")
                 
-            if st.button(f"🗑️ Elimina", key=f"del_{row['id']}"):
+            if st.button(f"🗑️ Elimina {row['modello']}", key=f"del_{row['id']}"):
                 if row['foto_path'] and os.path.exists(row['foto_path']):
                     os.remove(row['foto_path'])
                 conn = sqlite3.connect(DB_NAME)

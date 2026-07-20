@@ -15,6 +15,26 @@ IMG_DIR = "foto_chitarre"
 if not os.path.exists(IMG_DIR):
   os.makedirs(IMG_DIR)
 
+# --- STILE CSS (SFONDO HENDRIX E PERSONALIZZAZIONE) ---
+hendrix_bg = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1920&auto=format&fit=crop"
+
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.85)), url("{hendrix_bg}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }}
+    h1, h2, h3, p, label, .stMarkdown {{
+        color: #ffffff !important;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 # --- FUNZIONI DI SISTEMA ---
 def init_db():
@@ -22,16 +42,20 @@ def init_db():
   c = conn.cursor()
   c.execute("""CREATE TABLE IF NOT EXISTS chitarre (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                modello TEXT, serie TEXT, anno TEXT,
+                tipo_modello TEXT, modello TEXT, serie TEXT, anno TEXT,
                 marca_corde TEXT, spessore_corde TEXT,
                 pickups TEXT, data_cambio TEXT, 
                 prossimo_cambio TEXT, foto_path TEXT)""")
 
-  # Migrazione colonne sicura
-  cols = ["pickups", "anno"]
-  for col in cols:
+  # Migrazione colonne sicura per database esistenti
+  cols = [
+      ("tipo_modello", "TEXT"),
+      ("pickups", "TEXT"),
+      ("anno", "TEXT"),
+  ]
+  for col_name, col_type in cols:
     try:
-      c.execute(f"ALTER TABLE chitarre ADD COLUMN {col} TEXT")
+      c.execute(f"ALTER TABLE chitarre ADD COLUMN {col_name} {col_type}")
     except:
       pass
   conn.commit()
@@ -46,7 +70,28 @@ with st.sidebar:
     st.image("logo.png", width=200)
   st.markdown("## 🎸 Nuovo Strumento")
   with st.form("nuova_chitarra", clear_on_submit=True):
-    modello = st.text_input("Modello")
+    # Menu a tendina per il modello/tipologia principale di chitarra
+    tipo_modello = st.selectbox(
+        "Tipologia Modello",
+        [
+            "Fender Stratocaster",
+            "Fender Telecaster",
+            "Gibson Les Paul",
+            "Gibson SG",
+            "Gibson ES-335",
+            "Ibanez",
+            "PRS",
+            "Epiphone",
+            "Squier",
+            "Jackson",
+            "ESP / LTD",
+            "Acustica / Classica",
+            "Altro Modello",
+        ],
+    )
+    modello = st.text_input(
+        "Nome Specifico / Edizione (es. Standard, Custom Shop)"
+    )
     serie = st.text_input("Numero di Serie")
     anno = st.text_input("Anno di costruzione")
     marca = st.text_input("Marca Corde")
@@ -69,10 +114,11 @@ with st.sidebar:
       c = conn.cursor()
       prossimo = data_cambio + timedelta(days=90)
       c.execute(
-          "INSERT INTO chitarre (modello, serie, anno, marca_corde,"
-          " spessore_corde, pickups, data_cambio, prossimo_cambio, foto_path)"
-          " VALUES (?,?,?,?,?,?,?,?,?)",
+          "INSERT INTO chitarre (tipo_modello, modello, serie, anno,"
+          " marca_corde, spessore_corde, pickups, data_cambio, prossimo_cambio,"
+          " foto_path) VALUES (?,?,?,?,?,?,?,?,?,?)",
           (
+              tipo_modello,
               modello,
               serie,
               anno,
@@ -97,8 +143,27 @@ df = pd.read_sql_query("SELECT * FROM chitarre", conn)
 conn.close()
 
 if not df.empty:
-  for _, row in df.iterrows():
-    # Creiamo un container elegante per ogni chitarra
+  # --- MENU A TENDINA PER SELEZIONARE LA CHITARRA ---
+  opzioni_chitarre = ["Tutte le chitarre"] + [
+      f"{row.get('tipo_modello', 'Chitarra')} - {row['modello']} (S/N:"
+      f" {row['serie']})"
+      for _, row in df.iterrows()
+  ]
+  scelta_filtro = st.selectbox(
+      "🔍 Seleziona o filtra strumento dal Vault:", opzioni_chitarre
+  )
+
+  # Filtro in base alla selezione
+  if scelta_filtro != "Tutte le chitarre":
+    serie_selezionata = scelta_filtro.split("S/N: ")[1].replace(")", "")
+    df_filtrato = df[df["serie"] == serie_selezionata]
+  else:
+    df_filtrato = df
+
+  st.markdown("<br>", unsafe_allow_html=True)
+
+  # Visualizzazione delle chitarre filtrate
+  for _, row in df_filtrato.iterrows():
     with st.container(border=True):
       col1, col2, col3 = st.columns([1, 2, 1])
       with col1:
@@ -107,7 +172,10 @@ if not df.empty:
         else:
           st.info("No Photo")
       with col2:
-        st.subheader(f"{row['modello']} ({row.get('anno', '-')})")
+        titolo_principale = (
+            f"{row.get('tipo_modello', '')} {row['modello']}".strip()
+        )
+        st.subheader(f"{titolo_principale} ({row.get('anno', '-')})")
         st.write(f"**S/N:** {row['serie']}")
         st.write(
             f"**Corde:** {row.get('marca_corde', '-')} |"

@@ -1,5 +1,6 @@
-from datetime import date
+from datetime import date, timedelta
 from typing import Optional
+from PIL import Image
 from pydantic import BaseModel, Field
 import streamlit as st
 
@@ -7,7 +8,7 @@ import streamlit as st
 # 1. CONFIGURAZIONE PAGINA
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="Guitar Vault",
+    page_title="Guitar Vault Pro",
     page_icon="🎸",
     layout="wide",
 )
@@ -58,10 +59,10 @@ class Chitarra(BaseModel):
 
 
 # ---------------------------------------------------------
-# 3. STATO INIZIALE (DATABASE IN MEMORIA)
+# 3. INIZIALIZZAZIONE STATO
 # ---------------------------------------------------------
 if "chitarre" not in st.session_state:
-  demo_gtr = Chitarra(
+  demo_gtr1 = Chitarra(
       id="gtr_1",
       marca="Fender",
       modello="American Professional II Stratocaster",
@@ -71,47 +72,102 @@ if "chitarre" not in st.session_state:
           scalatura_corde=".010-.046",
           marca_corde="D'Addario EXL110",
           accordatura="E Standard",
-          action_mm="1.5mm / 1.8mm",
-          relief_manico="0.20mm",
-          capotasto="Osso",
-      ),
-      elettronica=Elettronica(
-          configurazione_pickup="SSS",
-          modello_pickup="V-Mod II Single-Coil",
-          altezza_pickup="2.4mm",
-          controlli_modifiche="Push-push su secondo tono",
-          has_push_pull=True,
       ),
       manutenzione=Manutenzione(
-          data_ultimo_cambio_corde=date(2026, 6, 15),
-          data_pulizia_tastiera=date(2026, 5, 10),
-          interventi_liuteria="Schermatura vano elettronica",
-          note_problemi="Nessuno",
-      ),
-      economia=ValoreEconomico(
-          prezzo_acquisto=1450.0, valore_stimato_attuale=1600.0
+          data_ultimo_cambio_corde=date(2026, 4, 1),  # Corde vecchie (> 60 gg)
+          data_pulizia_tastiera=date(2026, 4, 1),
       ),
   )
-  st.session_state.chitarre = [demo_gtr]
+
+  demo_gtr2 = Chitarra(
+      id="gtr_2",
+      marca="PRS",
+      modello="Custom 24",
+      numero_serie="1928374",
+      colore_finitura="Charcoal Burst",
+      setup=SetupMeccanico(
+          scalatura_corde=".010-.046",
+          marca_corde="PRS Signature",
+          accordatura="Drop D",
+      ),
+      manutenzione=Manutenzione(
+          data_ultimo_cambio_corde=date(2026, 7, 10),  # Corde recenti
+      ),
+  )
+  st.session_state.chitarre = [demo_gtr1, demo_gtr2]
+
+if "foto_chitarre" not in st.session_state:
+  st.session_state.foto_chitarre = {}
 
 
 # ---------------------------------------------------------
-# 4. INTERFACCIA STREAMLIT
+# 4. INTERFACCIA UTENTE
 # ---------------------------------------------------------
-st.title("🎸 Guitar Vault")
-st.caption("Gestione completa collezione, specifiche e manutenzione")
+st.title("🎸 Guitar Vault Pro")
+st.caption("Gestione avanzata collezione, specifiche e manutenzione")
 
 st.divider()
 
-if not st.session_state.chitarre:
-  st.info("La tua collezione è vuota. Aggiungi uno strumento dalla barra laterale!")
+# --- MENU A TENDINA E FILTRI IN ALTO ---
+col_menu1, col_menu2 = st.columns([2, 2])
 
-# Ciclo per mostrare e gestire ciascuna chitarra
-for idx, chitarra in enumerate(st.session_state.chitarre):
+with col_menu1:
+  # Opzioni per il selettore
+  opzioni_selezione = ["Tutte le chitarre"] + [
+      f"{g.marca} {g.modello} ({g.id})" for g in st.session_state.chitarre
+  ]
+  chitarra_selezionata_str = st.selectbox(
+      "🔍 Seleziona o Cerca uno strumento:", opzioni_selezione
+  )
+
+with col_menu2:
+  filtro_corde_scadute = st.checkbox(
+      "⚠️ Mostra solo chitarre che necessitano CAMBIO CORDE (> 60 giorni)",
+      value=False,
+  )
+
+st.divider()
+
+# --- FILTRAGGIO DELLA LISTA ---
+chitarre_da_mostrare = st.session_state.chitarre.copy()
+
+# Applicazione filtro cambio corde
+if filtro_corde_scadute:
+  soglia_giorni = date.today() - timedelta(days=60)
+  chitarre_da_mostrare = [
+      g
+      for g in chitarre_da_mostrare
+      if g.manutenzione.data_ultimo_cambio_corde <= soglia_giorni
+  ]
+
+# Applicazione selezione da menu a tendina
+if chitarra_selezionata_str != "Tutte le chitarre":
+  chitarre_da_mostrare = [
+      g
+      for g in chitarre_da_mostrare
+      if f"{g.marca} {g.modello} ({g.id})" == chitarra_selezionata_str
+  ]
+
+# --- VISUALIZZAZIONE RISULTATI ---
+if not chitarre_da_mostrare:
+  if filtro_corde_scadute:
+    st.success(
+        "🎉 Tutte le chitarre hanno corde recenti! Nessun cambio necessario."
+    )
+  else:
+    st.info("Nessuna chitarra trovata nella collezione.")
+
+for idx, chitarra in enumerate(chitarre_da_mostrare):
+  # Calcolo giorni dall'ultimo cambio corde
+  giorni_da_cambio = (
+      date.today() - chitarra.manutenzione.data_ultimo_cambio_corde
+  ).days
+  necessita_cambio = giorni_da_cambio >= 60
+
   with st.container(border=True):
-    col_info, col_azioni = st.columns([3, 1])
+    col_titolo, col_azioni = st.columns([3, 1])
 
-    with col_info:
+    with col_titolo:
       st.subheader(f"{chitarra.marca} {chitarra.modello}")
       dettagli = []
       if chitarra.numero_serie:
@@ -121,18 +177,38 @@ for idx, chitarra in enumerate(st.session_state.chitarre):
       if dettagli:
         st.caption(" | ".join(dettagli))
 
+      # Badge di avviso se le corde sono vecchie
+      if necessita_cambio:
+        st.error(
+            f"⚠️ **ATTENZIONE: Corde da cambiare!** Ultimo cambio"
+            f" {giorni_da_cambio} giorni fa ("
+            f" {chitarra.manutenzione.data_ultimo_cambio_corde.strftime('%d/%m/%Y')})"
+        )
+      else:
+        st.success(
+            f"✅ Corde OK (Cambiate {giorni_da_cambio} giorni fa -"
+            f" {chitarra.manutenzione.data_ultimo_cambio_corde.strftime('%d/%m/%Y')})"
+        )
+
     with col_azioni:
       st.write("")
-      # PULSANTE PER ELIMINARE LO STRUMENTO
-      if st.button("🗑️ Elimina", key=f"del_{chitarra.id}_{idx}"):
-        st.session_state.chitarre.pop(idx)
-        st.toast(
-            f"Strumento {chitarra.marca} {chitarra.modello} rimosso!", icon="🗑️"
-        )
+      if st.button("🔄 Reset Corde Oggi", key=f"reset_btn_{chitarra.id}"):
+        chitarra.manutenzione.data_ultimo_cambio_corde = date.today()
+        st.toast("Data cambio corde aggiornata ad oggi!", icon="✅")
         st.rerun()
 
-    # SCHEDE RIEPILOGATIVE
-    t1, t2, t3, t4 = st.tabs([
+      if st.button("🗑️ Elimina Strumento", key=f"del_btn_{chitarra.id}"):
+        st.session_state.chitarre = [
+            g for g in st.session_state.chitarre if g.id != chitarra.id
+        ]
+        if chitarra.id in st.session_state.foto_chitarre:
+          del st.session_state.foto_chitarre[chitarra.id]
+        st.toast(f"{chitarra.marca} {chitarra.modello} eliminata!", icon="🗑️")
+        st.rerun()
+
+    # SCHEDE Dettagli + Foto
+    t1, t2, t3, t4, t5 = st.tabs([
+        "📷 Foto Strumento",
         "🔧 Setup & Meccanica",
         "⚡ Elettronica",
         "🛠️ Manutenzione",
@@ -140,41 +216,61 @@ for idx, chitarra in enumerate(st.session_state.chitarre):
     ])
 
     with t1:
+      col_img_show, col_img_up = st.columns([2, 2])
+      with col_img_show:
+        if chitarra.id in st.session_state.foto_chitarre:
+          st.image(
+              st.session_state.foto_chitarre[chitarra.id],
+              caption=f"{chitarra.marca} {chitarra.modello}",
+              use_container_width=True,
+          )
+        else:
+          st.info("📸 Nessuna foto caricata per questo strumento.")
+
+      with col_img_up:
+        uploaded_file = st.file_uploader(
+            "Carica / Aggiorna foto",
+            type=["jpg", "png", "jpeg"],
+            key=f"foto_up_{chitarra.id}",
+        )
+        if uploaded_file is not None:
+          img = Image.open(uploaded_file)
+          st.session_state.foto_chitarre[chitarra.id] = img
+          st.success("Foto salvata!")
+          st.rerun()
+
+    with t2:
       c1, c2, c3 = st.columns(3)
-      c1.write(f"**Corde:** {chitarra.setup.marca_corde}")
+      c1.write(f"**Marca corde:** {chitarra.setup.marca_corde}")
       c1.write(f"**Scalatura:** {chitarra.setup.scalatura_corde}")
       c2.write(f"**Accordatura:** {chitarra.setup.accordatura}")
       c2.write(f"**Action:** {chitarra.setup.action_mm}")
       c3.write(f"**Relief:** {chitarra.setup.relief_manico}")
       c3.write(f"**Capotasto:** {chitarra.setup.capotasto}")
 
-    with t2:
+    with t3:
       c1, c2 = st.columns(2)
       c1.write(f"**Configurazione:** {chitarra.elettronica.configurazione_pickup}")
       c1.write(f"**Pickup:** {chitarra.elettronica.modello_pickup}")
-      c1.write(f"**Altezza Pickup:** {chitarra.elettronica.altezza_pickup}")
+      c1.write(f"**Altezza:** {chitarra.elettronica.altezza_pickup}")
       c2.write(
           f"**Push-Pull:**"
           f" {'Sì 🔘' if chitarra.elettronica.has_push_pull else 'No ❌'}"
       )
       c2.write(f"**Modifiche:** {chitarra.elettronica.controlli_modifiche}")
 
-    with t3:
+    with t4:
       c1, c2 = st.columns(2)
-      d_corde = chitarra.manutenzione.data_ultimo_cambio_corde.strftime(
-          "%d/%m/%Y"
-      )
       d_pulizia = (
           chitarra.manutenzione.data_pulizia_tastiera.strftime("%d/%m/%Y")
           if chitarra.manutenzione.data_pulizia_tastiera
-          else "Non indicata"
+          else "Non effettuata"
       )
-      c1.info(f"📅 **Ultimo cambio corde:** {d_corde}")
       c1.write(f"🧹 **Pulizia tastiera:** {d_pulizia}")
-      c2.write(f"🛠️ **Liuteria:** {chitarra.manutenzione.interventi_liuteria}")
-      c2.write(f"⚠️ **Note:** {chitarra.manutenzione.note_problemi}")
+      c1.write(f"🛠️ **Liuteria:** {chitarra.manutenzione.interventi_liuteria}")
+      c2.write(f"⚠️ **Note / Problemi:** {chitarra.manutenzione.note_problemi}")
 
-    with t4:
+    with t5:
       c1, c2 = st.columns(2)
       c1.metric(
           "Prezzo Acquisto", f"€ {chitarra.economia.prezzo_acquisto:.2f}"
@@ -183,19 +279,19 @@ for idx, chitarra in enumerate(st.session_state.chitarre):
           "Valore Attuale", f"€ {chitarra.economia.valore_stimato_attuale:.2f}"
       )
 
-    # SEZIONE DI MODIFICA
-    with st.expander("✏️ Modifica Valori e Scheda"):
-      with st.form(f"form_edit_{chitarra.id}_{idx}"):
-        st.subheader("Generalità")
+    # FORM MODIFICA
+    with st.expander("✏️ Modifica Dettagli e Specifiche"):
+      with st.form(f"form_edit_{chitarra.id}"):
+        st.subheader("Dati Generali")
         e_marca = st.text_input("Marca", value=chitarra.marca)
         e_modello = st.text_input("Modello", value=chitarra.modello)
         e_sn = st.text_input("Numero di Serie", value=chitarra.numero_serie)
         e_colore = st.text_input(
-            "Colore/Finitura", value=chitarra.colore_finitura
+            "Colore / Finitura", value=chitarra.colore_finitura
         )
 
         st.subheader("Setup")
-        es_marca = st.text_input(
+        es_m_corde = st.text_input(
             "Marca Corde", value=chitarra.setup.marca_corde
         )
         es_scal = st.text_input(
@@ -230,7 +326,7 @@ for idx, chitarra in enumerate(st.session_state.chitarre):
             value=chitarra.elettronica.controlli_modifiche,
         )
 
-        st.subheader("Manutenzione & Valore")
+        st.subheader("Manutenzione & Economia")
         em_corde = st.date_input(
             "Data Ultimo Cambio Corde",
             value=chitarra.manutenzione.data_ultimo_cambio_corde,
@@ -256,13 +352,13 @@ for idx, chitarra in enumerate(st.session_state.chitarre):
             value=float(chitarra.economia.valore_stimato_attuale),
         )
 
-        if st.form_submit_button("💾 Salva Modifiche"):
+        if st.form_submit_button("💾 Salva Tutte le Modifiche"):
           chitarra.marca = e_marca
           chitarra.modello = e_modello
           chitarra.numero_serie = e_sn
           chitarra.colore_finitura = e_colore
 
-          chitarra.setup.marca_corde = es_marca
+          chitarra.setup.marca_corde = es_m_corde
           chitarra.setup.scalatura_corde = es_scal
           chitarra.setup.accordatura = es_acc
           chitarra.setup.action_mm = es_act
@@ -283,10 +379,10 @@ for idx, chitarra in enumerate(st.session_state.chitarre):
           chitarra.economia.prezzo_acquisto = eco_acq
           chitarra.economia.valore_stimato_attuale = eco_val
 
-          st.toast("Modifiche salvate con successo!", icon="✅")
+          st.toast("Scheda aggiornata!", icon="✅")
           st.rerun()
 
-# BARRA LATERALE PER NUOVI INSERIMENTI
+# --- SIDEBAR NUOVA CHITARRA ---
 with st.sidebar:
   st.header("➕ Nuovo Strumento")
   with st.form("form_add"):

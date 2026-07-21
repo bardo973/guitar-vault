@@ -38,7 +38,6 @@ html_code = r"""<!DOCTYPE html>
     }
 
     body {
-      /* Foto di sfondo: Fender Stratocaster */
       background: linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.90)),
                   url('https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
       background-size: cover;
@@ -130,6 +129,50 @@ html_code = r"""<!DOCTYPE html>
       font-family: var(--ff-mono);
       font-variant-numeric: tabular-nums;
       color: var(--on-surface-default);
+    }
+
+    /* BARRA DI FILTRAGGIO / TENDINA */
+    .filter-bar {
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--stroke-default);
+      border-radius: 14px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--card-shadow);
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-size: 13px;
+      font-weight: var(--fw-semibold);
+      color: var(--on-surface-de-emphasis);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .filter-select {
+      flex: 1;
+      background: var(--surface-container);
+      color: var(--on-surface-default);
+      border: 1px solid var(--outline-variant);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-family: var(--ff-sans);
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+      min-width: 220px;
+    }
+
+    .filter-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-container);
     }
 
     .btn-tonal {
@@ -400,7 +443,6 @@ html_code = r"""<!DOCTYPE html>
 
     .photo-upload-btn:hover { background: var(--surface-container-highest); }
 
-    /* MODALI POPUP */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -555,6 +597,17 @@ html_code = r"""<!DOCTYPE html>
       align-items: center;
       gap: 4px;
     }
+
+    .empty-state {
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      border: 1px dashed var(--outline);
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      color: var(--on-surface-de-emphasis);
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -569,6 +622,7 @@ html_code = r"""<!DOCTYPE html>
     </div>
 
     <div class="right-section">
+      <!-- HUD STATISTICHE -->
       <div class="dashboard-hud" id="hud-stats">
         <div class="hud-pill">
           <span class="hud-label">Strumenti</span>
@@ -582,12 +636,23 @@ html_code = r"""<!DOCTYPE html>
           <span class="hud-label">Setup Mese</span>
           <span class="hud-value" id="stat-setups">0</span>
         </div>
-        <div class="hud-pill" id="hud-overdue-pill" style="cursor:pointer;" onclick="checkStringChangeReminders(true)">
+        <div class="hud-pill" id="hud-overdue-pill" style="cursor:pointer;" onclick="filterByOverdue()">
           <span class="hud-label">Cambio Corde</span>
           <span class="hud-value" id="stat-overdue" style="color:var(--negative);">0</span>
         </div>
       </div>
 
+      <!-- TENDINA / BARRA DI SELEZIONE E FILTRAGGIO -->
+      <div class="filter-bar">
+        <span class="filter-label">🔍 Mostra Strumento:</span>
+        <select class="filter-select" id="guitar-select-filter" onchange="handleFilterChange(this.value)">
+          <option value="ALL">-- Mostra Tutti gli Strumenti --</option>
+          <option value="OVERDUE" style="color:var(--negative); font-weight:bold;">⚠️ SOLO CAMBIO CORDE NECESSARIO (> 4 Mesi)</option>
+          <!-- Le singole chitarre verranno aggiunte dinamicamente qui -->
+        </select>
+      </div>
+
+      <!-- LISTA DELLE CHITARRE -->
       <div class="guitar-list" id="guitar-list-container">
         <!-- Carte iniettate dinamicamente -->
       </div>
@@ -688,7 +753,7 @@ html_code = r"""<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- POPUP CAMBIO CORDE -->
+  <!-- POPUP PROMEMORIA CAMBIO CORDE INIZIALE -->
   <div class="modal-overlay" id="popup-reminder">
     <div class="modal-box">
       <div class="modal-header">
@@ -767,12 +832,14 @@ html_code = r"""<!DOCTYPE html>
       }
     ];
 
+    let currentFilter = "ALL"; // 'ALL', 'OVERDUE', o ID specifico della chitarra
     let activeEditingId = null;
     let deletingId = null;
     let currentFormPhoto = "";
     let hasShownPopupOnLoad = false;
 
     const container = document.getElementById("guitar-list-container");
+    const selectFilter = document.getElementById("guitar-select-filter");
     const statTotal = document.getElementById("stat-total");
     const statCommon = document.getElementById("stat-common");
     const statSetups = document.getElementById("stat-setups");
@@ -792,6 +859,40 @@ html_code = r"""<!DOCTYPE html>
       const fourMonthsAgo = new Date();
       fourMonthsAgo.setMonth(fourMonthsAgo.getMonth() - 4);
       return setupDate < fourMonthsAgo;
+    }
+
+    function updateSelectOptions() {
+      // Salva la selezione corrente
+      const selectedValue = selectFilter.value;
+
+      // Resetta lasciando le opzioni fisse
+      selectFilter.innerHTML = `
+        <option value="ALL">-- Mostra Tutti gli Strumenti (${guitars.length}) --</option>
+        <option value="OVERDUE" style="color:var(--negative); font-weight:bold;">⚠️ SOLO CAMBIO CORDE NECESSARIO (> 4 Mesi)</option>
+      `;
+
+      // Aggiunge ogni singola chitarra alla tendina
+      guitars.forEach(g => {
+        const opt = document.createElement("option");
+        opt.value = g.id;
+        const isOverdue = isSetupOlderThan4Months(g.lastSetup);
+        opt.textContent = `${g.brand} ${g.model} ${g.year ? '(' + g.year + ')' : ''} ${isOverdue ? '⚠️' : ''}`;
+        selectFilter.appendChild(opt);
+      });
+
+      // Ripristina la selezione se ancora valida
+      selectFilter.value = selectedValue || "ALL";
+    }
+
+    function handleFilterChange(val) {
+      currentFilter = val;
+      render();
+    }
+
+    function filterByOverdue() {
+      selectFilter.value = "OVERDUE";
+      currentFilter = "OVERDUE";
+      render();
     }
 
     function updateStats() {
@@ -829,7 +930,29 @@ html_code = r"""<!DOCTYPE html>
     function render() {
       container.innerHTML = "";
 
-      guitars.forEach(guitar => {
+      // Filtraggio delle chitarre da mostrare
+      let filteredGuitars = guitars;
+      if (currentFilter === "OVERDUE") {
+        filteredGuitars = guitars.filter(g => isSetupOlderThan4Months(g.lastSetup));
+      } else if (currentFilter !== "ALL") {
+        filteredGuitars = guitars.filter(g => g.id === currentFilter);
+      }
+
+      if (filteredGuitars.length === 0) {
+        const emptyState = document.createElement("div");
+        emptyState.className = "empty-state";
+        if (currentFilter === "OVERDUE") {
+          emptyState.innerHTML = "✨ Nessuno strumento richiede il cambio corde al momento!";
+        } else {
+          emptyState.innerHTML = "Nessuno strumento trovato.";
+        }
+        container.appendChild(emptyState);
+        updateStats();
+        updateSelectOptions();
+        return;
+      }
+
+      filteredGuitars.forEach(guitar => {
         const card = document.createElement("div");
         card.className = "guitar-card";
 
@@ -907,6 +1030,7 @@ html_code = r"""<!DOCTYPE html>
       });
 
       updateStats();
+      updateSelectOptions();
     }
 
     function checkStringChangeReminders(forceOpen = false) {
@@ -932,8 +1056,6 @@ html_code = r"""<!DOCTYPE html>
         });
 
         openModal("popup-reminder");
-      } else if (forceOpen && overdueGuitars.length === 0) {
-        alert("Tutti gli strumenti sono stati settati negli ultimi 4 mesi!");
       }
     }
 
@@ -1113,4 +1235,4 @@ html_code = r"""<!DOCTYPE html>
 </html>
 """
 
-st.components.v1.html(html_code, height=900, scrolling=True)
+st.components.v1.html(html_code, height=950, scrolling=True)

@@ -1,20 +1,106 @@
-<!-- ... existing code ... -->
-    @font-face {
-      font-family: 'Google Sans';
-      src: url('https://fonts.gstatic.com/s/googlesans/v58/4UaRrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iq2vgCI.woff2') format('woff2');
-      font-weight: 400; font-style: normal; font-display: swap;
+import streamlit as st
+
+st.set_page_config(
+    page_title="Guitar Rack & Vault",
+    page_icon="🎸",
+    layout="wide"
+)
+
+html_code = r"""<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guitar Rack & Vault</title>
+  <style>
+    :root {
+      --ff-sans: 'Google Sans Flex', 'Google Sans Text', 'Google Sans', system-ui, -apple-system, sans-serif;
+      --ff-mono: 'Google Sans Code', 'Google Sans Mono', monospace;
+      --fw-normal: 400;
+      --fw-medium: 500;
+      --fw-semibold: 600;
+
+      --primary: #3186ff;
+      --on-primary: #ffffff;
+      --primary-container: #dcf1ff;
+      --surface: #ffffff;
+      --surface-container: #f2f0f0;
+      --surface-container-high: #e6e6e6;
+      --surface-container-highest: #e0e0e0;
+      --on-surface-default: #1f1f1f;
+      --on-surface-de-emphasis: #444746;
+      --outline: #727676;
+      --outline-variant: #c4c7c5;
+      --stroke-default: #e3e3e3;
+      --negative: #de2d29;
     }
 
-    /* Container layout */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface: #101218;
+        --surface-container: #141414;
+        --surface-container-high: #1c1c1c;
+        --surface-container-highest: #242424;
+        --on-surface-default: #ffffff;
+        --on-surface-de-emphasis: #ababab;
+        --primary: #9dd2ff;
+        --on-primary: #192967;
+        --primary-container: #192967;
+        --outline: #9a9b9c;
+        --outline-variant: #4a5050;
+        --stroke-default: #2d2f38;
+        --negative: #ff4c45;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --surface: #101218;
+      --surface-container: #141414;
+      --surface-container-high: #1c1c1c;
+      --surface-container-highest: #242424;
+      --on-surface-default: #ffffff;
+      --on-surface-de-emphasis: #ababab;
+      --primary: #9dd2ff;
+      --on-primary: #192967;
+      --primary-container: #192967;
+      --outline: #9a9b9c;
+      --outline-variant: #4a5050;
+      --stroke-default: #2d2f38;
+      --negative: #ff4c45;
+    }
+
+    body, .widget-container {
+      background: transparent;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: var(--ff-sans);
+      color: var(--on-surface-default);
+    }
+
     .widget-container {
       max-width: 960px;
       width: 100%;
       margin: 0 auto;
       padding: 16px;
-      box-sizing: border-box;
       display: flex;
       flex-direction: column;
       gap: 20px;
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: var(--fw-semibold);
+      line-height: 28px;
+      margin: 0;
+      color: var(--on-surface-default);
+    }
+
+    .subtitle {
+      font-size: 13px;
+      font-weight: var(--fw-normal);
+      color: var(--on-surface-de-emphasis);
+      margin: 4px 0 0 0;
     }
 
     .split-layout {
@@ -30,7 +116,6 @@
       }
     }
 
-    /* Form Panel Left */
     .form-panel {
       background: var(--surface);
       border: 1px solid var(--stroke-default);
@@ -64,23 +149,6 @@
       gap: 16px;
     }
 
-    /* Typography */
-    .title {
-      font-size: 24px;
-      font-weight: var(--fw-semibold);
-      line-height: 28px;
-      margin: 0;
-      color: var(--on-surface-default);
-    }
-
-    .subtitle {
-      font-size: 13px;
-      font-weight: var(--fw-normal);
-      color: var(--on-surface-de-emphasis);
-      margin: 4px 0 0 0;
-    }
-
-    /* HUD Dashboard styling */
     .dashboard-hud {
       display: flex;
       background: transparent;
@@ -117,7 +185,6 @@
       color: var(--on-surface-default);
     }
 
-    /* Action Buttons */
     .btn-tonal {
       background: var(--surface-container-high);
       color: var(--on-surface-default);
@@ -136,13 +203,8 @@
       user-select: none;
     }
 
-    .btn-tonal:hover {
-      background: var(--surface-container-highest);
-    }
-
-    .btn-tonal:active {
-      transform: scale(0.98);
-    }
+    .btn-tonal:hover { background: var(--surface-container-highest); }
+    .btn-tonal:active { transform: scale(0.98); }
 
     .btn-primary {
       background: var(--primary);
@@ -163,13 +225,8 @@
       width: 100%;
     }
 
-    .btn-primary:hover {
-      opacity: 0.9;
-    }
-
-    .btn-primary:active {
-      transform: scale(0.98);
-    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:active { transform: scale(0.98); }
 
     .btn-danger {
       background: var(--negative);
@@ -184,9 +241,7 @@
       transition: opacity 0.2s ease;
     }
 
-    .btn-danger:hover {
-      opacity: 0.9;
-    }
+    .btn-danger:hover { opacity: 0.9; }
 
     .btn-text {
       background: transparent;
@@ -201,11 +256,8 @@
       transition: background 0.2s ease;
     }
 
-    .btn-text:hover {
-      background: var(--surface-container);
-    }
+    .btn-text:hover { background: var(--surface-container); }
 
-    /* List and Card Layouts */
     .guitar-list {
       display: flex;
       flex-direction: column;
@@ -217,7 +269,7 @@
       border: 1px solid var(--stroke-default);
       border-radius: 16px;
       padding: 16px;
-      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
       position: relative;
       cursor: pointer;
     }
@@ -276,9 +328,7 @@
       color: var(--on-surface-default);
     }
 
-    .info-value.mono {
-      font-family: var(--ff-mono);
-    }
+    .info-value.mono { font-family: var(--ff-mono); }
 
     .card-actions {
       display: flex;
@@ -289,7 +339,6 @@
       margin-top: 10px;
     }
 
-    /* Form Inputs */
     .form-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -302,9 +351,7 @@
       gap: 4px;
     }
 
-    .form-group.full-width {
-      grid-column: span 2;
-    }
+    .form-group.full-width { grid-column: span 2; }
 
     .form-label {
       font-size: 12px;
@@ -325,13 +372,8 @@
       width: 100%;
     }
 
-    .input-field:focus {
-      border-color: var(--primary);
-    }
-
-    .input-field.mono {
-      font-family: var(--ff-mono);
-    }
+    .input-field:focus { border-color: var(--primary); }
+    .input-field.mono { font-family: var(--ff-mono); }
 
     .confirm-banner {
       background: var(--surface-container);
@@ -395,9 +437,7 @@
       transition: background 0.2s;
     }
 
-    .photo-upload-btn:hover {
-      background: var(--surface-container-highest);
-    }
+    .photo-upload-btn:hover { background: var(--surface-container-highest); }
   </style>
 </head>
 <body>
@@ -498,7 +538,6 @@
   </div>
 
   <script>
-    // Initial Data
     let guitars = [
       {
         id: "g-1",
@@ -518,7 +557,7 @@
         year: 2019,
         serialNumber: "19 28374",
         stringGauge: "0.010-0.046",
-        lastSetup: "2026-06-02",
+        lastSetup: "2026-07-02",
         notes: "10-Top acero fiammato",
         photo: ""
       },
@@ -539,13 +578,11 @@
     let deletingId = null;
     let currentFormPhoto = "";
 
-    // DOM Nodes
     const container = document.getElementById("guitar-list-container");
     const statTotal = document.getElementById("stat-total");
     const statCommon = document.getElementById("stat-common");
     const statSetups = document.getElementById("stat-setups");
 
-    // Form DOM Elements
     const formTitle = document.getElementById("form-panel-title");
     const btnResetForm = document.getElementById("btn-reset-form");
     const inputBrand = document.getElementById("form-brand");
@@ -558,7 +595,6 @@
     const photoPreview = document.getElementById("form-photo-preview");
     const btnRemovePhoto = document.getElementById("btn-remove-photo");
 
-    // Compute stats
     function updateStats() {
       statTotal.textContent = guitars.length;
 
@@ -587,7 +623,6 @@
       statSetups.textContent = recentSetups;
     }
 
-    // Render guitar cards on right
     function render() {
       container.innerHTML = "";
 
@@ -597,7 +632,6 @@
         card.setAttribute("data-id", guitar.id);
 
         if (deletingId === guitar.id) {
-          // Render Delete Confirmation
           card.innerHTML = `
             <div class="confirm-banner">
               <span class="confirm-text">Rimuovere definitivamente <strong>${guitar.brand} ${guitar.model}</strong>?</span>
@@ -608,7 +642,6 @@
             </div>
           `;
         } else {
-          // Render normal Card
           card.onclick = () => selectGuitarForEdit(guitar.id);
           card.innerHTML = `
             ${guitar.photo ? `<div class="guitar-photo-wrapper" style="margin-bottom:10px;"><img src="${guitar.photo}" class="guitar-photo" alt="${guitar.brand} ${guitar.model}" loading="lazy"></div>` : ''}
@@ -830,11 +863,9 @@
       }
     };
 
-    // Initial setup
     inputSetup.value = new Date().toISOString().split('T')[0];
     render();
 
-    // ── Theme Sync & Iframe Auto-resize ──
     window.addEventListener('message', e => {
       if (e.data && (e.data.type === 'set-theme' || e.data.type === 'APPLY_THEME')) {
         document.documentElement.setAttribute('data-theme', e.data.theme);
@@ -842,17 +873,23 @@
     });
 
     (function autoResize() {
+      let lastHeight = 0;
+      let timer = null;
       function notifyHeight() {
         const c = document.querySelector('.widget-container');
         if (!c) return;
         const h = Math.ceil(document.documentElement.scrollHeight);
-        window.parent.postMessage({type: 'widget-resize', height: h}, '*');
+        if (Math.abs(h - lastHeight) > 2) {
+          lastHeight = h;
+          window.parent.postMessage({type: 'widget-resize', height: h}, '*');
+        }
       }
       window.addEventListener('load', () => setTimeout(notifyHeight, 120));
-      new ResizeObserver(() => notifyHeight()).observe(
-        document.querySelector('.widget-container')
-      );
+      new ResizeObserver(() => {
+        clearTimeout(timer);
+        timer = setTimeout(notifyHeight, 60);
+      }).observe(document.querySelector('.widget-container'));
     })();
   </script>
 </body>
-</html>
+</html>"""

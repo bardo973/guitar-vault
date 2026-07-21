@@ -1,33 +1,64 @@
 from datetime import date
-from pydantic import BaseModel
-import streamlit as st
-
-# Impostazione pagina
-st.set_page_config(page_title="Guitar Vault", page_icon="🎸")
+from typing import List, Optional
+from pydantic import BaseModel, Field
 
 
-# Modello Pydantic
+class AzioneA12Tasto(BaseModel):
+    mi_alto: float = Field(..., description="Altezza corda Mi alto al 12° tasto in mm")
+    mi_basso: float = Field(..., description="Altezza corda Mi basso al 12° tasto in mm")
+
+
+class SetupMeccanico(BaseModel):
+    scalatura_corde: str = Field(..., example=".010-.046")
+    marca_corde: str
+    accordatura: str = Field("E Standard", example="E Standard")
+    azione_mm: AzioneA12Tasto
+    relief_manico_mm: Optional[float] = None
+    materiale_capotasto: Optional[str] = None
+    note_setup: Optional[str] = None
+
+
+class AltezzaPickups(BaseModel):
+    manico: Optional[float] = None
+    centrale: Optional[float] = None
+    ponte: Optional[float] = None
+
+
+class Elettronica(BaseModel):
+    configurazione: str = Field(..., example="HSS")
+    pickups: dict[str, str]  # es. {"manico": "V-Mod II", "ponte": "Shawbucker"}
+    altezza_pickups_mm: Optional[AltezzaPickups] = None
+    modifiche_elettronica: Optional[str] = None
+
+
+class InterventoManutenzione(BaseModel):
+    id_intervento: str
+    data: date
+    tipo: str = Field(..., example="Cambio Corde")
+    descrizione: Optional[str] = None
+    costo: Optional[float] = 0.0
+
+
+class Generale(BaseModel):
+    marca: str
+    modello: str
+    anno_produzione: Optional[int] = None
+    numero_serie: Optional[str] = None
+    colore_finitura: Optional[str] = None
+    foto: List[str] = []
+
+
+class ValoreDocumenti(BaseModel):
+    data_acquisto: Optional[date] = None
+    prezzo_acquisto: Optional[float] = None
+    valore_stimato_attuale: Optional[float] = None
+    documenti_allegati: List[str] = []
+
+
 class Chitarra(BaseModel):
-  marca: str
-  modello: str
-  data_cambio_corde: date
-
-
-# Titolo nell'app
-st.title("🎸 Guitar Vault")
-st.write("La tua collezione di chitarre è online!")
-
-# Creazione di un oggetto di prova
-chitarra_demo = Chitarra(
-    marca="Fender",
-    modello="Stratocaster",
-    data_cambio_corde=date(2026, 7, 21),
-)
-
-# Mostra i dati a schermo
-st.subheader(f"{chitarra_demo.marca} {chitarra_demo.modello}")
-st.info(f"Ultimo cambio corde: {chitarra_demo.data_cambio_corde}")
-
-if st.button("🔄 Reset Cambio Corde"):
-  chitarra_demo.data_cambio_corde = date.today()
-  st.success("Corde resettate ad oggi!")
+    id: str
+    generale: Generale
+    setup_meccanico: SetupMeccanico
+    elettronica: Elettronica
+    registro_manutenzione: List[InterventoManutenzione] = []
+    valore_documenti: Optional[ValoreDocumenti] = None

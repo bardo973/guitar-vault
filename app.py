@@ -20,68 +20,33 @@ html_code = r"""<!DOCTYPE html>
       --fw-medium: 500;
       --fw-semibold: 600;
 
-      --body-bg: #f8f9fa;
-      --primary: #2563eb;
-      --on-primary: #ffffff;
-      --primary-container: #dbeafe;
-      --surface: #ffffff;
-      --surface-container: #f1f5f9;
-      --surface-container-high: #e2e8f0;
-      --surface-container-highest: #cbd5e1;
-      --on-surface-default: #0f172a;
-      --on-surface-de-emphasis: #475569;
-      --outline: #64748b;
-      --outline-variant: #cbd5e1;
-      --stroke-default: #e2e8f0;
-      --negative: #dc2626;
-      --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --body-bg: #0f172a;
-        --surface: #1e293b;
-        --surface-container: #334155;
-        --surface-container-high: #475569;
-        --surface-container-highest: #64748b;
-        --on-surface-default: #f8fafc;
-        --on-surface-de-emphasis: #cbd5e1;
-        --primary: #3b82f6;
-        --on-primary: #ffffff;
-        --primary-container: #1e3a8a;
-        --outline: #94a3b8;
-        --outline-variant: #475569;
-        --stroke-default: #334155;
-        --negative: #ef4444;
-        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      }
-    }
-
-    :root[data-theme="dark"] {
       --body-bg: #0f172a;
-      --surface: #1e293b;
-      --surface-container: #334155;
-      --surface-container-high: #475569;
-      --surface-container-highest: #64748b;
-      --on-surface-default: #f8fafc;
-      --on-surface-de-emphasis: #cbd5e1;
       --primary: #3b82f6;
       --on-primary: #ffffff;
       --primary-container: #1e3a8a;
+      --surface: rgba(30, 41, 59, 0.85);
+      --surface-container: rgba(51, 65, 85, 0.7);
+      --surface-container-high: rgba(71, 85, 105, 0.8);
+      --surface-container-highest: rgba(100, 116, 139, 0.85);
+      --on-surface-default: #f8fafc;
+      --on-surface-de-emphasis: #cbd5e1;
       --outline: #94a3b8;
       --outline-variant: #475569;
-      --stroke-default: #334155;
+      --stroke-default: rgba(255, 255, 255, 0.15);
       --negative: #ef4444;
-      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
     }
 
-    body, .widget-container {
-      background-color: var(--body-bg);
+    body {
+      background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)),
+                  url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+      background-size: cover;
       margin: 0;
       padding: 0;
       box-sizing: border-box;
       font-family: var(--ff-sans);
       color: var(--on-surface-default);
+      min-height: 100vh;
     }
 
     .widget-container {
@@ -93,14 +58,16 @@ html_code = r"""<!DOCTYPE html>
       flex-direction: column;
       gap: 20px;
       border-radius: 16px;
+      box-sizing: border-box;
     }
 
     .title {
-      font-size: 26px;
+      font-size: 28px;
       font-weight: var(--fw-semibold);
-      line-height: 30px;
+      line-height: 32px;
       margin: 0;
-      color: var(--on-surface-default);
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
     }
 
     .subtitle {
@@ -108,6 +75,7 @@ html_code = r"""<!DOCTYPE html>
       font-weight: var(--fw-normal);
       color: var(--on-surface-de-emphasis);
       margin: 4px 0 0 0;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
     }
 
     .split-layout {
@@ -125,6 +93,8 @@ html_code = r"""<!DOCTYPE html>
 
     .form-panel {
       background: var(--surface);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--stroke-default);
       border-radius: 16px;
       padding: 20px;
@@ -160,6 +130,8 @@ html_code = r"""<!DOCTYPE html>
     .dashboard-hud {
       display: flex;
       background: var(--surface);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       padding: 12px 16px;
       border: 1px solid var(--stroke-default);
       border-radius: 14px;
@@ -279,6 +251,8 @@ html_code = r"""<!DOCTYPE html>
 
     .guitar-card {
       background: var(--surface);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--stroke-default);
       border-radius: 16px;
       padding: 18px;
@@ -295,11 +269,6 @@ html_code = r"""<!DOCTYPE html>
     .guitar-card.selected {
       border-color: var(--primary);
       box-shadow: 0 0 0 2px var(--primary-container);
-    }
-
-    .guitar-card.fade-out {
-      opacity: 0;
-      transform: scale(0.95);
     }
 
     .card-header {
@@ -398,7 +367,7 @@ html_code = r"""<!DOCTYPE html>
       border-color: var(--primary);
       box-shadow: 0 0 0 2px var(--primary-container);
     }
-    
+
     .input-field.mono { font-family: var(--ff-mono); }
 
     .confirm-banner {
@@ -427,6 +396,7 @@ html_code = r"""<!DOCTYPE html>
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
     }
 
     .guitar-photo {
@@ -471,8 +441,8 @@ html_code = r"""<!DOCTYPE html>
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(6px);
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
       z-index: 9999;
       display: flex;
       align-items: center;
@@ -491,12 +461,14 @@ html_code = r"""<!DOCTYPE html>
 
     .modal-box {
       background: var(--surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--stroke-default);
       border-radius: 20px;
       padding: 24px;
       max-width: 480px;
       width: 100%;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
       transform: translateY(20px);
       transition: transform 0.25s ease;
       display: flex;
@@ -559,7 +531,7 @@ html_code = r"""<!DOCTYPE html>
     }
 
     .badge-overdue {
-      background: rgba(220, 38, 38, 0.12);
+      background: rgba(239, 68, 68, 0.2);
       color: var(--negative);
       font-size: 11px;
       font-weight: var(--fw-semibold);
@@ -571,7 +543,6 @@ html_code = r"""<!DOCTYPE html>
       margin-top: 4px;
     }
 
-    /* Full photo modal styling */
     .photo-modal-box {
       max-width: 90vw;
       max-height: 90vh;
@@ -598,11 +569,7 @@ html_code = r"""<!DOCTYPE html>
       max-height: 80vh;
       object-fit: contain;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-
-    .guitar-photo-wrapper {
-      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     }
 
     .photo-zoom-hint {
@@ -626,12 +593,12 @@ html_code = r"""<!DOCTYPE html>
 
   <div class="widget-container">
     <div>
-      <h1 class="title">Guitar Rack</h1>
+      <h1 class="title">Guitar Rack & Vault</h1>
       <p class="subtitle">Gestione inventario, scalature e setup chitarre</p>
     </div>
 
     <div class="split-layout">
-      <!-- LEFT FORM MASK PANEL -->
+      <!-- LEFT FORM PANEL -->
       <div class="form-panel" id="form-panel">
         <div class="panel-title-row">
           <h2 class="panel-title" id="form-panel-title">Nuovo Strumento</h2>
@@ -659,35 +626,35 @@ html_code = r"""<!DOCTYPE html>
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">Marca *</label>
-            <input type="text" class="input-field" id="form-brand" placeholder="es. Fender" oninput="liveUpdateForm()">
+            <input type="text" class="input-field" id="form-brand" placeholder="es. Fender">
           </div>
           <div class="form-group">
             <label class="form-label">Modello *</label>
-            <input type="text" class="input-field" id="form-model" placeholder="es. Stratocaster" oninput="liveUpdateForm()">
+            <input type="text" class="input-field" id="form-model" placeholder="es. Stratocaster">
           </div>
           <div class="form-group">
             <label class="form-label">Anno</label>
-            <input type="number" class="input-field mono" id="form-year" placeholder="2023" oninput="liveUpdateForm()">
+            <input type="number" class="input-field mono" id="form-year" placeholder="1968">
           </div>
           <div class="form-group">
             <label class="form-label">Num. Serial</label>
-            <input type="text" class="input-field mono" id="form-serial" placeholder="US123456" oninput="liveUpdateForm()">
+            <input type="text" class="input-field mono" id="form-serial" placeholder="US123456">
           </div>
           <div class="form-group">
             <label class="form-label">Scalatura Corde</label>
-            <input type="text" class="input-field mono" id="form-gauge" placeholder="0.010-0.046" oninput="liveUpdateForm()">
+            <input type="text" class="input-field mono" id="form-gauge" placeholder="0.010-0.046">
           </div>
           <div class="form-group">
             <label class="form-label">Marca Corde</label>
-            <input type="text" class="input-field" id="form-string-brand" placeholder="es. Ernie Ball, D'Addario" oninput="liveUpdateForm()">
+            <input type="text" class="input-field" id="form-string-brand" placeholder="es. Ernie Ball">
           </div>
           <div class="form-group">
             <label class="form-label">Pick Up</label>
-            <input type="text" class="input-field" id="form-pickups" placeholder="es. HSS, 2x Humbucker" oninput="liveUpdateForm()">
+            <input type="text" class="input-field" id="form-pickups" placeholder="es. 3x Single Coil">
           </div>
           <div class="form-group">
             <label class="form-label">Profilo Manico</label>
-            <select class="input-field" id="form-neck" onchange="liveUpdateForm()">
+            <select class="input-field" id="form-neck">
               <option value="">Seleziona profilo...</option>
               <option value="Modern C">Modern C</option>
               <option value="C-Shape">Vintage C / C-Shape</option>
@@ -703,11 +670,11 @@ html_code = r"""<!DOCTYPE html>
           </div>
           <div class="form-group">
             <label class="form-label">Ultimo Setup</label>
-            <input type="date" class="input-field mono" id="form-setup" oninput="liveUpdateForm()">
+            <input type="date" class="input-field mono" id="form-setup">
           </div>
           <div class="form-group full-width">
             <label class="form-label">Note</label>
-            <input type="text" class="input-field" id="form-notes" placeholder="Drop D, action bassa..." oninput="liveUpdateForm()">
+            <input type="text" class="input-field" id="form-notes" placeholder="Drop D, action bassa...">
           </div>
         </div>
 
@@ -719,7 +686,6 @@ html_code = r"""<!DOCTYPE html>
 
       <!-- RIGHT SECTION: STATS & GUITAR LIST -->
       <div class="right-section">
-        <!-- HUD Dashboard Stats -->
         <div class="dashboard-hud" id="hud-stats">
           <div class="hud-pill">
             <span class="hud-label">Strumenti</span>
@@ -739,15 +705,14 @@ html_code = r"""<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Guitar List Container -->
         <div class="guitar-list" id="guitar-list-container">
-          <!-- Cards injected dynamically -->
+          <!-- Carte iniettate dinamicamente -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- STRING CHANGE REMINDER POP-UP -->
+  <!-- MODAL REMINDER CAMBIO CORDE -->
   <div class="modal-overlay" id="popup-reminder">
     <div class="modal-box">
       <div class="modal-header">
@@ -757,11 +722,9 @@ html_code = r"""<!DOCTYPE html>
         <button class="btn-text" onclick="closeModal('popup-reminder')">✕</button>
       </div>
       <p style="font-size:13px; color:var(--on-surface-de-emphasis); margin:0;">
-        È passato più di 4 mesi dall'ultimo setup o cambio corde per questi strumenti. Cambiare le corde mantiene il tono brillante e la tastiera pulita!
+        Sono trascorsi più di 4 mesi dall'ultimo setup per questi strumenti.
       </p>
-      <div class="due-list" id="due-list-container">
-        <!-- Injected dynamically -->
-      </div>
+      <div class="due-list" id="due-list-container"></div>
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
         <button class="btn-tonal" onclick="closeModal('popup-reminder')">Chiudi</button>
       </div>
@@ -792,7 +755,7 @@ html_code = r"""<!DOCTYPE html>
         pickups: "3x V-Mod II Single-Coil",
         neckProfile: "Deep C",
         lastSetup: "2025-10-10",
-        notes: "Setup per mi standard, action bassa",
+        notes: "Setup per Mi standard, action bassa",
         photo: ""
       },
       {
@@ -806,7 +769,7 @@ html_code = r"""<!DOCTYPE html>
         pickups: "85/15 Humbuckers",
         neckProfile: "Thin U",
         lastSetup: "2026-06-02",
-        notes: "10-Top acero fiammato",
+        notes: "Top in acero fiammato",
         photo: ""
       },
       {
@@ -830,7 +793,11 @@ html_code = r"""<!DOCTYPE html>
     let currentFormPhoto = "";
     let hasShownPopupOnLoad = false;
 
-    // Helper: calculate months difference
+    const container = document.getElementById("guitar-list-container");
+    const statTotal = document.getElementById("stat-total");
+    const statCommon = document.getElementById("stat-common");
+    const statSetups = document.getElementById("stat-setups");
+
     function getMonthsSinceSetup(dateString) {
       if (!dateString) return 999;
       const setupDate = new Date(dateString);
@@ -886,7 +853,6 @@ html_code = r"""<!DOCTYPE html>
       guitars.forEach(guitar => {
         const card = document.createElement("div");
         card.className = "guitar-card" + (activeEditingId === guitar.id ? " selected" : "");
-        card.setAttribute("data-id", guitar.id);
 
         const isOverdue = isSetupOlderThan4Months(guitar.lastSetup);
         const monthsCount = getMonthsSinceSetup(guitar.lastSetup);
@@ -894,7 +860,7 @@ html_code = r"""<!DOCTYPE html>
         if (deletingId === guitar.id) {
           card.innerHTML = `
             <div class="confirm-banner">
-              <span class="confirm-text">Rimuovere definitivamente <strong>${guitar.brand} ${guitar.model}</strong>?</span>
+              <span class="confirm-text">Eliminare <strong>${guitar.brand} ${guitar.model}</strong>?</span>
               <div style="display:flex; gap:6px;">
                 <button class="btn-text" onclick="event.stopPropagation(); cancelDelete()">Annulla</button>
                 <button class="btn-danger" onclick="event.stopPropagation(); confirmDelete('${guitar.id}')">Rimuovi</button>
@@ -906,7 +872,7 @@ html_code = r"""<!DOCTYPE html>
           card.innerHTML = `
             ${guitar.photo ? `
               <div class="guitar-photo-wrapper" style="margin-bottom:10px;" onclick="event.stopPropagation(); openPhotoModal('${guitar.photo}', '${guitar.brand} ${guitar.model}')">
-                <img src="${guitar.photo}" class="guitar-photo" alt="${guitar.brand} ${guitar.model}" loading="lazy">
+                <img src="${guitar.photo}" class="guitar-photo" alt="${guitar.brand} ${guitar.model}">
                 <div class="photo-zoom-hint">🔍 Foto Intera</div>
               </div>` : ''}
             <div class="card-header">
@@ -975,7 +941,7 @@ html_code = r"""<!DOCTYPE html>
           item.innerHTML = `
             <div class="due-item-info">
               <span class="due-item-title">${g.brand} ${g.model}</span>
-              <span class="due-item-sub">Ultimo setup: ${g.lastSetup || 'Mai registrato'} (${m >= 999 ? 'Oltre 4 mesi' : m + ' mesi fa'})</span>
+              <span class="due-item-sub">Setup: ${g.lastSetup || 'Mai'} (${m >= 999 ? '>4 mesi' : m + ' mesi fa'})</span>
             </div>
             <button class="btn-primary" style="font-size:12px; padding:6px 12px; width:auto;" onclick="markStringsChangedToday('${g.id}')">Segna Cambiate</button>
           `;
@@ -984,7 +950,7 @@ html_code = r"""<!DOCTYPE html>
 
         openModal("popup-reminder");
       } else if (forceOpen && overdueGuitars.length === 0) {
-        alert("Tutti i tuoi strumenti hanno corde fresche e sono stati settati negli ultimi 4 mesi!");
+        alert("Tutti gli strumenti sono stati settati negli ultimi 4 mesi!");
       }
     }
 
@@ -999,6 +965,139 @@ html_code = r"""<!DOCTYPE html>
           closeModal("popup-reminder");
         }
       }
+    }
+
+    function selectGuitarForEdit(id) {
+      const g = guitars.find(item => item.id === id);
+      if (!g) return;
+
+      activeEditingId = id;
+      document.getElementById("form-panel-title").textContent = "Modifica Strumento";
+      document.getElementById("btn-reset-form").style.display = "inline-block";
+      document.getElementById("btn-save").textContent = "Aggiorna Strumento";
+
+      document.getElementById("form-brand").value = g.brand || "";
+      document.getElementById("form-model").value = g.model || "";
+      document.getElementById("form-year").value = g.year || "";
+      document.getElementById("form-serial").value = g.serialNumber || "";
+      document.getElementById("form-gauge").value = g.stringGauge || "";
+      document.getElementById("form-string-brand").value = g.stringBrand || "";
+      document.getElementById("form-pickups").value = g.pickups || "";
+      document.getElementById("form-neck").value = g.neckProfile || "";
+      document.getElementById("form-setup").value = g.lastSetup || "";
+      document.getElementById("form-notes").value = g.notes || "";
+
+      currentFormPhoto = g.photo || "";
+      updatePhotoPreview();
+      render();
+    }
+
+    function resetForm() {
+      activeEditingId = null;
+      document.getElementById("form-panel-title").textContent = "Nuovo Strumento";
+      document.getElementById("btn-reset-form").style.display = "none";
+      document.getElementById("btn-save").textContent = "Salva in Rack";
+
+      document.getElementById("form-brand").value = "";
+      document.getElementById("form-model").value = "";
+      document.getElementById("form-year").value = "";
+      document.getElementById("form-serial").value = "";
+      document.getElementById("form-gauge").value = "";
+      document.getElementById("form-string-brand").value = "";
+      document.getElementById("form-pickups").value = "";
+      document.getElementById("form-neck").value = "";
+      document.getElementById("form-setup").value = "";
+      document.getElementById("form-notes").value = "";
+
+      currentFormPhoto = "";
+      updatePhotoPreview();
+      render();
+    }
+
+    function handleFormPhotoUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        currentFormPhoto = evt.target.result;
+        updatePhotoPreview();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeFormPhoto() {
+      currentFormPhoto = "";
+      document.getElementById("form-input-photo").value = "";
+      updatePhotoPreview();
+    }
+
+    function updatePhotoPreview() {
+      const preview = document.getElementById("form-photo-preview");
+      const removeBtn = document.getElementById("btn-remove-photo");
+      if (currentFormPhoto) {
+        preview.innerHTML = `<img src="${currentFormPhoto}" class="guitar-photo" alt="Anteprima">`;
+        removeBtn.style.display = "inline-block";
+      } else {
+        preview.innerHTML = `
+          <div class="photo-placeholder">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            Nessuna foto
+          </div>`;
+        removeBtn.style.display = "none";
+      }
+    }
+
+    function saveFormGuitar() {
+      const brand = document.getElementById("form-brand").value.trim();
+      const model = document.getElementById("form-model").value.trim();
+
+      if (!brand || !model) {
+        alert("Marca e Modello sono campi obbligatori!");
+        return;
+      }
+
+      const guitarData = {
+        brand: brand,
+        model: model,
+        year: document.getElementById("form-year").value ? parseInt(document.getElementById("form-year").value) : "",
+        serialNumber: document.getElementById("form-serial").value.trim(),
+        stringGauge: document.getElementById("form-gauge").value.trim(),
+        stringBrand: document.getElementById("form-string-brand").value.trim(),
+        pickups: document.getElementById("form-pickups").value.trim(),
+        neckProfile: document.getElementById("form-neck").value,
+        lastSetup: document.getElementById("form-setup").value,
+        notes: document.getElementById("form-notes").value.trim(),
+        photo: currentFormPhoto
+      };
+
+      if (activeEditingId) {
+        const index = guitars.findIndex(g => g.id === activeEditingId);
+        if (index !== -1) {
+          guitars[index] = { ...guitars[index], ...guitarData };
+        }
+      } else {
+        guitarData.id = "g-" + Date.now();
+        guitars.unshift(guitarData);
+      }
+
+      resetForm();
+    }
+
+    function setDeleteState(id) {
+      deletingId = id;
+      render();
+    }
+
+    function cancelDelete() {
+      deletingId = null;
+      render();
+    }
+
+    function confirmDelete(id) {
+      guitars = guitars.filter(g => g.id !== id);
+      if (activeEditingId === id) resetForm();
+      deletingId = null;
+      render();
     }
 
     function openPhotoModal(photoUrl, title) {
@@ -1016,188 +1115,12 @@ html_code = r"""<!DOCTYPE html>
       document.getElementById(id).classList.remove("active");
     }
 
-    function updatePhotoPreview() {
-      if (currentFormPhoto) {
-        photoPreview.innerHTML = `
-          <img src="${currentFormPhoto}" class="guitar-photo" alt="Anteprima" onclick="openPhotoModal('${currentFormPhoto}', 'Foto Strumento')" style="cursor:pointer;">
-          <div class="photo-zoom-hint">🔍 Foto Intera</div>
-        `;
-        btnRemovePhoto.style.display = "inline-block";
-      } else {
-        photoPreview.innerHTML = `
-          <div class="photo-placeholder">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-            Nessuna foto
-          </div>`;
-        btnRemovePhoto.style.display = "none";
-      }
-    }
-
-    window.handleFormPhotoUpload = function(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const maxDim = 800;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height && width > maxDim) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else if (height > maxDim) {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          currentFormPhoto = canvas.toDataURL('image/jpeg', 0.82);
-          updatePhotoPreview();
-          liveUpdateForm();
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    };
-
-    window.removeFormPhoto = function() {
-      currentFormPhoto = "";
-      document.getElementById('form-input-photo').value = "";
-      updatePhotoPreview();
-      liveUpdateForm();
-    };
-
-    function liveUpdateForm() {
-      if (!activeEditingId) return;
-
-      const idx = guitars.findIndex(g => g.id === activeEditingId);
-      if (idx !== -1) {
-        guitars[idx].brand = inputBrand.value.trim();
-        guitars[idx].model = inputModel.value.trim();
-        guitars[idx].year = parseInt(inputYear.value, 10) || null;
-        guitars[idx].serialNumber = inputSerial.value.trim();
-        guitars[idx].stringGauge = inputGauge.value.trim();
-        guitars[idx].stringBrand = inputStringBrand.value.trim();
-        guitars[idx].pickups = inputPickups.value.trim();
-        guitars[idx].neckProfile = inputNeck.value;
-        guitars[idx].lastSetup = inputSetup.value;
-        guitars[idx].notes = inputNotes.value.trim();
-        guitars[idx].photo = currentFormPhoto;
-        render();
-      }
-    }
-
-    function saveFormGuitar() {
-      const brand = inputBrand.value.trim() || "Chitarra";
-      const model = inputModel.value.trim() || "Senza Nome";
-
-      if (activeEditingId) {
-        const idx = guitars.findIndex(g => g.id === activeEditingId);
-        if (idx !== -1) {
-          guitars[idx] = {
-            id: activeEditingId,
-            brand,
-            model,
-            year: parseInt(inputYear.value, 10) || null,
-            serialNumber: inputSerial.value.trim(),
-            stringGauge: inputGauge.value.trim(),
-            stringBrand: inputStringBrand.value.trim(),
-            pickups: inputPickups.value.trim(),
-            neckProfile: inputNeck.value,
-            lastSetup: inputSetup.value,
-            notes: inputNotes.value.trim(),
-            photo: currentFormPhoto
-          };
-        }
-      } else {
-        const newGuitar = {
-          id: "g-" + Date.now(),
-          brand,
-          model,
-          year: parseInt(inputYear.value, 10) || null,
-          serialNumber: inputSerial.value.trim(),
-          stringGauge: inputGauge.value.trim(),
-          stringBrand: inputStringBrand.value.trim(),
-          pickups: inputPickups.value.trim(),
-          neckProfile: inputNeck.value,
-          lastSetup: inputSetup.value || new Date().toISOString().split('T')[0],
-          notes: inputNotes.value.trim(),
-          photo: currentFormPhoto
-        };
-        guitars.unshift(newGuitar);
-      }
-
-      resetForm();
-    }
-
-    window.setDeleteState = function(id) {
-      deletingId = id;
-      render();
-    };
-
-    window.cancelDelete = function() {
-      deletingId = null;
-      render();
-    };
-
-    window.confirmDelete = function(id) {
-      const card = document.querySelector(`.guitar-card[data-id="${id}"]`);
-      if (card) {
-        card.classList.add("fade-out");
-        setTimeout(() => {
-          guitars = guitars.filter(g => g.id !== id);
-          if (activeEditingId === id) resetForm();
-          else { deletingId = null; render(); }
-        }, 300);
-      } else {
-        guitars = guitars.filter(g => g.id !== id);
-        if (activeEditingId === id) resetForm();
-        else { deletingId = null; render(); }
-      }
-    };
-
-    inputSetup.value = new Date().toISOString().split('T')[0];
+    // Inizializzazione
     render();
-
-    // Check reminders on load
-    setTimeout(() => {
-      checkStringChangeReminders(false);
-    }, 400);
-
-    window.addEventListener('message', e => {
-      if (e.data && (e.data.type === 'set-theme' || e.data.type === 'APPLY_THEME')) {
-        document.documentElement.setAttribute('data-theme', e.data.theme);
-      }
-    });
-
-    (function autoResize() {
-      let lastHeight = 0;
-      let timer = null;
-      function notifyHeight() {
-        const c = document.querySelector('.widget-container');
-        if (!c) return;
-        const h = Math.ceil(document.documentElement.scrollHeight);
-        if (Math.abs(h - lastHeight) > 2) {
-          lastHeight = h;
-          window.parent.postMessage({type: 'widget-resize', height: h}, '*');
-        }
-      }
-      window.addEventListener('load', () => setTimeout(notifyHeight, 120));
-      new ResizeObserver(() => {
-        clearTimeout(timer);
-        timer = setTimeout(notifyHeight, 60);
-      }).observe(document.querySelector('.widget-container'));
-    })();
+    checkStringChangeReminders(false);
   </script>
 </body>
-</html>"""
+</html>
+"""
 
-st.components.v1.html(html_code, height=900, scrolling=True)
+st.components.v1.html(html_code, height=920, scrolling=True)

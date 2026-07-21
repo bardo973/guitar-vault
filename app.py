@@ -522,6 +522,30 @@ html_code = r"""<!DOCTYPE html>
             <input type="text" class="input-field mono" id="form-gauge" placeholder="0.010-0.046" oninput="liveUpdateForm()">
           </div>
           <div class="form-group">
+            <label class="form-label">Marca Corde</label>
+            <input type="text" class="input-field" id="form-string-brand" placeholder="es. Ernie Ball, D'Addario" oninput="liveUpdateForm()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pick Up</label>
+            <input type="text" class="input-field" id="form-pickups" placeholder="es. HSS, 2x Humbucker" oninput="liveUpdateForm()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Profilo Manico</label>
+            <select class="input-field" id="form-neck" onchange="liveUpdateForm()">
+              <option value="">Seleziona profilo...</option>
+              <option value="Modern C">Modern C</option>
+              <option value="C-Shape">Vintage C / C-Shape</option>
+              <option value="Slim Taper">Slim Taper ('60s)</option>
+              <option value="Deep C">Deep C</option>
+              <option value="Soft V">Soft V</option>
+              <option value="Hard V">Hard V</option>
+              <option value="Thin U">Thin U</option>
+              <option value="D-Shape">D-Shape ('50s)</option>
+              <option value="Asimmetrico / Compound">Asimmetrico / Compound</option>
+              <option value="Altro / Custom">Altro / Custom</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label class="form-label">Ultimo Setup</label>
             <input type="date" class="input-field mono" id="form-setup" oninput="liveUpdateForm()">
           </div>
@@ -572,6 +596,9 @@ html_code = r"""<!DOCTYPE html>
         year: 2021,
         serialNumber: "US210984",
         stringGauge: "0.010-0.046",
+        stringBrand: "Ernie Ball",
+        pickups: "3x V-Mod II Single-Coil",
+        neckProfile: "Deep C",
         lastSetup: "2026-05-10",
         notes: "Setup per mi standard, action bassa",
         photo: ""
@@ -583,6 +610,9 @@ html_code = r"""<!DOCTYPE html>
         year: 2019,
         serialNumber: "19 28374",
         stringGauge: "0.010-0.046",
+        stringBrand: "D'Addario",
+        pickups: "85/15 Humbuckers",
+        neckProfile: "Thin U",
         lastSetup: "2026-07-02",
         notes: "10-Top acero fiammato",
         photo: ""
@@ -594,6 +624,9 @@ html_code = r"""<!DOCTYPE html>
         year: 2022,
         serialNumber: "22091004",
         stringGauge: "0.010-0.052",
+        stringBrand: "Elixir",
+        pickups: "60s Burstbucker HH",
+        neckProfile: "Slim Taper",
         lastSetup: "2026-04-15",
         notes: "Bourbon Burst",
         photo: ""
@@ -616,6 +649,9 @@ html_code = r"""<!DOCTYPE html>
     const inputYear = document.getElementById("form-year");
     const inputSerial = document.getElementById("form-serial");
     const inputGauge = document.getElementById("form-gauge");
+    const inputStringBrand = document.getElementById("form-string-brand");
+    const inputPickups = document.getElementById("form-pickups");
+    const inputNeck = document.getElementById("form-neck");
     const inputSetup = document.getElementById("form-setup");
     const inputNotes = document.getElementById("form-notes");
     const photoPreview = document.getElementById("form-photo-preview");
@@ -687,10 +723,22 @@ html_code = r"""<!DOCTYPE html>
                 <span class="info-value mono">${guitar.stringGauge || 'N/D'}</span>
               </div>
               <div class="info-group">
+                <span class="info-label">Marca Corde</span>
+                <span class="info-value">${guitar.stringBrand || 'N/D'}</span>
+              </div>
+              <div class="info-group">
+                <span class="info-label">Pick Up</span>
+                <span class="info-value">${guitar.pickups || 'N/D'}</span>
+              </div>
+              <div class="info-group">
+                <span class="info-label">Profilo Manico</span>
+                <span class="info-value">${guitar.neckProfile || 'N/D'}</span>
+              </div>
+              <div class="info-group">
                 <span class="info-label">Ultimo Setup</span>
                 <span class="info-value mono">${guitar.lastSetup || 'N/D'}</span>
               </div>
-              <div class="info-group">
+              <div class="info-group full-width" style="grid-column: span 2;">
                 <span class="info-label">Note</span>
                 <span class="info-value">${guitar.notes || '-'}</span>
               </div>
@@ -723,6 +771,9 @@ html_code = r"""<!DOCTYPE html>
       inputYear.value = g.year || "";
       inputSerial.value = g.serialNumber || "";
       inputGauge.value = g.stringGauge || "";
+      inputStringBrand.value = g.stringBrand || "";
+      inputPickups.value = g.pickups || "";
+      inputNeck.value = g.neckProfile || "";
       inputSetup.value = g.lastSetup || "";
       inputNotes.value = g.notes || "";
 
@@ -744,6 +795,9 @@ html_code = r"""<!DOCTYPE html>
       inputYear.value = "";
       inputSerial.value = "";
       inputGauge.value = "";
+      inputStringBrand.value = "";
+      inputPickups.value = "";
+      inputNeck.value = "";
       inputSetup.value = new Date().toISOString().split('T')[0];
       inputNotes.value = "";
 
@@ -819,6 +873,9 @@ html_code = r"""<!DOCTYPE html>
         guitars[idx].year = parseInt(inputYear.value, 10) || null;
         guitars[idx].serialNumber = inputSerial.value.trim();
         guitars[idx].stringGauge = inputGauge.value.trim();
+        guitars[idx].stringBrand = inputStringBrand.value.trim();
+        guitars[idx].pickups = inputPickups.value.trim();
+        guitars[idx].neckProfile = inputNeck.value;
         guitars[idx].lastSetup = inputSetup.value;
         guitars[idx].notes = inputNotes.value.trim();
         guitars[idx].photo = currentFormPhoto;
@@ -840,6 +897,9 @@ html_code = r"""<!DOCTYPE html>
             year: parseInt(inputYear.value, 10) || null,
             serialNumber: inputSerial.value.trim(),
             stringGauge: inputGauge.value.trim(),
+            stringBrand: inputStringBrand.value.trim(),
+            pickups: inputPickups.value.trim(),
+            neckProfile: inputNeck.value,
             lastSetup: inputSetup.value,
             notes: inputNotes.value.trim(),
             photo: currentFormPhoto
@@ -853,6 +913,9 @@ html_code = r"""<!DOCTYPE html>
           year: parseInt(inputYear.value, 10) || null,
           serialNumber: inputSerial.value.trim(),
           stringGauge: inputGauge.value.trim(),
+          stringBrand: inputStringBrand.value.trim(),
+          pickups: inputPickups.value.trim(),
+          neckProfile: inputNeck.value,
           lastSetup: inputSetup.value || new Date().toISOString().split('T')[0],
           notes: inputNotes.value.trim(),
           photo: currentFormPhoto

@@ -464,6 +464,162 @@ html_code = r"""<!DOCTYPE html>
     }
 
     .photo-upload-btn:hover { background: var(--surface-container-highest); }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      box-sizing: border-box;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--stroke-default);
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      transform: translateY(20px);
+      transition: transform 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-overlay.active .modal-box {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: var(--fw-semibold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      color: var(--on-surface-default);
+    }
+
+    .due-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .due-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-container);
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--stroke-default);
+    }
+
+    .due-item-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .due-item-title {
+      font-size: 14px;
+      font-weight: var(--fw-semibold);
+    }
+
+    .due-item-sub {
+      font-size: 12px;
+      color: var(--negative);
+      font-weight: var(--fw-medium);
+    }
+
+    .badge-overdue {
+      background: rgba(220, 38, 38, 0.12);
+      color: var(--negative);
+      font-size: 11px;
+      font-weight: var(--fw-semibold);
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    /* Full photo modal styling */
+    .photo-modal-box {
+      max-width: 90vw;
+      max-height: 90vh;
+      background: transparent;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .full-image-container {
+      position: relative;
+      max-width: 100%;
+      max-height: 80vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .full-image {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .guitar-photo-wrapper {
+      cursor: pointer;
+    }
+
+    .photo-zoom-hint {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
   </style>
 </head>
 <body>
@@ -577,6 +733,10 @@ html_code = r"""<!DOCTYPE html>
             <span class="hud-label">Setup Mese</span>
             <span class="hud-value" id="stat-setups">0</span>
           </div>
+          <div class="hud-pill" id="hud-overdue-pill" style="cursor:pointer;" onclick="checkStringChangeReminders(true)">
+            <span class="hud-label">Cambio Corde</span>
+            <span class="hud-value" id="stat-overdue" style="color:var(--negative);">0</span>
+          </div>
         </div>
 
         <!-- Guitar List Container -->
@@ -584,6 +744,38 @@ html_code = r"""<!DOCTYPE html>
           <!-- Cards injected dynamically -->
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- STRING CHANGE REMINDER POP-UP -->
+  <div class="modal-overlay" id="popup-reminder">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>🎸</span> Promemoria Cambio Corde (> 4 Mesi)
+        </h3>
+        <button class="btn-text" onclick="closeModal('popup-reminder')">✕</button>
+      </div>
+      <p style="font-size:13px; color:var(--on-surface-de-emphasis); margin:0;">
+        È passato più di 4 mesi dall'ultimo setup o cambio corde per questi strumenti. Cambiare le corde mantiene il tono brillante e la tastiera pulita!
+      </p>
+      <div class="due-list" id="due-list-container">
+        <!-- Injected dynamically -->
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+        <button class="btn-tonal" onclick="closeModal('popup-reminder')">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL PHOTO LIGHTBOX MODAL -->
+  <div class="modal-overlay" id="popup-photo">
+    <div class="photo-modal-box">
+      <button class="btn-tonal" style="position:absolute; top:-40px; right:0; background:rgba(255,255,255,0.2); color:#fff; border:none;" onclick="closeModal('popup-photo')">Chiudi ✕</button>
+      <div class="full-image-container">
+        <img src="" id="full-photo-img" class="full-image" alt="Foto Intera Strumento">
+      </div>
+      <span id="full-photo-caption" style="color:#fff; margin-top:12px; font-weight:var(--fw-medium); text-shadow:0 2px 4px rgba(0,0,0,0.8);"></span>
     </div>
   </div>
 
@@ -599,7 +791,7 @@ html_code = r"""<!DOCTYPE html>
         stringBrand: "Ernie Ball",
         pickups: "3x V-Mod II Single-Coil",
         neckProfile: "Deep C",
-        lastSetup: "2026-05-10",
+        lastSetup: "2025-10-10",
         notes: "Setup per mi standard, action bassa",
         photo: ""
       },
@@ -613,7 +805,7 @@ html_code = r"""<!DOCTYPE html>
         stringBrand: "D'Addario",
         pickups: "85/15 Humbuckers",
         neckProfile: "Thin U",
-        lastSetup: "2026-07-02",
+        lastSetup: "2026-06-02",
         notes: "10-Top acero fiammato",
         photo: ""
       },
@@ -627,7 +819,7 @@ html_code = r"""<!DOCTYPE html>
         stringBrand: "Elixir",
         pickups: "60s Burstbucker HH",
         neckProfile: "Slim Taper",
-        lastSetup: "2026-04-15",
+        lastSetup: "2025-08-15",
         notes: "Bourbon Burst",
         photo: ""
       }
@@ -636,26 +828,25 @@ html_code = r"""<!DOCTYPE html>
     let activeEditingId = null;
     let deletingId = null;
     let currentFormPhoto = "";
+    let hasShownPopupOnLoad = false;
 
-    const container = document.getElementById("guitar-list-container");
-    const statTotal = document.getElementById("stat-total");
-    const statCommon = document.getElementById("stat-common");
-    const statSetups = document.getElementById("stat-setups");
+    // Helper: calculate months difference
+    function getMonthsSinceSetup(dateString) {
+      if (!dateString) return 999;
+      const setupDate = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now - setupDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return Math.floor(diffDays / 30);
+    }
 
-    const formTitle = document.getElementById("form-panel-title");
-    const btnResetForm = document.getElementById("btn-reset-form");
-    const inputBrand = document.getElementById("form-brand");
-    const inputModel = document.getElementById("form-model");
-    const inputYear = document.getElementById("form-year");
-    const inputSerial = document.getElementById("form-serial");
-    const inputGauge = document.getElementById("form-gauge");
-    const inputStringBrand = document.getElementById("form-string-brand");
-    const inputPickups = document.getElementById("form-pickups");
-    const inputNeck = document.getElementById("form-neck");
-    const inputSetup = document.getElementById("form-setup");
-    const inputNotes = document.getElementById("form-notes");
-    const photoPreview = document.getElementById("form-photo-preview");
-    const btnRemovePhoto = document.getElementById("btn-remove-photo");
+    function isSetupOlderThan4Months(dateString) {
+      if (!dateString) return true;
+      const setupDate = new Date(dateString);
+      const fourMonthsAgo = new Date();
+      fourMonthsAgo.setMonth(fourMonthsAgo.getMonth() - 4);
+      return setupDate < fourMonthsAgo;
+    }
 
     function updateStats() {
       statTotal.textContent = guitars.length;
@@ -663,6 +854,7 @@ html_code = r"""<!DOCTYPE html>
       if (guitars.length === 0) {
         statCommon.textContent = "-";
         statSetups.textContent = "0";
+        document.getElementById("stat-overdue").textContent = "0";
         return;
       }
 
@@ -683,6 +875,9 @@ html_code = r"""<!DOCTYPE html>
       const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       const recentSetups = guitars.filter(g => g.lastSetup && g.lastSetup.startsWith(currentYearMonth)).length;
       statSetups.textContent = recentSetups;
+
+      const overdueCount = guitars.filter(g => isSetupOlderThan4Months(g.lastSetup)).length;
+      document.getElementById("stat-overdue").textContent = overdueCount;
     }
 
     function render() {
@@ -692,6 +887,9 @@ html_code = r"""<!DOCTYPE html>
         const card = document.createElement("div");
         card.className = "guitar-card" + (activeEditingId === guitar.id ? " selected" : "");
         card.setAttribute("data-id", guitar.id);
+
+        const isOverdue = isSetupOlderThan4Months(guitar.lastSetup);
+        const monthsCount = getMonthsSinceSetup(guitar.lastSetup);
 
         if (deletingId === guitar.id) {
           card.innerHTML = `
@@ -706,10 +904,15 @@ html_code = r"""<!DOCTYPE html>
         } else {
           card.onclick = () => selectGuitarForEdit(guitar.id);
           card.innerHTML = `
-            ${guitar.photo ? `<div class="guitar-photo-wrapper" style="margin-bottom:10px;"><img src="${guitar.photo}" class="guitar-photo" alt="${guitar.brand} ${guitar.model}" loading="lazy"></div>` : ''}
+            ${guitar.photo ? `
+              <div class="guitar-photo-wrapper" style="margin-bottom:10px;" onclick="event.stopPropagation(); openPhotoModal('${guitar.photo}', '${guitar.brand} ${guitar.model}')">
+                <img src="${guitar.photo}" class="guitar-photo" alt="${guitar.brand} ${guitar.model}" loading="lazy">
+                <div class="photo-zoom-hint">🔍 Foto Intera</div>
+              </div>` : ''}
             <div class="card-header">
               <div>
                 <h3 class="guitar-brand-model">${guitar.brand || 'Senza Marca'} ${guitar.model || 'Senza Modello'}</h3>
+                ${isOverdue ? `<div class="badge-overdue">⚠️ Cambio Corde Consigliato (${monthsCount >= 999 ? 'Mai fatto' : '+' + monthsCount + ' mesi'})</div>` : ''}
               </div>
               ${guitar.year ? `<span class="guitar-year">${guitar.year}</span>` : ''}
             </div>
@@ -736,7 +939,7 @@ html_code = r"""<!DOCTYPE html>
               </div>
               <div class="info-group">
                 <span class="info-label">Ultimo Setup</span>
-                <span class="info-value mono">${guitar.lastSetup || 'N/D'}</span>
+                <span class="info-value mono" style="${isOverdue ? 'color:var(--negative); font-weight:bold;' : ''}">${guitar.lastSetup || 'N/D'}</span>
               </div>
               <div class="info-group full-width" style="grid-column: span 2;">
                 <span class="info-label">Note</span>
@@ -744,6 +947,7 @@ html_code = r"""<!DOCTYPE html>
               </div>
             </div>
             <div class="card-actions">
+              ${isOverdue ? `<button class="btn-text" style="color:var(--primary);" onclick="event.stopPropagation(); markStringsChangedToday('${guitar.id}')">✨ Cambiate Oggi</button>` : ''}
               <button class="btn-text" onclick="event.stopPropagation(); setDeleteState('${guitar.id}')">Elimina</button>
               <button class="btn-tonal" onclick="event.stopPropagation(); selectGuitarForEdit('${guitar.id}')">Modifica</button>
             </div>
@@ -756,60 +960,68 @@ html_code = r"""<!DOCTYPE html>
       updateStats();
     }
 
-    function selectGuitarForEdit(id) {
-      const g = guitars.find(item => item.id === id);
-      if (!g) return;
+    function checkStringChangeReminders(forceOpen = false) {
+      const overdueGuitars = guitars.filter(g => isSetupOlderThan4Months(g.lastSetup));
+      
+      if (overdueGuitars.length > 0 && (!hasShownPopupOnLoad || forceOpen)) {
+        hasShownPopupOnLoad = true;
+        const dueContainer = document.getElementById("due-list-container");
+        dueContainer.innerHTML = "";
 
-      activeEditingId = id;
-      deletingId = null;
+        overdueGuitars.forEach(g => {
+          const m = getMonthsSinceSetup(g.lastSetup);
+          const item = document.createElement("div");
+          item.className = "due-item";
+          item.innerHTML = `
+            <div class="due-item-info">
+              <span class="due-item-title">${g.brand} ${g.model}</span>
+              <span class="due-item-sub">Ultimo setup: ${g.lastSetup || 'Mai registrato'} (${m >= 999 ? 'Oltre 4 mesi' : m + ' mesi fa'})</span>
+            </div>
+            <button class="btn-primary" style="font-size:12px; padding:6px 12px; width:auto;" onclick="markStringsChangedToday('${g.id}')">Segna Cambiate</button>
+          `;
+          dueContainer.appendChild(item);
+        });
 
-      formTitle.textContent = "Modifica Strumento";
-      btnResetForm.style.display = "inline-block";
-
-      inputBrand.value = g.brand || "";
-      inputModel.value = g.model || "";
-      inputYear.value = g.year || "";
-      inputSerial.value = g.serialNumber || "";
-      inputGauge.value = g.stringGauge || "";
-      inputStringBrand.value = g.stringBrand || "";
-      inputPickups.value = g.pickups || "";
-      inputNeck.value = g.neckProfile || "";
-      inputSetup.value = g.lastSetup || "";
-      inputNotes.value = g.notes || "";
-
-      currentFormPhoto = g.photo || "";
-      updatePhotoPreview();
-
-      render();
+        openModal("popup-reminder");
+      } else if (forceOpen && overdueGuitars.length === 0) {
+        alert("Tutti i tuoi strumenti hanno corde fresche e sono stati settati negli ultimi 4 mesi!");
+      }
     }
 
-    function resetForm() {
-      activeEditingId = null;
-      deletingId = null;
+    function markStringsChangedToday(id) {
+      const g = guitars.find(item => item.id === id);
+      if (g) {
+        g.lastSetup = new Date().toISOString().split('T')[0];
+        render();
+        checkStringChangeReminders(false);
+        const overdueGuitars = guitars.filter(item => isSetupOlderThan4Months(item.lastSetup));
+        if (overdueGuitars.length === 0) {
+          closeModal("popup-reminder");
+        }
+      }
+    }
 
-      formTitle.textContent = "Nuovo Strumento";
-      btnResetForm.style.display = "none";
+    function openPhotoModal(photoUrl, title) {
+      if (!photoUrl) return;
+      document.getElementById("full-photo-img").src = photoUrl;
+      document.getElementById("full-photo-caption").textContent = title || "";
+      openModal("popup-photo");
+    }
 
-      inputBrand.value = "";
-      inputModel.value = "";
-      inputYear.value = "";
-      inputSerial.value = "";
-      inputGauge.value = "";
-      inputStringBrand.value = "";
-      inputPickups.value = "";
-      inputNeck.value = "";
-      inputSetup.value = new Date().toISOString().split('T')[0];
-      inputNotes.value = "";
+    function openModal(id) {
+      document.getElementById(id).classList.add("active");
+    }
 
-      currentFormPhoto = "";
-      updatePhotoPreview();
-
-      render();
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("active");
     }
 
     function updatePhotoPreview() {
       if (currentFormPhoto) {
-        photoPreview.innerHTML = `<img src="${currentFormPhoto}" class="guitar-photo" alt="Anteprima">`;
+        photoPreview.innerHTML = `
+          <img src="${currentFormPhoto}" class="guitar-photo" alt="Anteprima" onclick="openPhotoModal('${currentFormPhoto}', 'Foto Strumento')" style="cursor:pointer;">
+          <div class="photo-zoom-hint">🔍 Foto Intera</div>
+        `;
         btnRemovePhoto.style.display = "inline-block";
       } else {
         photoPreview.innerHTML = `
@@ -954,6 +1166,11 @@ html_code = r"""<!DOCTYPE html>
 
     inputSetup.value = new Date().toISOString().split('T')[0];
     render();
+
+    // Check reminders on load
+    setTimeout(() => {
+      checkStringChangeReminders(false);
+    }, 400);
 
     window.addEventListener('message', e => {
       if (e.data && (e.data.type === 'set-theme' || e.data.type === 'APPLY_THEME')) {

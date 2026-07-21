@@ -1,8 +1,6 @@
 import json
 
-# ---------------------------------------------------------
 # DATABASE INIZIALE DELLA COLLEZIONE
-# ---------------------------------------------------------
 guitars = [
     {
         "id": "gtr-001",
@@ -36,25 +34,22 @@ guitars = [
     }
 ]
 
-# ---------------------------------------------------------
-# FUNZIONI DI GESTIONE
-# ---------------------------------------------------------
-
 def show_collection(guitar_list):
     """Mostra la lista aggiornata di tutte le chitarre."""
-    print("\n--- COLLEZIONE CHITARRE ---")
+    print("\n==========================================")
+    print("         COLLEZIONE CHITARRE")
+    print("==========================================")
     if not guitar_list:
         print("La collezione è vuota.")
         return
     for g in guitar_list:
-        print(f"[{g['id']}] {g['brand']} {g['model']} ({g['year']}) | Corde: {g['string_gauge']} | Setup: {g['last_setup']}")
-
+        print(f"[{g['id']}] {g['brand']} {g['model']} ({g['year']})")
+        print(f"       Corde: {g['string_gauge']} | Setup: {g['last_setup']}")
+        print(f"       Note: {g['notes']}")
+        print("-" * 42)
 
 def update_guitar(guitar_list, guitar_id, **kwargs):
-    """
-    Modifica i valori di una chitarra esistente.
-    Passa i campi da modificare come argomenti (es. last_setup="2026-07-21").
-    """
+    """Modifica i valori di una chitarra esistente."""
     found = False
     for guitar in guitar_list:
         if guitar["id"] == guitar_id:
@@ -62,18 +57,14 @@ def update_guitar(guitar_list, guitar_id, **kwargs):
             for key, value in kwargs.items():
                 if key in guitar:
                     guitar[key] = value
-                    print(f"✓ Campo '{key}' aggiornato in '{value}' per la chitarra [{guitar_id}].")
-                else:
-                    print(f"⚠️ Campo '{key}' non valido per la chitarra [{guitar_id}].")
+                    print(f"✓ Aggiornato '{key}' -> '{value}' per [{guitar_id}]")
             break
     if not found:
         print(f"✗ Nessuno strumento trovato con ID: {guitar_id}")
 
-
 def delete_guitar(guitar_list, guitar_id):
-    """Cancella uno strumento dalla collezione tramite il suo ID."""
+    """Cancella uno strumento tramite ID."""
     initial_count = len(guitar_list)
-    # Filtra la lista tenendo solo gli elementi con ID diverso da quello da cancellare
     updated_list = [g for g in guitar_list if g["id"] != guitar_id]
     
     if len(updated_list) < initial_count:
@@ -84,26 +75,27 @@ def delete_guitar(guitar_list, guitar_id):
     return updated_list
 
 
-# ---------------------------------------------------------
-# ESECUZIONE E TEST DEL CODICE
-# ---------------------------------------------------------
+# --- ESECUZIONE ---
 
-# 1. Visualizziamo la situazione iniziale
+# 1. Mostra situazione iniziale
 show_collection(guitars)
 
-print("\n--- OPERAZIONI ---")
+print("\n--- APPLICO MODIFICHE E CANCELLAZIONE ---")
 
-# 2. Modifichiamo il setup e la scalatura della Fender (gtr-001)
+# 2. Modifica la Fender
 update_guitar(
     guitars, 
     "gtr-001", 
     last_setup="2026-07-21", 
     string_gauge="0.009 - 0.042",
-    notes="Cambio scalatura a 09-42, regolazione intonazione"
+    notes="Cambio scalatura a 09-42"
 )
 
-# 3. Cancelliamo la Gibson (gtr-003) dalla collezione
+# 3. Cancella la Gibson
 guitars = delete_guitar(guitars, "gtr-003")
 
-# 4. Visualizziamo il risultato finale
+# 4. Mostra situazione finale
 show_collection(guitars)
+
+# MANTIENE IL TERMINALE APERTO
+input("\nPremi INVIO sulla tastiera per chiudere...")

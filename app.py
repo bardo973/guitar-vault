@@ -24,22 +24,23 @@ html_code = r"""<!DOCTYPE html>
       --primary: #3b82f6;
       --on-primary: #ffffff;
       --primary-container: #1e3a8a;
-      --surface: rgba(30, 41, 59, 0.85);
-      --surface-container: rgba(51, 65, 85, 0.7);
-      --surface-container-high: rgba(71, 85, 105, 0.8);
-      --surface-container-highest: rgba(100, 116, 139, 0.85);
+      --surface: rgba(15, 23, 42, 0.88);
+      --surface-container: rgba(30, 41, 59, 0.75);
+      --surface-container-high: rgba(51, 65, 85, 0.85);
+      --surface-container-highest: rgba(71, 85, 105, 0.9);
       --on-surface-default: #f8fafc;
       --on-surface-de-emphasis: #cbd5e1;
       --outline: #94a3b8;
       --outline-variant: #475569;
-      --stroke-default: rgba(255, 255, 255, 0.15);
+      --stroke-default: rgba(255, 255, 255, 0.18);
       --negative: #ef4444;
-      --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+      --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     }
 
     body {
-      background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)),
-                  url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+      /* Foto di sfondo: la celebre Fender Stratocaster "Izabella" di Jimi Hendrix usata a Woodstock */
+      background: linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.92)),
+                  url('https://upload.wikimedia.org/wikipedia/commons/2/23/Jimi_Hendrix_Stratocaster.jpg') no-repeat center 20% fixed;
       background-size: cover;
       margin: 0;
       padding: 0;
@@ -50,14 +51,13 @@ html_code = r"""<!DOCTYPE html>
     }
 
     .widget-container {
-      max-width: 960px;
+      max-width: 980px;
       width: 100%;
       margin: 0 auto;
       padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 20px;
-      border-radius: 16px;
       box-sizing: border-box;
     }
 
@@ -67,7 +67,7 @@ html_code = r"""<!DOCTYPE html>
       line-height: 32px;
       margin: 0;
       color: #ffffff;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
     }
 
     .subtitle {
@@ -75,7 +75,7 @@ html_code = r"""<!DOCTYPE html>
       font-weight: var(--fw-normal);
       color: var(--on-surface-de-emphasis);
       margin: 4px 0 0 0;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
     }
 
     .split-layout {
@@ -86,21 +86,21 @@ html_code = r"""<!DOCTYPE html>
 
     @media (min-width: 680px) {
       .split-layout {
-        grid-template-columns: 340px 1fr;
+        grid-template-columns: 360px 1fr;
         align-items: start;
       }
     }
 
     .form-panel {
       background: var(--surface);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--stroke-default);
       border-radius: 16px;
       padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       position: sticky;
       top: 16px;
       box-shadow: var(--card-shadow);
@@ -111,7 +111,7 @@ html_code = r"""<!DOCTYPE html>
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--stroke-default);
-      padding-bottom: 12px;
+      padding-bottom: 10px;
     }
 
     .panel-title {
@@ -130,8 +130,8 @@ html_code = r"""<!DOCTYPE html>
     .dashboard-hud {
       display: flex;
       background: var(--surface);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       padding: 12px 16px;
       border: 1px solid var(--stroke-default);
       border-radius: 14px;
@@ -251,8 +251,8 @@ html_code = r"""<!DOCTYPE html>
 
     .guitar-card {
       background: var(--surface);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--stroke-default);
       border-radius: 16px;
       padding: 18px;
@@ -594,11 +594,11 @@ html_code = r"""<!DOCTYPE html>
   <div class="widget-container">
     <div>
       <h1 class="title">Guitar Rack & Vault</h1>
-      <p class="subtitle">Gestione inventario, scalature e setup chitarre</p>
+      <p class="subtitle">Gestione inventario, scalature, setup e interventi di liuteria</p>
     </div>
 
     <div class="split-layout">
-      <!-- LEFT FORM PANEL -->
+      <!-- FORM DI INSERIMENTO / MODIFICA -->
       <div class="form-panel" id="form-panel">
         <div class="panel-title-row">
           <h2 class="panel-title" id="form-panel-title">Nuovo Strumento</h2>
@@ -672,8 +672,15 @@ html_code = r"""<!DOCTYPE html>
             <label class="form-label">Ultimo Setup</label>
             <input type="date" class="input-field mono" id="form-setup">
           </div>
+          
+          <!-- NUOVA VOCE INTERVENTI DI LIUTERIA -->
           <div class="form-group full-width">
-            <label class="form-label">Note</label>
+            <label class="form-label">🛠️ Interventi di Liuteria</label>
+            <input type="text" class="input-field" id="form-lutherie" placeholder="es. Rettifica tasti, cambio capotasto in osso, schermatura...">
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Note Aggiuntive</label>
             <input type="text" class="input-field" id="form-notes" placeholder="Drop D, action bassa...">
           </div>
         </div>
@@ -684,7 +691,7 @@ html_code = r"""<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- RIGHT SECTION: STATS & GUITAR LIST -->
+      <!-- SECTION SEZIONE DESTRA: STATS & LISTA RACK -->
       <div class="right-section">
         <div class="dashboard-hud" id="hud-stats">
           <div class="hud-pill">
@@ -712,7 +719,7 @@ html_code = r"""<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- MODAL REMINDER CAMBIO CORDE -->
+  <!-- POPUP CAMBIO CORDE -->
   <div class="modal-overlay" id="popup-reminder">
     <div class="modal-box">
       <div class="modal-header">
@@ -731,7 +738,7 @@ html_code = r"""<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- FULL PHOTO LIGHTBOX MODAL -->
+  <!-- POPUP INGRANDIMENTO FOTO -->
   <div class="modal-overlay" id="popup-photo">
     <div class="photo-modal-box">
       <button class="btn-tonal" style="position:absolute; top:-40px; right:0; background:rgba(255,255,255,0.2); color:#fff; border:none;" onclick="closeModal('popup-photo')">Chiudi ✕</button>
@@ -755,6 +762,7 @@ html_code = r"""<!DOCTYPE html>
         pickups: "3x V-Mod II Single-Coil",
         neckProfile: "Deep C",
         lastSetup: "2025-10-10",
+        lutherieWork: "Capotasto in osso sagomato a mano, schermatura vano controlli",
         notes: "Setup per Mi standard, action bassa",
         photo: ""
       },
@@ -769,6 +777,7 @@ html_code = r"""<!DOCTYPE html>
         pickups: "85/15 Humbuckers",
         neckProfile: "Thin U",
         lastSetup: "2026-06-02",
+        lutherieWork: "Rettifica e lucidatura tasti PLEK",
         notes: "Top in acero fiammato",
         photo: ""
       },
@@ -783,6 +792,7 @@ html_code = r"""<!DOCTYPE html>
         pickups: "60s Burstbucker HH",
         neckProfile: "Slim Taper",
         lastSetup: "2025-08-15",
+        lutherieWork: "Sostituzione bridge con ABR-1 in ottone e ricablaggio potenziometri 500k",
         notes: "Bourbon Burst",
         photo: ""
       }
@@ -908,6 +918,10 @@ html_code = r"""<!DOCTYPE html>
                 <span class="info-value mono" style="${isOverdue ? 'color:var(--negative); font-weight:bold;' : ''}">${guitar.lastSetup || 'N/D'}</span>
               </div>
               <div class="info-group full-width" style="grid-column: span 2;">
+                <span class="info-label">🛠️ Interventi di Liuteria</span>
+                <span class="info-value" style="color:#93c5fd;">${guitar.lutherieWork || 'Nessun intervento registrato'}</span>
+              </div>
+              <div class="info-group full-width" style="grid-column: span 2;">
                 <span class="info-label">Note</span>
                 <span class="info-value">${guitar.notes || '-'}</span>
               </div>
@@ -985,6 +999,7 @@ html_code = r"""<!DOCTYPE html>
       document.getElementById("form-pickups").value = g.pickups || "";
       document.getElementById("form-neck").value = g.neckProfile || "";
       document.getElementById("form-setup").value = g.lastSetup || "";
+      document.getElementById("form-lutherie").value = g.lutherieWork || "";
       document.getElementById("form-notes").value = g.notes || "";
 
       currentFormPhoto = g.photo || "";
@@ -1007,6 +1022,7 @@ html_code = r"""<!DOCTYPE html>
       document.getElementById("form-pickups").value = "";
       document.getElementById("form-neck").value = "";
       document.getElementById("form-setup").value = "";
+      document.getElementById("form-lutherie").value = "";
       document.getElementById("form-notes").value = "";
 
       currentFormPhoto = "";
@@ -1066,6 +1082,7 @@ html_code = r"""<!DOCTYPE html>
         pickups: document.getElementById("form-pickups").value.trim(),
         neckProfile: document.getElementById("form-neck").value,
         lastSetup: document.getElementById("form-setup").value,
+        lutherieWork: document.getElementById("form-lutherie").value.trim(),
         notes: document.getElementById("form-notes").value.trim(),
         photo: currentFormPhoto
       };
@@ -1123,4 +1140,4 @@ html_code = r"""<!DOCTYPE html>
 </html>
 """
 
-st.components.v1.html(html_code, height=920, scrolling=True)
+st.components.v1.html(html_code, height=940, scrolling=True)

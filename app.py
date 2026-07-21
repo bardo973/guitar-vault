@@ -38,9 +38,9 @@ html_code = r"""<!DOCTYPE html>
     }
 
     body {
-      /* Foto di sfondo: la celebre Fender Stratocaster "Izabella" di Jimi Hendrix usata a Woodstock */
-      background: linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.92)),
-                  url('https://upload.wikimedia.org/wikipedia/commons/2/23/Jimi_Hendrix_Stratocaster.jpg') no-repeat center 20% fixed;
+      /* Foto di sfondo: dettaglio della chitarra Stratocaster */
+      background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.92)),
+                  url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
       background-size: cover;
       margin: 0;
       padding: 0;
@@ -673,10 +673,9 @@ html_code = r"""<!DOCTYPE html>
             <input type="date" class="input-field mono" id="form-setup">
           </div>
           
-          <!-- NUOVA VOCE INTERVENTI DI LIUTERIA -->
           <div class="form-group full-width">
             <label class="form-label">🛠️ Interventi di Liuteria</label>
-            <input type="text" class="input-field" id="form-lutherie" placeholder="es. Rettifica tasti, cambio capotasto in osso, schermatura...">
+            <input type="text" class="input-field" id="form-lutherie" placeholder="es. Rettifica tasti, capotasto in osso, schermatura...">
           </div>
 
           <div class="form-group full-width">
@@ -691,7 +690,7 @@ html_code = r"""<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- SECTION SEZIONE DESTRA: STATS & LISTA RACK -->
+      <!-- SEZIONE DESTRA: STATS & LISTA RACK -->
       <div class="right-section">
         <div class="dashboard-hud" id="hud-stats">
           <div class="hud-pill">

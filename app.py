@@ -74,7 +74,7 @@ if "chitarre" not in st.session_state:
           accordatura="E Standard",
       ),
       manutenzione=Manutenzione(
-          data_ultimo_cambio_corde=date(2026, 4, 1),  # Corde vecchie (> 60 gg)
+          data_ultimo_cambio_corde=date(2026, 4, 1),
           data_pulizia_tastiera=date(2026, 4, 1),
       ),
   )
@@ -91,7 +91,7 @@ if "chitarre" not in st.session_state:
           accordatura="Drop D",
       ),
       manutenzione=Manutenzione(
-          data_ultimo_cambio_corde=date(2026, 7, 10),  # Corde recenti
+          data_ultimo_cambio_corde=date(2026, 7, 10),
       ),
   )
   st.session_state.chitarre = [demo_gtr1, demo_gtr2]
@@ -112,7 +112,6 @@ st.divider()
 col_menu1, col_menu2 = st.columns([2, 2])
 
 with col_menu1:
-  # Opzioni per il selettore
   opzioni_selezione = ["Tutte le chitarre"] + [
       f"{g.marca} {g.modello} ({g.id})" for g in st.session_state.chitarre
   ]
@@ -131,7 +130,6 @@ st.divider()
 # --- FILTRAGGIO DELLA LISTA ---
 chitarre_da_mostrare = st.session_state.chitarre.copy()
 
-# Applicazione filtro cambio corde
 if filtro_corde_scadute:
   soglia_giorni = date.today() - timedelta(days=60)
   chitarre_da_mostrare = [
@@ -140,7 +138,6 @@ if filtro_corde_scadute:
       if g.manutenzione.data_ultimo_cambio_corde <= soglia_giorni
   ]
 
-# Applicazione selezione da menu a tendina
 if chitarra_selezionata_str != "Tutte le chitarre":
   chitarre_da_mostrare = [
       g
@@ -158,7 +155,6 @@ if not chitarre_da_mostrare:
     st.info("Nessuna chitarra trovata nella collezione.")
 
 for idx, chitarra in enumerate(chitarre_da_mostrare):
-  # Calcolo giorni dall'ultimo cambio corde
   giorni_da_cambio = (
       date.today() - chitarra.manutenzione.data_ultimo_cambio_corde
   ).days
@@ -177,7 +173,6 @@ for idx, chitarra in enumerate(chitarre_da_mostrare):
       if dettagli:
         st.caption(" | ".join(dettagli))
 
-      # Badge di avviso se le corde sono vecchie
       if necessita_cambio:
         st.error(
             f"⚠️ **ATTENZIONE: Corde da cambiare!** Ultimo cambio"
@@ -382,27 +377,37 @@ for idx, chitarra in enumerate(chitarre_da_mostrare):
           st.toast("Scheda aggiornata!", icon="✅")
           st.rerun()
 
-# --- SIDEBAR NUOVA CHITARRA ---
+# --- SIDEBAR PER NUOVO STRUMENTO (RISOLTO PROBLEMA INVIO) ---
 with st.sidebar:
   st.header("➕ Nuovo Strumento")
-  with st.form("form_add"):
-    add_m = st.text_input("Marca *")
-    add_mod = st.text_input("Modello *")
+  with st.form("form_add_guitar", clear_on_submit=True):
+    add_m = st.text_input("Marca (obbligatoria)*")
+    add_mod = st.text_input("Modello (obbligatorio)*")
     add_sn = st.text_input("Numero di Serie")
     add_col = st.text_input("Colore / Finitura")
 
-    if st.form_submit_button("Aggiungi"):
-      if add_m and add_mod:
-        n_id = f"gtr_{len(st.session_state.chitarre) + 1}"
-        nuova = Chitarra(
-            id=n_id,
-            marca=add_m,
-            modello=add_mod,
-            numero_serie=add_sn,
-            colore_finitura=add_col,
+    submitted = st.form_submit_button("Aggiungi Strumento")
+
+    if submitted:
+      if add_m.strip() != "" and add_mod.strip() != "":
+        # Generiamo un ID univoco basato sul numero attuale di chitarre
+        nuovo_id = f"gtr_{len(st.session_state.chitarre) + 100}"
+        nuova_chitarra = Chitarra(
+            id=nuovo_id,
+            marca=add_m.strip(),
+            modello=add_mod.strip(),
+            numero_serie=add_sn.strip(),
+            colore_finitura=add_col.strip(),
+            setup=SetupMeccanico(),
+            elettronica=Elettronica(),
+            manutenzione=Manutenzione(),
+            economia=ValoreEconomico(),
         )
-        st.session_state.chitarre.append(nuova)
-        st.toast("Nuova chitarra aggiunta!", icon="🎸")
+        st.session_state.chitarre.append(nuova_chitarra)
+        st.toast(
+            f"Aggiunta {nuova_chitarra.marca} {nuova_chitarra.modello}!",
+            icon="🎸",
+        )
         st.rerun()
       else:
-        st.error("Marca e Modello sono obbligatori!")
+        st.error("Inserisci sia la **Marca** che il **Modello**!")

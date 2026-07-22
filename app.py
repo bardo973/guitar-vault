@@ -12,7 +12,7 @@ st.set_page_config(
 
 DB_FILE = "vault_data.json"
 
-# Dati di partenza se il file non esiste
+# Dati di partenza
 DEFAULT_GUITARS = [
     {
         "id": "g-1",
@@ -29,95 +29,113 @@ DEFAULT_GUITARS = [
         "neckWood": "Acero, Bolt-On con Micro-Tilt",
         "neckProfile": "Deep C",
         "fretboard": "Palissandro, Raggio 9.5\", 22 Narrow Tall",
-        "scaleLength": "25.5\"",
-        "hardware": "Tremolo Sincronizzato 2-Punti, Meccaniche Autobloccanti",
         "pickups": "SSS - 3x V-Mod II Single-Coil",
         "stringGauge": "0.010-0.046",
-        "stringBrand": "Ernie Ball Regular Slinky",
         "lastSetup": "2025-10-10",
-        "lastFretboardClean": "2025-10-10",
-        "mods": "Schermatura cavità controlli con foglia di rame",
-        "lutherieWork": "Capotasto in osso sagomato a mano",
         "notes": "Azione molto bassa, setup Mi Standard"
     }
 ]
 
-# 2. Funzioni di Caricamento e Salvataggio su Server
+# 2. Funzioni I/O File Server
 def load_data():
     if not os.path.exists(DB_FILE):
         save_data(DEFAULT_GUITARS)
         return DEFAULT_GUITARS
-    with open(DB_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(DB_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return DEFAULT_GUITARS
 
 def save_data(data):
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
-# Inizializzazione Session State
+# Inizializzazione dati in Session State
 if "guitars" not in st.session_state:
     st.session_state.guitars = load_data()
 
-# Utility per calcolo mesi dal setup
+# Calcolo differenza setup (URGENTE se > 120 giorni)
 def is_overdue(date_str):
     if not date_str:
         return True
     try:
         setup_date = datetime.strptime(date_str, "%Y-%m-%d")
         diff_days = (datetime.now() - setup_date).days
-        return diff_days > 120  # Più di 4 mesi (120 giorni)
-    except:
+        return diff_days > 120
+    except Exception:
         return False
 
-# --- UI INTERFACCIA ---
+# --- HEADER & STATISTICHE ---
 st.title("🎸 Guitar Rack & Vault")
-st.caption("Gestione inventario, specifiche tecniche e manutenzione sincronizzata in Cloud")
+st.caption("Sincronizzato in Cloud — visibile e modificabile da PC e iPhone")
 
-# HUD Statistiche
-col1, col2, col3, col4 = st.columns(4)
-total_guitars = len(st.session_state.guitars)
-overdue_count = sum(1 for g in st.session_state.guitars if is_overdue(g.get("lastSetup")))
+overdue_guitars = [g for g in st.session_state.guitars if is_overdue(g.get("lastSetup"))]
 
-col1.metric("Totale Strumenti", total_guitars)
-col2.metric("Cambio Corde URGENTE (>4 Mesi)", overdue_count, delta_color="inverse")
+col_stat1, col_stat2 = st.columns(2)
+col_stat1.metric("Totale Strumenti nel Vault", len(st.session_state.guitars))
+col_stat2.metric("Cambio Corde URGENTE (>4 Mesi)", len(overdue_guitars), delta_color="inverse")
 
-# 3. Form Inserimento / Nuova Chitarra
-with st.expander("➕ Aggiungi un Nuovo Strumento al Vault"):
+st.divider()
+
+# --- BARRA DI FILTRO & MENU A TENDINA ---
+st.subheader("🔍 Filtra e Cerca Strumenti")
+
+f_col1, f_col2 = st.columns([1, 2])
+
+# Menu a tendina per il tipo di filtro
+filter_option = f_col1.selectbox(
+    "Mostra per stato setup:",
+    ["Tutti gli strumenti", "⚠️ Solo cambio corde URGENTE", "✓ Setup in regola"]
+)
+
+# Menu a tendina per selezione diretta del singolo strumento
+guitar_labels = ["--- Nessuna selezione (Mostra elenco) ---"] + [
+    f"{g['brand']} {g['model']} ({g.get('serialNumber', 'No Serial')})" for g in st.session_state.guitars
+]
+selected_guitar_label = f_col2.selectbox("Oppure seleziona uno strumento specifico:", guitar_labels)
+
+# Applichiamo la logica di filtraggio
+filtered_guitars = st.session_state.guitars
+
+if selected_guitar_label != "--- Nessuna selezione (Mostra elenco) ---":
+    # Selezionato uno strumento specifico
+    idx_sel = guitar_labels.index(selected_guitar_label) - 1
+    filtered_guitars = [st.session_state.guitars[idx_sel]]
+elif filter_option == "⚠️ Solo cambio corde URGENTE":
+    filtered_guitars = overdue_guitars
+elif filter_option == "✓ Setup in regola":
+    filtered_guitars = [g for g in st.session_state.guitars if not is_overdue(g.get("lastSetup"))]
+
+st.divider()
+
+# --- FORM AGGIUNTA NUOVA CHITARRA ---
+with st.expander("➕ Aggiungi un Nuovo Strumento"):
     with st.form("add_guitar_form", clear_on_submit=True):
-        st.subheader("1. Dati Anagrafici")
+        st.subheader("Informazioni Base")
         c1, c2, c3 = st.columns(3)
         brand = c1.text_input("Marca *")
         model = c2.text_input("Modello *")
-        year = c3.number_input("Anno di Produzione", min_value=1900, max_value=2030, value=2022)
+        year = c3.number_input("Anno", min_value=1900, max_value=2030, value=2022)
         
         c4, c5, c6 = st.columns(3)
         serial = c4.text_input("Numero di Serie")
         factory = c5.text_input("Fabbrica / Paese")
-        condition = c6.selectbox("Stato", ["Mint", "Ottimo", "Buono", "Relic / Usurato", "Da restaurare"])
+        condition = c6.selectbox("Stato", ["Mint", "Ottimo", "Buono", "Usurato / Relic", "Da restaurare"])
+
+        st.subheader("Specifiche & Manutenzione")
+        s1, s2 = st.columns(2)
+        body = s1.text_input("Body")
+        neck = s2.text_input("Manico / Profilo")
         
-        c7, c8 = st.columns(2)
-        price = c7.number_input("Prezzo Pagato (€)", min_value=0, value=0)
-        market_val = c8.number_input("Valore Attuale (€)", min_value=0, value=0)
+        s3, s4 = s5 = st.columns(3)
+        pickups = s3.text_input("Pickups")
+        gauge = s4.text_input("Scalatura Corde (es. 0.010-0.046)")
+        setup_date = s5.date_input("Data Ultimo Setup", datetime.now())
 
-        st.subheader("2. Specifiche Tecniche")
-        spec1, spec2 = st.columns(2)
-        body = spec1.text_input("Body")
-        neck = spec2.text_input("Manico / Profilo")
-        
-        spec3, spec4 = st.columns(2)
-        fretboard = spec3.text_input("Tastiera")
-        pickups = spec4.text_input("Pickups / Elettronica")
-
-        st.subheader("3. Manutenzione")
-        m1, m2, m3 = st.columns(3)
-        gauge = m1.text_input("Scalatura Corde (es. 0.010-0.046)")
-        setup_date = m2.date_input("Data Ultimo Setup", datetime.now())
-        notes = m3.text_input("Note particolari")
-
-        submitted = st.form_submit_button("Salva nel Vault Cloud")
-        if submitted:
+        if st.form_submit_button("💾 Salva nel Vault"):
             if brand and model:
-                new_guitar = {
+                new_g = {
                     "id": f"g-{int(datetime.now().timestamp())}",
                     "brand": brand,
                     "model": model,
@@ -125,65 +143,123 @@ with st.expander("➕ Aggiungi un Nuovo Strumento al Vault"):
                     "serialNumber": serial,
                     "factory": factory,
                     "condition": condition,
-                    "pricePaid": price,
-                    "marketValue": market_val,
                     "body": body,
                     "neckWood": neck,
-                    "fretboard": fretboard,
                     "pickups": pickups,
                     "stringGauge": gauge,
                     "lastSetup": setup_date.strftime("%Y-%m-%d"),
-                    "notes": notes
+                    "notes": ""
                 }
-                st.session_state.guitars.append(new_guitar)
+                st.session_state.guitars.append(new_g)
                 save_data(st.session_state.guitars)
-                st.success(f"{brand} {model} aggiunta con successo!")
+                st.success("Strumento aggiunto con successo!")
                 st.rerun()
             else:
-                st.error("Inserisci almeno Marca e Modello.")
+                st.error("Marca e Modello sono obbligatori.")
 
-st.divider()
+# --- LISTA CHITARRE & MODIFICA ---
+if not filtered_guitars:
+    st.info("Nessuno strumento corrisponde ai filtri selezionati.")
 
-# 4. Lista e Visualizzazione Strumenti
-st.subheader("📋 I tuoi Strumenti")
-
-for idx, g in enumerate(st.session_state.guitars):
+for g in filtered_guitars:
+    # Cerchiamo l'indice reale nell'elenco principale
+    real_idx = next(i for i, item in enumerate(st.session_state.guitars) if item["id"] == g["id"])
     overdue = is_overdue(g.get("lastSetup"))
-    status_badge = "⚠️ CAMBIO CORDE NECESSARIO" if overdue else "✓ OK"
     
     with st.container(border=True):
-        col_title, col_btn = st.columns([4, 1])
-        col_title.markdown(f"### {g['brand']} {g['model']} ({g.get('year', 'N/D')})")
+        header_col, action_col = st.columns([3, 1])
+        
+        title_prefix = "⚠️ " if overdue else "🎸 "
+        header_col.markdown(f"### {title_prefix}{g['brand']} {g['model']} ({g.get('year', 'N/D')})")
         
         if overdue:
-            col_title.warning(f"Ultimo setup: {g.get('lastSetup', 'Mai')} — {status_badge}")
+            header_col.warning(f"Ultimo Cambio Corde / Setup: **{g.get('lastSetup', 'Mai')}** — Necessario intervento!")
         else:
-            col_title.info(f"Ultimo setup: {g.get('lastSetup', 'Mai')}")
+            header_col.success(f"Ultimo Cambio Corde / Setup: **{g.get('lastSetup', 'Mai')}**")
 
-        t1, t2, t3 = st.tabs(["Anagrafica & Valore", "Specifiche", "Manutenzione & Note"])
+        # Scheda Dettagli / Modifica
+        tab_view, tab_edit = st.tabs(["👁️ Dettagli Strumento", "✏️ Modifica Scheda"])
         
-        with t1:
-            st.write(f"**Serial Number:** `{g.get('serialNumber', 'N/D')}` | **Origine:** {g.get('factory', 'N/D')}")
-            st.write(f"**Stato:** {g.get('condition')} | **Prezzo:** €{g.get('pricePaid')} | **Valore Stimato:** €{g.get('marketValue')}")
+        with tab_view:
+            v1, v2, v3 = st.columns(3)
+            v1.write(f"**Serial Number:** `{g.get('serialNumber', 'N/D')}`")
+            v1.write(f"**Origine:** {g.get('factory', 'N/D')}")
+            v1.write(f"**Condizione:** {g.get('condition', 'N/D')}")
             
-        with t2:
-            st.write(f"**Body:** {g.get('body', 'N/D')}")
-            st.write(f"**Manico:** {g.get('neckWood', 'N/D')}")
-            st.write(f"**Tastiera:** {g.get('fretboard', 'N/D')}")
-            st.write(f"**Pickups:** {g.get('pickups', 'N/D')}")
+            v2.write(f"**Body:** {g.get('body', 'N/D')}")
+            v2.write(f"**Manico:** {g.get('neckWood', 'N/D')}")
+            v2.write(f"**Pickups:** {g.get('pickups', 'N/D')}")
             
-        with t3:
-            st.write(f"**Scalatura Corde:** `{g.get('stringGauge', 'N/D')}`")
-            st.write(f"**Note:** {g.get('notes', 'Nessuna note')}")
+            v3.write(f"**Scalatura Corde:** `{g.get('stringGauge', 'N/D')}`")
+            v3.write(f"**Prezzo Pagato:** €{g.get('pricePaid', 0)}")
+            v3.write(f"**Valore di Mercato:** €{g.get('marketValue', 0)}")
+            
+            if g.get("notes"):
+                st.info(f"**Note:** {g.get('notes')}")
 
-        # Pulsanti d'azione
-        b1, b2 = st.columns([1, 1])
-        if b1.button("🔄 Segna Setup Oggi", key=f"setup_{g['id']}"):
-            g['lastSetup'] = datetime.now().strftime("%Y-%m-%d")
-            save_data(st.session_state.guitars)
-            st.rerun()
-            
-        if b2.button("🗑️ Elimina", key=f"del_{g['id']}", type="primary"):
-            st.session_state.guitars.pop(idx)
-            save_data(st.session_state.guitars)
-            st.rerun()
+            # Pulsanti Rapidi
+            btn_col1, btn_col2 = st.columns([1, 1])
+            if btn_col1.button("🔄 Segna Cambio Corde Oggi", key=f"quick_setup_{g['id']}"):
+                st.session_state.guitars[real_idx]['lastSetup'] = datetime.now().strftime("%Y-%m-%d")
+                save_data(st.session_state.guitars)
+                st.success("Setup aggiornato a oggi!")
+                st.rerun()
+
+            if btn_col2.button("🗑️ Elimina", key=f"del_{g['id']}", type="primary"):
+                st.session_state.guitars.pop(real_idx)
+                save_data(st.session_state.guitars)
+                st.rerun()
+
+        # FORM DI MODIFICA COMPLETA
+        with tab_edit:
+            with st.form(f"edit_form_{g['id']}"):
+                st.subheader("Modifica Specifiche dello Strumento")
+                
+                ec1, ec2, ec3 = st.columns(3)
+                edit_brand = ec1.text_input("Marca", value=g.get("brand", ""))
+                edit_model = ec2.text_input("Modello", value=g.get("model", ""))
+                edit_year = ec3.number_input("Anno", min_value=1900, max_value=2030, value=int(g.get("year", 2022)))
+
+                ec4, ec5, ec6 = st.columns(3)
+                edit_serial = ec4.text_input("Serial Number", value=g.get("serialNumber", ""))
+                edit_factory = ec5.text_input("Fabbrica / Paese", value=g.get("factory", ""))
+                
+                cond_list = ["Mint", "Ottimo", "Buono", "Usurato / Relic", "Da restaurare"]
+                curr_cond_idx = cond_list.index(g.get("condition")) if g.get("condition") in cond_list else 0
+                edit_condition = ec6.selectbox("Condizione", cond_list, index=curr_cond_idx)
+
+                es1, es2 = st.columns(2)
+                edit_body = es1.text_input("Body", value=g.get("body", ""))
+                edit_neck = es2.text_input("Manico / Profilo", value=g.get("neckWood", ""))
+
+                es3, es4, es5 = st.columns(3)
+                edit_pickups = es3.text_input("Pickups", value=g.get("pickups", ""))
+                edit_gauge = es4.text_input("Scalatura Corde", value=g.get("stringGauge", ""))
+                
+                # Parsing data per il date_input
+                try:
+                    default_date = datetime.strptime(g.get("lastSetup"), "%Y-%m-%d")
+                except Exception:
+                    default_date = datetime.now()
+                edit_setup_date = es5.date_input("Data Ultimo Setup", default_date)
+
+                edit_notes = st.text_area("Note / Modifiche effettuate", value=g.get("notes", ""))
+
+                if st.form_submit_button("💾 Salva Modifiche"):
+                    st.session_state.guitars[real_idx].update({
+                        "brand": edit_brand,
+                        "model": edit_model,
+                        "year": edit_year,
+                        "serialNumber": edit_serial,
+                        "factory": edit_factory,
+                        "condition": edit_condition,
+                        "body": edit_body,
+                        "neckWood": edit_neck,
+                        "pickups": edit_pickups,
+                        "stringGauge": edit_gauge,
+                        "lastSetup": edit_setup_date.strftime("%Y-%m-%d"),
+                        "notes": edit_notes
+                    })
+                    save_data(st.session_state.guitars)
+                    st.success("Modifiche salvate con successo!")
+                    st.rerun()

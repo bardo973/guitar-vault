@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import os
+import base64
 from datetime import datetime
 from PIL import Image
 
@@ -13,10 +14,47 @@ st.set_page_config(
 
 DB_FILE = "vault_data.json"
 UPLOAD_DIR = "uploads"
+BG_IMAGE_PATH = "background.jpg"  # Salva qui la foto dello sfondo!
 
 # Crea la cartella per le immagini se non esiste
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
+
+# --- FUNZIONE PER SETTARE LO SFONDO DA FILE LOCALE ---
+def set_custom_background(image_file):
+    if os.path.exists(image_file):
+        with open(image_file, "rb") as f:
+            encoded_string = base64.b64encode(f.read()).decode()
+        
+        css = f"""
+        <style>
+        .stApp {{
+            background-image: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url("data:image/jpg;base64,{encoded_string}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+        
+        /* Rende le card e i container semi-trasparenti per far risaltare lo sfondo */
+        [data-testid="stHeader"] {{
+            background-color: rgba(0,0,0,0) !important;
+        }}
+        
+        .stMarkdown, p, h1, h2, h3, label {{
+            color: #ffffff !important;
+        }}
+        
+        div[data-testid="stMetricValue"] {{
+            color: #f0a500 !important;
+        }}
+        </style>
+        """
+        st.markdown(css, unsafe_allow_html=True)
+
+# Applica lo sfondo personalizzato
+set_custom_background(BG_IMAGE_PATH)
+
 
 # Dati di partenza
 DEFAULT_GUITARS = [
@@ -103,7 +141,7 @@ col_stat1.metric("Totale Chitarre nel Vault", len(st.session_state.guitars))
 col_stat2.metric("Cambio Corde URGENTE (>4 mesi)", len(overdue_guitars), delta_color="inverse")
 
 with col_btn:
-    st.write("") # Spaziatore verticale
+    st.write("")
     if st.button("➕ Aggiungi Chitarra", use_container_width=True, type="primary"):
         st.session_state.show_form = True
         st.session_state.editing_guitar_id = None
@@ -245,7 +283,6 @@ for g in displayed_guitars:
     with st.container(border=True):
         col_img, col_info = st.columns([1, 3])
         
-        # Colonna Foto
         with col_img:
             img_path = g.get("imagePath")
             if img_path and os.path.exists(img_path):
@@ -253,7 +290,6 @@ for g in displayed_guitars:
             else:
                 st.caption("📷 Nessuna foto presente")
         
-        # Colonna Dettagli
         with col_info:
             st.markdown(f"### {g['brand']} {g['model']} ({g.get('year', 'N/D')})")
             
@@ -279,7 +315,6 @@ for g in displayed_guitars:
                 st.write(f"**Scalatura Corde:** `{g.get('stringGauge', 'N/D')}`")
                 st.write(f"**Note:** {g.get('notes', 'Nessuna nota')}")
 
-            # Pulsanti d'azione dedicati per ciascuna chitarra
             col_act1, col_act2, col_act3 = st.columns(3)
             
             if col_act1.button("✏️ Modifica", key=f"edit_{g['id']}"):

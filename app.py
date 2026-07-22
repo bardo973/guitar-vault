@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 from datetime import datetime
+from PIL import Image
 
 # 1. Configurazione Pagina
 st.set_page_config(
@@ -11,8 +12,13 @@ st.set_page_config(
 )
 
 DB_FILE = "vault_data.json"
+UPLOAD_DIR = "uploads"
 
-# Dati di partenza se il file non esiste
+# Crea la cartella per le immagini se non esiste
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR)
+
+# Dati di partenza
 DEFAULT_GUITARS = [
     {
         "id": "g-1",
@@ -31,11 +37,12 @@ DEFAULT_GUITARS = [
         "hardware": "Tremolo 2 punti",
         "stringGauge": "0.010-0.046",
         "lastSetup": "2025-10-10",
-        "notes": "Azione molto bassa, setup Mi Standard"
+        "notes": "Azione molto bassa, setup Mi Standard",
+        "imagePath": ""
     }
 ]
 
-# 2. Funzioni di Salvataggio su Server Cloud
+# 2. Funzioni di Salvataggio e Gestione Dati
 def load_data():
     if not os.path.exists(DB_FILE):
         save_data(DEFAULT_GUITARS)
@@ -49,6 +56,19 @@ def load_data():
 def save_data(data):
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
+
+def save_image(uploaded_file, guitar_id):
+    if uploaded_file is not None:
+        file_ext = uploaded_file.name.split(".")[-1]
+        filename = f"{guitar_id}.{file_ext}"
+        file_path = os.path.join(UPLOAD_DIR, filename)
+        
+        # Apri e ridimensiona leggermente l'immagine per ottimizzare lo spazio
+        img = Image.open(uploaded_file)
+        img.thumbnail((1200, 1200))
+        img.save(file_path)
+        return file_path
+    return ""
 
 # Inizializzazione Session State
 if "guitars" not in st.session_state:
@@ -67,7 +87,7 @@ def is_overdue(date_str):
 
 # --- UI APP ---
 st.title("🎸 Guitar Rack & Vault")
-st.caption("Gestione inventario, specifiche e manutenzione sincronizzata")
+st.caption("Gestione inventario, foto, specifiche e manutenzione sincronizzata")
 
 # Controllo strumenti da manutenere
 overdue_guitars = [g for g in st.session_state.guitars if is_overdue(g.get("lastSetup"))]
@@ -92,6 +112,10 @@ if selected_option != "➕ Aggiungi Nuova Chitarra":
 
 with st.form("guitar_form", clear_on_submit=False):
     st.write("### " + ("Modifica Chitarra" if selected_guitar else "Nuova Chitarra"))
+    
+    # Campo Foto
+    st.markdown("#### 📷 Foto dello Strumento")
+    uploaded_photo = st.file_uploader("Carica una foto (da PC o scatta da iPhone)", type=["jpg", "jpeg", "png", "webp"])
     
     c1, c2, c3 = st.columns(3)
     brand = c1.text_input("Marca *", value=selected_guitar["brand"] if selected_guitar else "")
@@ -138,8 +162,15 @@ with st.form("guitar_form", clear_on_submit=False):
 
     if submitted:
         if brand and model:
+            guitar_id = selected_guitar["id"] if selected_guitar else f"g-{int(datetime.now().timestamp())}"
+            
+            # Gestione file immagine
+            image_path = selected_guitar.get("imagePath", "") if selected_guitar else ""
+            if uploaded_photo is not None:
+                image_path = save_image(uploaded_photo, guitar_id)
+
             updated_data = {
-                "id": selected_guitar["id"] if selected_guitar else f"g-{int(datetime.now().timestamp())}",
+                "id": guitar_id,
                 "brand": brand,
                 "model": model,
                 "year": year,
@@ -155,7 +186,8 @@ with st.form("guitar_form", clear_on_submit=False):
                 "hardware": hardware,
                 "stringGauge": gauge,
                 "lastSetup": setup_date.strftime("%Y-%m-%d"),
-                "notes": notes
+                "notes": notes,
+                "imagePath": image_path
             }
 
             if selected_guitar:
@@ -192,42 +224,59 @@ for g in displayed_guitars:
     overdue = is_overdue(g.get("lastSetup"))
     
     with st.container(border=True):
-        col_t, col_b = st.columns([3, 1])
-        col_t.markdown(f"### {g['brand']} {g['model']} ({g.get('year', 'N/D')})")
+        col_img, col_info = st.columns([1, 3])
         
-        if overdue:
-            col_t.warning(f"⚠️ **Cambio corde/setup consigliato!** Ultimo: {g.get('lastSetup', 'Mai')}")
-        else:
-            col_t.success(f"✓ Setup in regola. Ultimo: {g.get('lastSetup', 'Mai')}")
-
-        t1, t2, t3 = st.tabs(["Info & Valore", "Specifiche", "Manutenzione & Note"])
+        # Colonna Foto
+        with col_img:
+            img_path = g.get("imagePath")
+            if img_path and os.path.exists(img_path):
+                st.image(img_path, use_container_width=True)
+            else:
+                st.caption("📷 Nessuna foto presente")
         
-        with t1:
-            st.write(f"**Serial Number:** `{g.get('serialNumber', 'N/D')}` | **Origine:** {g.get('factory', 'N/D')}")
-            st.write(f"**Stato:** {g.get('condition')} | **Prezzo:** €{g.get('pricePaid')} | **Valore Stimato:** €{g.get('marketValue')}")
+        # Colonna Dettagli
+        with col_info:
+            st.markdown(f"### {g['brand']} {g['model']} ({g.get('year', 'N/D')})")
             
-        with t2:
-            st.write(f"**Body:** {g.get('body', 'N/D')}")
-            st.write(f"**Manico:** {g.get('neckWood', 'N/D')}")
-            st.write(f"**Tastiera:** {g.get('fretboard', 'N/D')}")
-            st.write(f"**Pickups:** {g.get('pickups', 'N/D')}")
-            st.write(f"**Hardware:** {g.get('hardware', 'N/D')}")
+            if overdue:
+                st.warning(f"⚠️ **Cambio corde/setup consigliato!** Ultimo: {g.get('lastSetup', 'Mai')}")
+            else:
+                st.success(f"✓ Setup in regola. Ultimo: {g.get('lastSetup', 'Mai')}")
+
+            t1, t2, t3 = st.tabs(["Info & Valore", "Specifiche", "Manutenzione & Note"])
             
-        with t3:
-            st.write(f"**Scalatura Corde:** `{g.get('stringGauge', 'N/D')}`")
-            st.write(f"**Note:** {g.get('notes', 'Nessuna nota')}")
+            with t1:
+                st.write(f"**Serial Number:** `{g.get('serialNumber', 'N/D')}` | **Origine:** {g.get('factory', 'N/D')}")
+                st.write(f"**Stato:** {g.get('condition')} | **Prezzo:** €{g.get('pricePaid')} | **Valore Stimato:** €{g.get('marketValue')}")
+                
+            with t2:
+                st.write(f"**Body:** {g.get('body', 'N/D')}")
+                st.write(f"**Manico:** {g.get('neckWood', 'N/D')}")
+                st.write(f"**Tastiera:** {g.get('fretboard', 'N/D')}")
+                st.write(f"**Pickups:** {g.get('pickups', 'N/D')}")
+                st.write(f"**Hardware:** {g.get('hardware', 'N/D')}")
+                
+            with t3:
+                st.write(f"**Scalatura Corde:** `{g.get('stringGauge', 'N/D')}`")
+                st.write(f"**Note:** {g.get('notes', 'Nessuna nota')}")
 
-        col_act1, col_act2 = st.columns(2)
-        if col_act1.button("🔄 Segna Setup/Cambio Corde Oggi", key=f"setup_{g['id']}"):
-            for item in st.session_state.guitars:
-                if item["id"] == g["id"]:
-                    item["lastSetup"] = datetime.now().strftime("%Y-%m-%d")
-                    break
-            save_data(st.session_state.guitars)
-            st.success("Setup aggiornato a oggi!")
-            st.rerun()
+            col_act1, col_act2 = st.columns(2)
+            if col_act1.button("🔄 Segna Setup/Cambio Corde Oggi", key=f"setup_{g['id']}"):
+                for item in st.session_state.guitars:
+                    if item["id"] == g["id"]:
+                        item["lastSetup"] = datetime.now().strftime("%Y-%m-%d")
+                        break
+                save_data(st.session_state.guitars)
+                st.success("Setup aggiornato a oggi!")
+                st.rerun()
 
-        if col_act2.button("🗑️ Elimina", key=f"del_{g['id']}", type="primary"):
-            st.session_state.guitars = [item for item in st.session_state.guitars if item["id"] != g["id"]]
-            save_data(st.session_state.guitars)
-            st.rerun()
+            if col_act2.button("🗑️ Elimina", key=f"del_{g['id']}", type="primary"):
+                # Rimuovi l'immagine se esiste
+                if g.get("imagePath") and os.path.exists(g["imagePath"]):
+                    try:
+                        os.remove(g["imagePath"])
+                    except:
+                        pass
+                st.session_state.guitars = [item for item in st.session_state.guitars if item["id"] != g["id"]]
+                save_data(st.session_state.guitars)
+                st.rerun()

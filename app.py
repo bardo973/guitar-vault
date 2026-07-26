@@ -14,7 +14,9 @@ st.set_page_config(
 
 DB_FILE = "vault_data.json"
 UPLOAD_DIR = "uploads"
-BG_IMAGE_PATH = "background.jpg"  # Salva qui la foto dello sfondo!
+
+# Nome del file immagine dello sfondo nella cartella del progetto
+BG_IMAGE_PATH = "IMG_20210104_160719.jpg" 
 
 # Crea la cartella per le immagini se non esiste
 if not os.path.exists(UPLOAD_DIR):
@@ -22,14 +24,17 @@ if not os.path.exists(UPLOAD_DIR):
 
 # --- FUNZIONE PER SETTARE LO SFONDO DA FILE LOCALE ---
 def set_custom_background(image_file):
-    if os.path.exists(image_file):
-        with open(image_file, "rb") as f:
+    # Se il file specificato non esiste, controlla se esiste 'background.jpg' come fallback
+    target_file = image_file if os.path.exists(image_file) else "background.jpg"
+    
+    if os.path.exists(target_file):
+        with open(target_file, "rb") as f:
             encoded_string = base64.b64encode(f.read()).decode()
         
         css = f"""
         <style>
         .stApp {{
-            background-image: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url("data:image/jpg;base64,{encoded_string}");
+            background-image: linear-gradient(rgba(0, 0, 0, 0.70), rgba(0, 0, 0, 0.70)), url("data:image/jpeg;base64,{encoded_string}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -52,11 +57,11 @@ def set_custom_background(image_file):
         """
         st.markdown(css, unsafe_allow_html=True)
 
-# Applica lo sfondo personalizzato
+# Applica lo sfondo personalizzato con la foto della Stratocaster
 set_custom_background(BG_IMAGE_PATH)
 
 
-# Dati di partenza
+# Dati di partenza (usati solo al primissimo avvio se non esiste vault_data.json)
 DEFAULT_GUITARS = [
     {
         "id": "g-1",
@@ -74,7 +79,7 @@ DEFAULT_GUITARS = [
         "pickups": "SSS - 3x V-Mod II Single-Coil",
         "hardware": "Tremolo 2 punti",
         "stringGauge": "0.010-0.046",
-        "lastSetup": "2025-10-10",
+        "lastSetup": "2026-03-10",
         "notes": "Azione molto bassa, setup Mi Standard",
         "imagePath": ""
     }

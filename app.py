@@ -128,17 +128,50 @@ def is_overdue(date_str):
     except:
         return False
 
-# --- UI APP ---
+# --- SIDEBAR: BACKUP & INTEGRITÀ DATI ---
+with st.sidebar:
+    st.header("⚙️ Gestione Vault")
+    
+    # Download del DB JSON attuale
+    json_data = json.dumps(st.session_state.guitars, indent=4, ensure_ascii=False)
+    st.download_button(
+        label="📥 Scarica Backup JSON",
+        data=json_data,
+        file_name=f"vault_backup_{datetime.now().strftime('%Y%m%d')}.json",
+        mime="application/json",
+        use_container_width=True
+    )
+    
+    # Ripristino da file JSON salvato
+    uploaded_backup = st.file_uploader("📤 Ripristina da Backup JSON", type=["json"])
+    if uploaded_backup is not None:
+        if st.button("Sostituisci Database Attuale", type="primary", use_container_width=True):
+            try:
+                new_data = json.load(uploaded_backup)
+                st.session_state.guitars = new_data
+                save_data(new_data)
+                st.success("Database ripristinato con successo!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Errore durante l'importazione: {e}")
+
+# --- UI MAIN APP ---
 st.title("🎸 Guitar Rack & Vault")
 st.caption("Gestione inventario, foto, specifiche e manutenzione sincronizzata")
 
 # Controllo strumenti da manutenere
 overdue_guitars = [g for g in st.session_state.guitars if is_overdue(g.get("lastSetup"))]
 
+# Calcolo totale valore e investimento
+total_market_val = sum(g.get("marketValue", 0) for g in st.session_state.guitars)
+total_paid = sum(g.get("pricePaid", 0) for g in st.session_state.guitars)
+delta_val = total_market_val - total_paid
+
 # HUD Statistiche e Pulsante Aggiungi
-col_stat1, col_stat2, col_btn = st.columns([2, 2, 1.5])
-col_stat1.metric("Totale Chitarre nel Vault", len(st.session_state.guitars))
-col_stat2.metric("Cambio Corde URGENTE (>4 mesi)", len(overdue_guitars), delta_color="inverse")
+col_stat1, col_stat2, col_stat3, col_btn = st.columns([1.5, 2, 2, 1.5])
+col_stat1.metric("Totale Chitarre", len(st.session_state.guitars))
+col_stat2.metric("Valore Stimato Vault", f"€ {total_market_val:,}", delta=f"€ {delta_val:+,} dal pagato")
+col_stat3.metric("Cambio Corde URGENTE (>4 mesi)", len(overdue_guitars), delta_color="inverse")
 
 with col_btn:
     st.write("")
@@ -264,18 +297,30 @@ if st.session_state.show_form:
 # 4. Filtro e Visualizzazione Vault
 st.subheader("📋 Lista Strumenti")
 
-filter_option = st.radio(
-    "Filtra la vista:",
+search_col, filter_col = st.columns([2, 2])
+search_query = search_col.text_input("🔍 Cerca per marca, modello o seriale...", "").lower()
+
+filter_option = filter_col.radio(
+    "Filtra stato:",
     ["Tutte le chitarre", "⚠️ Solo quelle che necessitano cambio corde"],
     horizontal=True
 )
 
 displayed_guitars = st.session_state.guitars
+
 if filter_option == "⚠️ Solo quelle che necessitano cambio corde":
     displayed_guitars = overdue_guitars
 
+if search_query:
+    displayed_guitars = [
+        g for g in displayed_guitars 
+        if search_query in g.get("brand", "").lower() 
+        or search_query in g.get("model", "").lower() 
+        or search_query in g.get("serialNumber", "").lower()
+    ]
+
 if not displayed_guitars:
-    st.info("Nessuna chitarra trovata per questo filtro.")
+    st.info("Nessuna chitarra trovata per i criteri selezionati.")
 
 for g in displayed_guitars:
     overdue = is_overdue(g.get("lastSetup"))

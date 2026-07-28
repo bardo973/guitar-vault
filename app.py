@@ -47,7 +47,7 @@ def set_custom_background(image_file):
 
 set_custom_background(BG_IMAGE_PATH)
 
-# Dati di partenza (Inclusi esempi per le nuove categorie)
+# Dati di partenza
 DEFAULT_GEAR = [
     {
         "id": "g-1",
@@ -83,7 +83,6 @@ def save_data(data):
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
     
-    # Sincronizzazione automatica facoltativa se usi Streamlit Cloud con GitHub
     try:
         subprocess.run(["git", "config", "user.name", "Streamlit Gear Bot"], check=True)
         subprocess.run(["git", "config", "user.email", "bot@streamlit.com"], check=True)
@@ -114,7 +113,6 @@ if "show_form" not in st.session_state:
 if "editing_gear_id" not in st.session_state:
     st.session_state.editing_gear_id = None
 
-# Controllo scadenze manutenzione
 def is_overdue(date_str):
     if not date_str: return True
     try:
@@ -151,10 +149,10 @@ with st.sidebar:
 st.title("🎸 Guitar Rack & Vault")
 st.caption("Gestione centralizzata per Chitarre, Amplificatori, Modeller e Pedalini")
 
-# Calcoli HUD Statistici globali
+# Calcoli statistiche gestendo valori assenti
 overdue_items = [g for g in st.session_state.gear if is_overdue(g.get("lastSetup"))]
-total_market_val = sum(g.get("marketValue", 0) for g in st.session_state.gear)
-total_paid = sum(g.get("pricePaid", 0) for g in st.session_state.gear)
+total_market_val = sum(g.get("marketValue", 0) if isinstance(g.get("marketValue"), (int, float)) else 0 for g in st.session_state.gear)
+total_paid = sum(g.get("pricePaid", 0) if isinstance(g.get("pricePaid"), (int, float)) else 0 for g in st.session_state.gear)
 delta_val = total_market_val - total_paid
 
 col_stat1, col_stat2, col_stat3, col_btn = st.columns([1.5, 2, 2, 1.5])
@@ -184,7 +182,7 @@ if st.session_state.show_form:
                 break
 
     with st.container(border=True):
-        col_hdr, col_close = st.columns([4, 1])
+        col_hdr, col_close = st.columns([4, 1]) # Proporzione esplicita fissa
         col_hdr.subheader("✏️ Modifica Strumento" if selected_gear else "➕ Nuova Strumentazione")
         if col_close.button("❌ Chiudi Form", use_container_width=True):
             st.session_state.show_form = False
@@ -193,10 +191,9 @@ if st.session_state.show_form:
 
         categorie_lista = ["🎸 Chitarre", "🔊 Amplificatori", "🎛️ Modeller & Profiler", "🦶 Pedalini & Effetti"]
         
-        # Allineamento categoria per strumenti vecchi senza emoji nel database
         cat_default_idx = 0
-        if selected_gear:
-            old_cat = selected_gear.get("category", "")
+        if selected_gear and selected_gear.get("category"):
+            old_cat = str(selected_gear.get("category", ""))
             for i, c in enumerate(categorie_lista):
                 if old_cat in c or c in old_cat:
                     cat_default_idx = i
@@ -204,15 +201,14 @@ if st.session_state.show_form:
                     
         category = st.selectbox("Categoria Strumento *", options=categorie_lista, index=cat_default_idx)
 
-        # Configurazione etichette dei moduli in base alla categoria selezionata
         if "Chitarre" in category:
             l_spec1, l_spec2, l_setup = "Configurazione Pickup (es. SSS, HH)", "Legno Tastiera / Specifiche Manico", "Ultimo Setup / Cambio Corde"
         elif "Amplificatori" in category:
-            l_spec1, l_spec2, l_setup = "Tipo Valvole o Stato Solido (es. EL34 / Solid State)", "Potenza (Watt) / Configurazione Coni", "Ultimo Cambio Valvole / Bias"
+            l_spec1, l_spec2, l_setup = "Tipo Valvole o Stato Solido", "Potenza (Watt) / Configurazione Coni", "Ultimo Cambio Valvole / Bias"
         elif "Modeller" in category:
             l_spec1, l_spec2, l_setup = "Tipo Hardware (Floorboard / Rack)", "Versione Firmware Attuale", "Ultimo Backup / Aggiornamento Firmware"
         else:
-            l_spec1, l_spec2, l_setup = "Tipo Effetto (Overdrive, Distortion, Delay)", "Alimentazione Richiesta (es. 9V DC - 200mA)", "Ultima Verifica Cablaggio"
+            l_spec1, l_spec2, l_setup = "Tipo Effetto (Overdrive, Distortion, Delay)", "Alimentazione Richiesta", "Ultima Verifica Cablaggio"
 
         with st.form("gear_form", clear_on_submit=False):
             st.markdown("#### 📷 Foto dello Strumento")
@@ -221,10 +217,9 @@ if st.session_state.show_form:
             c1, c2, c3 = st.columns(3)
             brand = c1.text_input("Marca *", value=selected_gear["brand"] if selected_gear else "")
             model = c2.text_input("Modello *", value=selected_gear["model"] if selected_gear else "")
-            year = c3.number_input("Anno di Produzione", min_value=1900, max_value=2030, value=int(selected_gear.get("year", 2026)) if selected_gear else 2026)
+            year = c3.number_input("Anno di Production", min_value=1900, max_value=2030, value=int(selected_gear.get("year", 2026)) if selected_gear else 2026)
             
             c4, c5 = st.columns(2)
-            # Supporto campi legacy del precedente database (pickups, fretboard)
             v_spec1 = selected_gear.get("spec_1", selected_gear.get("pickups", "")) if selected_gear else ""
             v_spec2 = selected_gear.get("spec_2", selected_gear.get("fretboard", "")) if selected_gear else ""
             spec_1 = c4.text_input(l_spec1, value=v_spec1)
@@ -239,3 +234,6 @@ if st.session_state.show_form:
             cond_idx = conditions.index(v_cond) if v_cond in conditions else 0
             condition = c8.selectbox("Condizioni", conditions, index=cond_idx)
             
+            c9, c10, c11 = st.columns(3)
+            price_paid = c9.number_input("Prezzo Pagato (€)", min_value=0, value=int(selected_gear.get("pricePaid", 0)) if selected_gear else 0)
+

@@ -47,7 +47,7 @@ def set_custom_background(image_file):
 
 set_custom_background(BG_IMAGE_PATH)
 
-# Dati di partenza universali (Chitarre, Amplificatori, Modeller, Effetti)
+# Dati di partenza universali (Compatibili sia con vecchio che nuovo formato)
 DEFAULT_GEAR = [
     {
         "id": "g-1",
@@ -97,19 +97,17 @@ def load_data():
         return DEFAULT_GEAR
 
 def save_data(data):
-    # 1. Salva localmente sul server Streamlit temporaneo
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
     
-    # 2. Git Push Automatico su GitHub per non perdere i dati al riavvio
     try:
         subprocess.run(["git", "config", "user.name", "Streamlit Gear Bot"], check=True)
         subprocess.run(["git", "config", "user.email", "bot@streamlit.com"], check=True)
         subprocess.run(["git", "add", DB_FILE], check=True)
         subprocess.run(["git", "commit", "-m", "Auto-update gear database [skip ci]"], check=True)
         subprocess.run(["git", "push"], check=True)
-    except Exception as e:
-        pass # Ignora gli errori se eseguito in locale senza Git configurato
+    except Exception:
+        pass 
 
 def save_image(uploaded_file, gear_id):
     if uploaded_file is not None:
@@ -200,19 +198,26 @@ if st.session_state.show_form:
                 break
 
     with st.container(border=True):
-        col_hdr, col_close = st.columns([4, 1])
+        col_hdr, col_close = st.columns([4, 1])  # FIX: Aggiunta la proporzione esplicita per evitare crash
         col_hdr.subheader("✏️ Modifica Strumento" if selected_gear else "➕ Inserisci Nuovo Strumento nel Rack")
         if col_close.button("❌ Chiudi Form", use_container_width=True):
             st.session_state.show_form = False
             st.session_state.editing_gear_id = None
             st.rerun()
 
-        # Selezione categoria fuori dal form per rendere reattive le etichette delle specifiche
         categorie_lista = ["🎸 Chitarre", "🔊 Amplificatori", "🎛️ Modeller & Profiler", "🦶 Pedalini & Effetti"]
-        cat_default_idx = categorie_lista.index(selected_gear["category"]) if selected_gear else 0
+        
+        # FIX: Gestione della retrocompatibilità se nel JSON la vecchia categoria non ha l'emoji
+        cat_default_idx = 0
+        if selected_gear:
+            old_cat = selected_gear.get("category", "")
+            for i, c in enumerate(categorie_lista):
+                if old_cat in c or c in old_cat:
+                    cat_default_idx = i
+                    break
+                    
         category = st.selectbox("Categoria Strumento *", options=categorie_lista, index=cat_default_idx)
 
-        # Adattamento etichette dinamiche
         if "Chitarre" in category:
             l_spec1, l_spec2, l_setup = "Configurazione Pickup", "Legno Tastiera / Manico", "Ultimo Setup / Cambio Corde"
         elif "Amplificatori" in category:
@@ -231,13 +236,11 @@ if st.session_state.show_form:
             year = c3.number_input("Anno", min_value=1900, max_value=2030, value=int(selected_gear.get("year", 2026)) if selected_gear else 2026)
             
             c4, c5 = st.columns(2)
-            spec_1 = c4.text_input(l_spec1, value=selected_gear.get("spec_1", "") if selected_gear else "")
-            spec_2 = c5.text_input(l_spec2, value=selected_gear.get("spec_2", "") if selected_gear else "")
+            spec_1 = c4.text_input(l_spec1, value=selected_gear.get("spec_1", selected_gear.get("pickups", "")) if selected_gear else "")
+            spec_2 = c5.text_input(l_spec2, value=selected_gear.get("spec_2", selected_gear.get("fretboard", "")) if selected_gear else "")
 
             c6, c7, c8 = st.columns(3)
             serial = c6.text_input("Numero di Serie", value=selected_gear.get("serialNumber", "") if selected_gear else "")
             factory = c7.text_input("Fabbrica / Origine", value=selected_gear.get("factory", "") if selected_gear else "")
-            condition = c8.selectbox("Condizioni", ["Mint", "Ottimo", "Buono", "Usurato", "Da riparare"], index=0)
-            
-            c9, c10, c11 = st.columns(3)
-            price_paid = c9.number_input("Prezzo Pagato (€)", min_value=0, value=int(selected_gear.get("pricePaid", 0)) if selected_gear else 0)
+            condition_opts = ["Mint", "Ottimo", "Buono", "Usurato", "Da riparare"]
+            cond_idx = condition_opts.index(selected_gear["condition"]) if selected_gear and selected_gear["condition"] in condition_opts else 0

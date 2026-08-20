@@ -137,29 +137,83 @@ def is_overdue(date_str):
 with st.sidebar:
     st.header("⚙️ Gestione Vault")
     
-    # Download del DB JSON attuale
-    json_data = json.dumps(st.session_state.guitars, indent=4, ensure_ascii=False)
+    # ─── DOWNLOAD BACKUP ZIP (JSON + FOTO) ───
+    import io, zipfile
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        # Aggiungi JSON
+        json_data = json.dumps(st.session_state.guitars, indent=4, ensure_ascii=False)
+        zf.writestr("vault_data.json", json_data)
+        # Aggiungi tutte le foto presenti in uploads/
+        foto_count = 0
+        for g in st.session_state.guitars:
+            img_path = g.get("imagePath", "")
+            if img_path and os.path.exists(img_path):
+                zf.write(img_path, arcname=os.path.basename(img_path))
+                foto_count += 1
+        # Aggiungi anche eventuali foto in uploads/ non referenziate (per sicurezza)
+        if os.path.exists(UPLOAD_DIR):
+            for fname in os.listdir(UPLOAD_DIR):
+                fpath = os.path.join(UPLOAD_DIR, fname)
+                if os.path.isfile(fpath) and fname.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
+                    arcname = os.path.basename(fpath)
+                    # Evita duplicati
+                    if arcname not in [m.filename for m in zf.infolist()]:
+                        zf.write(fpath, arcname=arcname)
+                        foto_count += 1
+    buf.seek(0)
     st.download_button(
-        label="📥 Scarica Backup JSON",
-        data=json_data,
-        file_name=f"vault_backup_{datetime.now().strftime('%Y%m%d')}.json",
-        mime="application/json",
+        label="📥 Scarica Backup ZIP (con foto)",
+        data=buf,
+        file_name=f"vault_backup_{datetime.now().strftime('%Y%m%d')}.zip",
+        mime="application/zip",
         use_container_width=True
     )
-    
-    # Ripristino da file JSON salvato
-    uploaded_backup = st.file_uploader("📤 Ripristina da Backup JSON", type=["json"])
+    st.caption(f"💾 {len(st.session_state.guitars)} chitarre + {foto_count} foto incluse")
+
+    # ─── RIPRISTINO DA BACKUP ZIP ───
+    uploaded_backup = st.file_uploader("📤 Ripristina da Backup ZIP", type=["zip"])
     if uploaded_backup is not None:
         if st.button("Sostituisci Database Attuale", type="primary", use_container_width=True):
             try:
-                new_data = json.load(uploaded_backup)
-                st.session_state.guitars = new_data
-                save_data(new_data)
-                st.success("Database ripristinato con successo!")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Errore durante l'importazione: {e}")
+                zip_bytes = io.BytesIO(uploaded_backup.read())
+                with zipfile.ZipFile(zip_bytes, 'r') as zf:
+                    file_list = zf.namelist()
 
+                    # Trova e carica il JSON
+                    json_name = None
+                    if "vault_data.json" in file_list:
+                        json_name = "vault_data.json"
+                    else:
+                        json_candidates = [n for n in file_list if n.endswith('.json')]
+                        if json_candidates:
+                            json_name = json_candidates[0]
+
+                    if not json_name:
+                        st.error("❌ Nessun file JSON trovato nel ZIP")
+                        st.stop()
+
+                    with zf.open(json_name) as f_json:
+                        new_data = json.load(f_json)
+
+                    # Estrai tutte le immagini in uploads/
+                    foto_ripristinate = 0
+                    for name in file_list:
+                        if name.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
+                            dest = os.path.join(UPLOAD_DIR, os.path.basename(name))
+                            with open(dest, 'wb') as f_out:
+                                f_out.write(zf.read(name))
+                            foto_ripristinate += 1
+
+                    # Aggiorna session state e salva
+                    st.session_state.guitars = new_data
+                    save_data(new_data)
+                    st.success(f"✅ Database ripristinato! {foto_ripristinate} foto ripristinate.")
+                    st.rerun()
+            except Exception as e:
+                st.error(f"❌ Errore durante l'importazione: {e}")
+                import traceback
+                st.code(traceback.format_exc())
 # --- UI MAIN APP ---
 st.title("🎸 Guitar Rack & Vault")
 st.caption("Gestione inventario, foto, specifiche e manutenzione sincronizzata")

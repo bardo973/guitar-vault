@@ -658,7 +658,19 @@ for g in displayed_guitars:
                 st.caption("📷 Nessuna foto presente")
         
         with col_info:
-            st.markdown(f"### {g['brand']} {g['model']} ({g.get('year', 'N/D')})")
+            brand = g['brand']
+            model = g['model']
+            year = g.get('year', 'N/D')
+            st.markdown(f"""
+            <div style="margin-bottom:8px;">
+                <span style="font-family:'Cinzel',serif; font-size:1.1rem; color:#C0C0C0; letter-spacing:1px;">{brand}</span>
+                <span style="position:relative; display:inline-block; padding:2px 12px; margin:0 6px; font-family:'Playfair Display',serif; font-size:1.3rem; color:#0a0a0a; font-weight:700; letter-spacing:0.5px;">
+                    <span style="position:absolute; left:-4px; right:-4px; top:15%; bottom:15%; background:linear-gradient(90deg, rgba(218,165,32,0.85), rgba(255,215,0,0.9), rgba(218,165,32,0.85)); transform:skewX(-10deg); border-radius:2px; z-index:0; filter:blur(0.5px);"></span>
+                    <span style="position:relative; z-index:1;">{model}</span>
+                </span>
+                <span style="font-family:'Cinzel',serif; font-size:0.9rem; color:#707070;">({year})</span>
+            </div>
+            """, unsafe_allow_html=True)
             
             if overdue:
                 st.warning(f"⚠️ **Cambio corde/setup consigliato!** Ultimo: {g.get('lastSetup', 'Mai')}")

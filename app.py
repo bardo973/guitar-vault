@@ -24,22 +24,23 @@ if not os.path.exists(UPLOAD_DIR):
 
 # --- FUNZIONE PER SETTARE LO SFONDO DA FILE LOCALE ---
 # ─── TEMA HENDRIX / PSICHEDELICO ───
-def set_hendrix_theme(bg_image_path=None):
-    """Applica il tema psichedelico Hendrix-style. Se c'è un'immagine la usa, altrimenti gradiente."""
+# ─── TEMA ELEGANTE NERO & ARGENTO ───
+def set_elegant_theme(bg_image_path=None):
+    """Tema elegante nero/argento con pennellate."""
 
-    PURPLE = "#9D00FF"
-    ORANGE = "#FF6B00"
-    PINK = "#FF00AA"
-    YELLOW = "#FFD700"
-    CYAN = "#00E5FF"
-    DARK = "#0a0a0a"
+    SILVER = "#C0C0C0"
+    SILVER_LIGHT = "#E8E8E8"
+    SILVER_DARK = "#707070"
+    GOLD_ACCENT = "#B8860B"
+    BLACK = "#0a0a0a"
+    CHARCOAL = "#1a1a1a"
 
     base_css = f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Rock+Salt&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap');
 
     .stApp {{
-        background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 25%, #4a148c 50%, #1a237e 75%, #0d1b2a 100%);
+        background: linear-gradient(160deg, #0a0a0a 0%, #141414 40%, #1a1a1a 70%, #0f0f0f 100%);
         background-attachment: fixed;
     }}
 
@@ -56,167 +57,252 @@ def set_hendrix_theme(bg_image_path=None):
         background-image: url("data:image/jpeg;base64,{encoded}");
         background-size: cover;
         background-position: center;
-        opacity: 0.25;
+        opacity: 0.12;
         z-index: -1;
         pointer-events: none;
+        filter: grayscale(60%) contrast(1.2);
     }}
     """
 
     base_css += f"""
-    /* Header psichedelico */
+    /* Header elegante */
     [data-testid="stHeader"] {{
-        background: linear-gradient(90deg, {PURPLE}, {PINK}, {ORANGE}) !important;
-        background-size: 200% 200% !important;
-        animation: gradientShift 8s ease infinite !important;
+        background: linear-gradient(90deg, #0a0a0a, #1a1a1a, #0a0a0a) !important;
+        border-bottom: 1px solid {SILVER_DARK}40 !important;
     }}
 
-    @keyframes gradientShift {{
-        0% {{ background-position: 0% 50%; }}
-        50% {{ background-position: 100% 50%; }}
-        100% {{ background-position: 0% 50%; }}
-    }}
-
-    /* Titoli in stile rock */
+    /* Titolo principale - elegante serif */
     h1 {{
-        font-family: 'Permanent Marker', cursive !important;
-        color: {YELLOW} !important;
-        text-shadow: 0 0 20px {PURPLE}, 0 0 40px {PINK}, 0 0 60px {ORANGE} !important;
-        letter-spacing: 3px !important;
-        font-size: 3rem !important;
+        font-family: 'Cinzel', serif !important;
+        color: {SILVER_LIGHT} !important;
+        text-shadow: 0 2px 10px rgba(192,192,192,0.3), 0 0 40px rgba(192,192,192,0.1) !important;
+        letter-spacing: 6px !important;
+        font-size: 2.6rem !important;
         text-align: center !important;
-        margin-bottom: 0.5rem !important;
+        margin-bottom: 0.3rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
     }}
 
-    h2, h3 {{
-        font-family: 'Rock Salt', cursive !important;
-        color: {CYAN} !important;
-        text-shadow: 0 0 10px {CYAN}80 !important;
+    /* Sottotitolo */
+    h2 {{
+        font-family: 'Playfair Display', serif !important;
+        color: {SILVER} !important;
+        letter-spacing: 2px !important;
+        font-weight: 400 !important;
+        font-style: italic !important;
+    }}
+
+    h3 {{
+        font-family: 'Playfair Display', serif !important;
+        color: {SILVER_DARK} !important;
         letter-spacing: 1px !important;
+        font-weight: 400 !important;
     }}
 
+    /* Pennellata dietro i nomi delle chitarre (nelle card) */
+    div[data-testid="stVerticalBlock"] h3,
+    div[data-testid="stVerticalBlock"] h4,
+    .stMarkdown h3 {{
+        position: relative;
+        display: inline-block;
+        padding: 4px 16px;
+        margin-bottom: 12px;
+    }}
+
+    div[data-testid="stVerticalBlock"] h3::before,
+    div[data-testid="stVerticalBlock"] h4::before {{
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 70%;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(192,192,192,0.15) 15%, 
+            rgba(192,192,192,0.25) 50%, 
+            rgba(192,192,192,0.15) 85%, 
+            transparent 100%);
+        transform: translateY(-50%) skewX(-8deg);
+        border-radius: 2px;
+        z-index: -1;
+        filter: blur(1px);
+    }}
+
+    /* Testo generale */
     p, label, .stMarkdown {{
-        color: #e0e0e0 !important;
-        font-family: 'Segoe UI', sans-serif !important;
+        color: {SILVER_DARK} !important;
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 300 !important;
+        letter-spacing: 0.3px !important;
     }}
 
-    /* Metriche con glow */
+    /* Metriche argento */
     div[data-testid="stMetricValue"] {{
-        color: {YELLOW} !important;
-        font-weight: bold !important;
-        text-shadow: 0 0 10px {YELLOW}80 !important;
+        color: {SILVER_LIGHT} !important;
+        font-family: 'Cinzel', serif !important;
+        font-weight: 700 !important;
+        text-shadow: 0 0 15px rgba(192,192,192,0.2) !important;
+        font-size: 1.8rem !important;
     }}
 
     div[data-testid="stMetricLabel"] {{
-        color: {CYAN} !important;
+        color: {SILVER_DARK} !important;
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 400 !important;
+        letter-spacing: 1px !important;
+        text-transform: uppercase !important;
+        font-size: 0.75rem !important;
     }}
 
-    /* Bottoni stile rock */
+    /* Bottoni elegante */
     .stButton > button {{
-        background: linear-gradient(45deg, {PURPLE}, {PINK}) !important;
-        color: white !important;
-        border: 2px solid {YELLOW} !important;
-        border-radius: 12px !important;
-        font-family: 'Permanent Marker', cursive !important;
+        background: linear-gradient(145deg, #141414, #0a0a0a) !important;
+        color: {SILVER} !important;
+        border: 1px solid {SILVER_DARK}80 !important;
+        border-radius: 4px !important;
+        font-family: 'Inter', sans-serif !important;
         letter-spacing: 2px !important;
         text-transform: uppercase !important;
-        box-shadow: 0 0 15px {PURPLE}80 !important;
-        transition: all 0.3s ease !important;
+        font-size: 0.8rem !important;
+        font-weight: 500 !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }}
 
     .stButton > button:hover {{
-        transform: scale(1.05) !important;
-        box-shadow: 0 0 25px {ORANGE}, 0 0 50px {PINK} !important;
-        border-color: {ORANGE} !important;
+        border-color: {SILVER} !important;
+        box-shadow: 0 0 20px rgba(192,192,192,0.15), 0 4px 12px rgba(0,0,0,0.6) !important;
+        color: {SILVER_LIGHT} !important;
+        transform: translateY(-1px) !important;
     }}
 
-    /* Card / Container glassmorphism */
+    .stButton > button[kind="primary"] {{
+        background: linear-gradient(145deg, #1a1a1a, #0f0f0f) !important;
+        border: 1px solid {SILVER}60 !important;
+    }}
+
+    .stButton > button[kind="primary"]:hover {{
+        border-color: {SILVER_LIGHT} !important;
+        box-shadow: 0 0 25px rgba(192,192,192,0.2) !important;
+    }}
+
+    /* Card / Container - vetro nero */
     div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"] {{
-        background: rgba(20, 10, 40, 0.7) !important;
-        backdrop-filter: blur(10px) !important;
-        border: 1px solid {PURPLE}60 !important;
-        border-radius: 16px !important;
-        box-shadow: 0 8px 32px rgba(157, 0, 255, 0.3) !important;
+        background: rgba(15, 15, 15, 0.85) !important;
+        backdrop-filter: blur(20px) saturate(1.2) !important;
+        border: 1px solid rgba(192,192,192,0.12) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03) !important;
     }}
 
-    /* Sidebar psichedelica */
+    /* Sidebar elegante */
     section[data-testid="stSidebar"] {{
-        background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 100%) !important;
-        border-right: 2px solid {PURPLE} !important;
+        background: linear-gradient(180deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%) !important;
+        border-right: 1px solid rgba(192,192,192,0.1) !important;
     }}
 
     section[data-testid="stSidebar"] .stMarkdown h1,
     section[data-testid="stSidebar"] .stMarkdown h2,
     section[data-testid="stSidebar"] .stMarkdown h3 {{
-        color: {YELLOW} !important;
-        text-shadow: 0 0 10px {YELLOW}60 !important;
+        color: {SILVER} !important;
+        font-family: 'Cinzel', serif !important;
+        letter-spacing: 3px !important;
     }}
 
-    /* Input e select con glow */
+    /* Input eleganti */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div {{
-        background: rgba(10, 10, 10, 0.8) !important;
-        border: 1px solid {PURPLE} !important;
-        color: {CYAN} !important;
-        border-radius: 8px !important;
+        background: rgba(10, 10, 10, 0.9) !important;
+        border: 1px solid rgba(192,192,192,0.15) !important;
+        color: {SILVER_LIGHT} !important;
+        border-radius: 4px !important;
+        font-family: 'Inter', sans-serif !important;
     }}
 
     .stTextInput > div > div > input:focus {{
-        border-color: {ORANGE} !important;
-        box-shadow: 0 0 10px {ORANGE}60 !important;
+        border-color: {SILVER} !important;
+        box-shadow: 0 0 12px rgba(192,192,192,0.1) !important;
     }}
 
     /* File uploader */
     .stFileUploader > div {{
-        background: rgba(20, 10, 40, 0.6) !important;
-        border: 2px dashed {PINK} !important;
-        border-radius: 12px !important;
+        background: rgba(15, 15, 15, 0.8) !important;
+        border: 1px dashed rgba(192,192,192,0.2) !important;
+        border-radius: 8px !important;
     }}
 
-    /* Tabelle / Dataframe */
+    /* Tabelle */
     .stDataFrame {{
-        background: rgba(10, 10, 10, 0.8) !important;
+        background: rgba(10, 10, 10, 0.9) !important;
     }}
 
-    /* Scrollbar psichedelica */
+    /* Scrollbar elegante */
     ::-webkit-scrollbar {{
-        width: 10px;
+        width: 6px;
     }}
     ::-webkit-scrollbar-track {{
-        background: #1a0a2e;
+        background: #0a0a0a;
     }}
     ::-webkit-scrollbar-thumb {{
-        background: linear-gradient({PURPLE}, {PINK});
-        border-radius: 5px;
+        background: linear-gradient(180deg, {SILVER_DARK}, {SILVER}40, {SILVER_DARK});
+        border-radius: 3px;
     }}
 
-    /* Divider colorato */
+    /* Divider argento sottile */
     hr {{
         border: none !important;
-        height: 2px !important;
-        background: linear-gradient(90deg, {PURPLE}, {PINK}, {ORANGE}, {YELLOW}) !important;
+        height: 1px !important;
+        background: linear-gradient(90deg, transparent, rgba(192,192,192,0.3), transparent) !important;
         margin: 2rem 0 !important;
     }}
 
-    /* Radio buttons stile rock */
+    /* Radio buttons */
     .stRadio > div {{
-        background: rgba(20, 10, 40, 0.5) !important;
-        border-radius: 10px !important;
-        padding: 10px !important;
+        background: rgba(15, 15, 15, 0.6) !important;
+        border-radius: 6px !important;
+        padding: 8px !important;
+        border: 1px solid rgba(192,192,192,0.08) !important;
     }}
 
     /* Caption */
     .stCaption {{
-        color: {PINK} !important;
+        color: {SILVER_DARK} !important;
         font-style: italic !important;
+        font-family: 'Inter', sans-serif !important;
+    }}
+
+    /* Warning / Info / Error - toni sobri */
+    .stAlert {{
+        background: rgba(20, 20, 20, 0.9) !important;
+        border-left: 3px solid {SILVER_DARK} !important;
+    }}
+
+    /* Immagini nelle card - bordo argento sottile */
+    img {{
+        border-radius: 4px !important;
+        border: 1px solid rgba(192,192,192,0.1) !important;
+    }}
+
+    /* Tab selezionato */
+    button[data-baseweb="tab"] {{
+        color: {SILVER_DARK} !important;
+        font-family: 'Inter', sans-serif !important;
+        letter-spacing: 1px !important;
+    }}
+
+    button[data-baseweb="tab"][aria-selected="true"] {{
+        color: {SILVER_LIGHT} !important;
+        border-bottom: 2px solid {SILVER} !important;
     }}
     </style>
     """
     st.markdown(base_css, unsafe_allow_html=True)
 
-# Applica il tema Hendrix
-set_hendrix_theme(BG_IMAGE_PATH)
-
+# Applica il tema elegante
+set_elegant_theme(BG_IMAGE_PATH)
 # Dati di partenza (usati solo al primissimo avvio se non esiste vault_data.json)
 DEFAULT_GUITARS = [
     {
@@ -392,8 +478,8 @@ with st.sidebar:
                 import traceback
                 st.code(traceback.format_exc())
 # --- UI MAIN APP ---
-st.markdown("<h1 style='text-align:center;'>🎸 GUITAR RACK & VAULT 🎸</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#FF00AA; font-family:Rock Salt; font-size:1.1rem;'>☮️ Gestione inventario, foto, specifiche e manutenzione sincronizzata ☮️</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center;'>🎸 Guitar Rack & Vault 🎸</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#707070; font-family:Inter; font-size:0.95rem; letter-spacing:2px; text-transform:uppercase;'>Collezione · Inventario · Manutenzione</p>", unsafe_allow_html=True)
 
 # Controllo strumenti da manutenere
 overdue_guitars = [g for g in st.session_state.guitars if is_overdue(g.get("lastSetup"))]

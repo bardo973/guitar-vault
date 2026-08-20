@@ -23,43 +23,199 @@ if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
 # --- FUNZIONE PER SETTARE LO SFONDO DA FILE LOCALE ---
-def set_custom_background(image_file):
-    # Se il file specificato non esiste, controlla se esiste 'background.jpg' come fallback
-    target_file = image_file if os.path.exists(image_file) else "background.jpg"
-    
-    if os.path.exists(target_file):
-        with open(target_file, "rb") as f:
-            encoded_string = base64.b64encode(f.read()).decode()
-        
-        css = f"""
-        <style>
-        .stApp {{
-            background-image: linear-gradient(rgba(0, 0, 0, 0.70), rgba(0, 0, 0, 0.70)), url("data:image/jpeg;base64,{encoded_string}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }}
-        
-        /* Rende le card e i container semi-trasparenti per far risaltare lo sfondo */
-        [data-testid="stHeader"] {{
-            background-color: rgba(0,0,0,0) !important;
-        }}
-        
-        .stMarkdown, p, h1, h2, h3, label {{
-            color: #ffffff !important;
-        }}
-        
-        div[data-testid="stMetricValue"] {{
-            color: #f0a500 !important;
-        }}
-        </style>
-        """
-        st.markdown(css, unsafe_allow_html=True)
+# ─── TEMA HENDRIX / PSICHEDELICO ───
+def set_hendrix_theme(bg_image_path=None):
+    """Applica il tema psichedelico Hendrix-style. Se c'è un'immagine la usa, altrimenti gradiente."""
 
-# Applica lo sfondo personalizzato con la foto della Stratocaster
-set_custom_background(BG_IMAGE_PATH)
+    PURPLE = "#9D00FF"
+    ORANGE = "#FF6B00"
+    PINK = "#FF00AA"
+    YELLOW = "#FFD700"
+    CYAN = "#00E5FF"
+    DARK = "#0a0a0a"
 
+    base_css = f"""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Rock+Salt&display=swap');
+
+    .stApp {{
+        background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 25%, #4a148c 50%, #1a237e 75%, #0d1b2a 100%);
+        background-attachment: fixed;
+    }}
+
+    """
+
+    if bg_image_path and os.path.exists(bg_image_path):
+        with open(bg_image_path, "rb") as f:
+            encoded = base64.b64encode(f.read()).decode()
+        base_css += f"""
+    .stApp::before {{
+        content: "";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: url("data:image/jpeg;base64,{encoded}");
+        background-size: cover;
+        background-position: center;
+        opacity: 0.25;
+        z-index: -1;
+        pointer-events: none;
+    }}
+    """
+
+    base_css += f"""
+    /* Header psichedelico */
+    [data-testid="stHeader"] {{
+        background: linear-gradient(90deg, {PURPLE}, {PINK}, {ORANGE}) !important;
+        background-size: 200% 200% !important;
+        animation: gradientShift 8s ease infinite !important;
+    }}
+
+    @keyframes gradientShift {{
+        0% {{ background-position: 0% 50%; }}
+        50% {{ background-position: 100% 50%; }}
+        100% {{ background-position: 0% 50%; }}
+    }}
+
+    /* Titoli in stile rock */
+    h1 {{
+        font-family: 'Permanent Marker', cursive !important;
+        color: {YELLOW} !important;
+        text-shadow: 0 0 20px {PURPLE}, 0 0 40px {PINK}, 0 0 60px {ORANGE} !important;
+        letter-spacing: 3px !important;
+        font-size: 3rem !important;
+        text-align: center !important;
+        margin-bottom: 0.5rem !important;
+    }}
+
+    h2, h3 {{
+        font-family: 'Rock Salt', cursive !important;
+        color: {CYAN} !important;
+        text-shadow: 0 0 10px {CYAN}80 !important;
+        letter-spacing: 1px !important;
+    }}
+
+    p, label, .stMarkdown {{
+        color: #e0e0e0 !important;
+        font-family: 'Segoe UI', sans-serif !important;
+    }}
+
+    /* Metriche con glow */
+    div[data-testid="stMetricValue"] {{
+        color: {YELLOW} !important;
+        font-weight: bold !important;
+        text-shadow: 0 0 10px {YELLOW}80 !important;
+    }}
+
+    div[data-testid="stMetricLabel"] {{
+        color: {CYAN} !important;
+    }}
+
+    /* Bottoni stile rock */
+    .stButton > button {{
+        background: linear-gradient(45deg, {PURPLE}, {PINK}) !important;
+        color: white !important;
+        border: 2px solid {YELLOW} !important;
+        border-radius: 12px !important;
+        font-family: 'Permanent Marker', cursive !important;
+        letter-spacing: 2px !important;
+        text-transform: uppercase !important;
+        box-shadow: 0 0 15px {PURPLE}80 !important;
+        transition: all 0.3s ease !important;
+    }}
+
+    .stButton > button:hover {{
+        transform: scale(1.05) !important;
+        box-shadow: 0 0 25px {ORANGE}, 0 0 50px {PINK} !important;
+        border-color: {ORANGE} !important;
+    }}
+
+    /* Card / Container glassmorphism */
+    div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"] {{
+        background: rgba(20, 10, 40, 0.7) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid {PURPLE}60 !important;
+        border-radius: 16px !important;
+        box-shadow: 0 8px 32px rgba(157, 0, 255, 0.3) !important;
+    }}
+
+    /* Sidebar psichedelica */
+    section[data-testid="stSidebar"] {{
+        background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 100%) !important;
+        border-right: 2px solid {PURPLE} !important;
+    }}
+
+    section[data-testid="stSidebar"] .stMarkdown h1,
+    section[data-testid="stSidebar"] .stMarkdown h2,
+    section[data-testid="stSidebar"] .stMarkdown h3 {{
+        color: {YELLOW} !important;
+        text-shadow: 0 0 10px {YELLOW}60 !important;
+    }}
+
+    /* Input e select con glow */
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stSelectbox > div > div {{
+        background: rgba(10, 10, 10, 0.8) !important;
+        border: 1px solid {PURPLE} !important;
+        color: {CYAN} !important;
+        border-radius: 8px !important;
+    }}
+
+    .stTextInput > div > div > input:focus {{
+        border-color: {ORANGE} !important;
+        box-shadow: 0 0 10px {ORANGE}60 !important;
+    }}
+
+    /* File uploader */
+    .stFileUploader > div {{
+        background: rgba(20, 10, 40, 0.6) !important;
+        border: 2px dashed {PINK} !important;
+        border-radius: 12px !important;
+    }}
+
+    /* Tabelle / Dataframe */
+    .stDataFrame {{
+        background: rgba(10, 10, 10, 0.8) !important;
+    }}
+
+    /* Scrollbar psichedelica */
+    ::-webkit-scrollbar {{
+        width: 10px;
+    }}
+    ::-webkit-scrollbar-track {{
+        background: #1a0a2e;
+    }}
+    ::-webkit-scrollbar-thumb {{
+        background: linear-gradient({PURPLE}, {PINK});
+        border-radius: 5px;
+    }}
+
+    /* Divider colorato */
+    hr {{
+        border: none !important;
+        height: 2px !important;
+        background: linear-gradient(90deg, {PURPLE}, {PINK}, {ORANGE}, {YELLOW}) !important;
+        margin: 2rem 0 !important;
+    }}
+
+    /* Radio buttons stile rock */
+    .stRadio > div {{
+        background: rgba(20, 10, 40, 0.5) !important;
+        border-radius: 10px !important;
+        padding: 10px !important;
+    }}
+
+    /* Caption */
+    .stCaption {{
+        color: {PINK} !important;
+        font-style: italic !important;
+    }}
+    </style>
+    """
+    st.markdown(base_css, unsafe_allow_html=True)
+
+# Applica il tema Hendrix
+set_hendrix_theme(BG_IMAGE_PATH)
 
 # Dati di partenza (usati solo al primissimo avvio se non esiste vault_data.json)
 DEFAULT_GUITARS = [
@@ -135,7 +291,28 @@ def is_overdue(date_str):
 
 # --- SIDEBAR: BACKUP & INTEGRITÀ DATI ---
 with st.sidebar:
-    st.header("⚙️ Gestione Vault")
+    st.header("🎸 Gestione Vault")
+
+    # Carica sfondo personalizzato
+    st.markdown("---")
+    st.subheader("🖼️ Sfondo")
+    bg_upload = st.file_uploader("Carica foto sfondo (Jimi, concerto, etc.)", type=["jpg", "jpeg", "png"], key="bg_upload")
+    if bg_upload is not None:
+        bg_path = os.path.join(UPLOAD_DIR, "custom_bg" + os.path.splitext(bg_upload.name)[1])
+        with open(bg_path, "wb") as f:
+            f.write(bg_upload.read())
+        st.success("Sfondo caricato! Ricarica la pagina.")
+        st.rerun()
+
+    if st.button("🎨 Tema Psichedelico (senza foto)", use_container_width=True):
+        # Rimuovi sfondo custom se esiste
+        for ext in [".jpg", ".jpeg", ".png"]:
+            p = os.path.join(UPLOAD_DIR, "custom_bg" + ext)
+            if os.path.exists(p):
+                os.remove(p)
+        st.rerun()
+
+    st.markdown("---")
     
     # ─── DOWNLOAD BACKUP ZIP (JSON + FOTO) ───
     import io, zipfile
@@ -215,8 +392,8 @@ with st.sidebar:
                 import traceback
                 st.code(traceback.format_exc())
 # --- UI MAIN APP ---
-st.title("🎸 Guitar Rack & Vault")
-st.caption("Gestione inventario, foto, specifiche e manutenzione sincronizzata")
+st.markdown("<h1 style='text-align:center;'>🎸 GUITAR RACK & VAULT 🎸</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#FF00AA; font-family:Rock Salt; font-size:1.1rem;'>☮️ Gestione inventario, foto, specifiche e manutenzione sincronizzata ☮️</p>", unsafe_allow_html=True)
 
 # Controllo strumenti da manutenere
 overdue_guitars = [g for g in st.session_state.guitars if is_overdue(g.get("lastSetup"))]

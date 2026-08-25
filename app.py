@@ -16,7 +16,6 @@ st.set_page_config(
 )
 
 DB_FILE = "vault_data.json"
-WISHLIST_FILE = "wishlist_data.json"
 UPLOAD_DIR = "uploads"
 BG_IMAGE_PATH = "IMG_20210104_160719.jpg"
 
@@ -24,22 +23,24 @@ if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
 # ═══════════════════════════════════════════════════════════
-#  TEMA ELEGANTE NERO & ARGENTO
+#  TEMA — CARATTERE VINTAGE / ROCK
 # ═══════════════════════════════════════════════════════════
-def set_elegant_theme(bg_image_path=None):
+def set_rock_theme(bg_image_path=None):
+    # Palette
     SILVER = "#C0C0C0"
     SILVER_LIGHT = "#E8E8E8"
     SILVER_DARK = "#707070"
-    GOLD_ACCENT = "#B8860B"
+    GOLD = "#B8860B"
     BLACK = "#0a0a0a"
-    CHARCOAL = "#1a1a1a"
+    CRIMSON = "#8B0000"
+    IVORY = "#FFFFF0"
 
     base_css = f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap');
 
     .stApp {{
-        background: linear-gradient(160deg, #0a0a0a 0%, #141414 40%, #1a1a1a 70%, #0f0f0f 100%);
+        background: linear-gradient(160deg, #0a0a0a 0%, #111111 40%, #181818 70%, #0f0f0f 100%);
         background-attachment: fixed;
     }}
     """
@@ -55,139 +56,160 @@ def set_elegant_theme(bg_image_path=None):
         background-image: url("data:image/jpeg;base64,{encoded}");
         background-size: cover;
         background-position: center;
-        opacity: 0.12;
+        opacity: 0.10;
         z-index: -1;
         pointer-events: none;
-        filter: grayscale(60%) contrast(1.2);
+        filter: grayscale(50%) contrast(1.1) brightness(0.8);
     }}
     """
 
     base_css += f"""
     [data-testid="stHeader"] {{
-        background: linear-gradient(90deg, #0a0a0a, #1a1a1a, #0a0a0a) !important;
+        background: linear-gradient(90deg, #0a0a0a, #151515, #0a0a0a) !important;
         border-bottom: 1px solid {SILVER_DARK}40 !important;
     }}
+    /* TITOLI — Oswald bold, uppercase, spaziatura ampia */
     h1 {{
-        font-family: 'Cinzel', serif !important;
-        color: {SILVER_LIGHT} !important;
-        text-shadow: 0 2px 10px rgba(192,192,192,0.3), 0 0 40px rgba(192,192,192,0.1) !important;
-        letter-spacing: 6px !important;
-        font-size: 2.6rem !important;
+        font-family: 'Oswald', sans-serif !important;
+        color: {IVORY} !important;
+        text-shadow: 0 2px 12px rgba(255,255,240,0.25), 0 0 50px rgba(255,255,240,0.08) !important;
+        letter-spacing: 8px !important;
+        font-size: 2.8rem !important;
         text-align: center !important;
-        margin-bottom: 0.3rem !important;
+        margin-bottom: 0.2rem !important;
         font-weight: 700 !important;
         text-transform: uppercase !important;
     }}
     h2 {{
-        font-family: 'Playfair Display', serif !important;
+        font-family: 'Oswald', sans-serif !important;
         color: {SILVER} !important;
-        letter-spacing: 2px !important;
-        font-weight: 400 !important;
-        font-style: italic !important;
+        letter-spacing: 4px !important;
+        font-weight: 500 !important;
+        text-transform: uppercase !important;
+        font-size: 1.4rem !important;
     }}
     h3 {{
-        font-family: 'Playfair Display', serif !important;
+        font-family: 'Oswald', sans-serif !important;
         color: {SILVER_DARK} !important;
-        letter-spacing: 1px !important;
+        letter-spacing: 3px !important;
         font-weight: 400 !important;
+        text-transform: uppercase !important;
+        font-size: 1.1rem !important;
     }}
+    /* Pennellata dietro i nomi */
     div[data-testid="stVerticalBlock"] h3::before,
     div[data-testid="stVerticalBlock"] h4::before {{
         content: "";
         position: absolute;
         left: 0; right: 0; top: 50%;
         height: 70%;
-        background: linear-gradient(90deg, transparent 0%, rgba(192,192,192,0.15) 15%, rgba(192,192,192,0.25) 50%, rgba(192,192,192,0.15) 85%, transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, rgba(192,192,192,0.12) 15%, rgba(192,192,192,0.22) 50%, rgba(192,192,192,0.12) 85%, transparent 100%);
         transform: translateY(-50%) skewX(-8deg);
         border-radius: 2px;
         z-index: -1;
         filter: blur(1px);
     }}
+    /* Testo generale — Inter pulito */
     p, label, .stMarkdown {{
         color: {SILVER_DARK} !important;
         font-family: 'Inter', sans-serif !important;
         font-weight: 300 !important;
         letter-spacing: 0.3px !important;
+        line-height: 1.6 !important;
     }}
+    /* Metriche — Roboto Mono per look tecnico */
     div[data-testid="stMetricValue"] {{
         color: {SILVER_LIGHT} !important;
-        font-family: 'Cinzel', serif !important;
-        font-weight: 700 !important;
+        font-family: 'Roboto Mono', monospace !important;
+        font-weight: 500 !important;
         text-shadow: 0 0 15px rgba(192,192,192,0.2) !important;
         font-size: 1.8rem !important;
+        letter-spacing: -1px !important;
     }}
     div[data-testid="stMetricLabel"] {{
         color: {SILVER_DARK} !important;
-        font-family: 'Inter', sans-serif !important;
+        font-family: 'Oswald', sans-serif !important;
         font-weight: 400 !important;
-        letter-spacing: 1px !important;
+        letter-spacing: 2px !important;
         text-transform: uppercase !important;
         font-size: 0.75rem !important;
     }}
+    /* Bottoni — stile vintage/rock */
     .stButton > button {{
         background: linear-gradient(145deg, #141414, #0a0a0a) !important;
         color: {SILVER} !important;
         border: 1px solid {SILVER_DARK}80 !important;
-        border-radius: 4px !important;
-        font-family: 'Inter', sans-serif !important;
-        letter-spacing: 2px !important;
+        border-radius: 2px !important;
+        font-family: 'Oswald', sans-serif !important;
+        letter-spacing: 3px !important;
         text-transform: uppercase !important;
         font-size: 0.8rem !important;
         font-weight: 500 !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        transition: all 0.3s ease !important;
     }}
     .stButton > button:hover {{
-        border-color: {SILVER} !important;
+        border-color: {SILVER_LIGHT} !important;
         box-shadow: 0 0 20px rgba(192,192,192,0.15), 0 4px 12px rgba(0,0,0,0.6) !important;
-        color: {SILVER_LIGHT} !important;
+        color: {IVORY} !important;
         transform: translateY(-1px) !important;
     }}
     .stButton > button[kind="primary"] {{
         background: linear-gradient(145deg, #1a1a1a, #0f0f0f) !important;
         border: 1px solid {SILVER}60 !important;
     }}
+    /* Card / Container — vetro scuro */
     div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"] {{
-        background: rgba(15, 15, 15, 0.85) !important;
+        background: rgba(15, 15, 15, 0.88) !important;
         backdrop-filter: blur(20px) saturate(1.2) !important;
-        border: 1px solid rgba(192,192,192,0.12) !important;
-        border-radius: 8px !important;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+        border: 1px solid rgba(192,192,192,0.10) !important;
+        border-radius: 4px !important;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02) !important;
     }}
+    /* Sidebar */
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%) !important;
-        border-right: 1px solid rgba(192,192,192,0.1) !important;
+        border-right: 1px solid rgba(192,192,192,0.08) !important;
     }}
+    section[data-testid="stSidebar"] .stMarkdown h1,
+    section[data-testid="stSidebar"] .stMarkdown h2,
+    section[data-testid="stSidebar"] .stMarkdown h3 {{
+        color: {SILVER} !important;
+        font-family: 'Oswald', sans-serif !important;
+        letter-spacing: 4px !important;
+        text-transform: uppercase !important;
+    }}
+    /* Input */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div {{
         background: rgba(10, 10, 10, 0.9) !important;
-        border: 1px solid rgba(192,192,192,0.15) !important;
+        border: 1px solid rgba(192,192,192,0.12) !important;
         color: {SILVER_LIGHT} !important;
-        border-radius: 4px !important;
+        border-radius: 2px !important;
         font-family: 'Inter', sans-serif !important;
     }}
     .stFileUploader > div {{
         background: rgba(15, 15, 15, 0.8) !important;
-        border: 1px dashed rgba(192,192,192,0.2) !important;
-        border-radius: 8px !important;
+        border: 1px dashed rgba(192,192,192,0.18) !important;
+        border-radius: 4px !important;
     }}
     ::-webkit-scrollbar {{ width: 6px; }}
     ::-webkit-scrollbar-track {{ background: #0a0a0a; }}
     ::-webkit-scrollbar-thumb {{ background: linear-gradient(180deg, {SILVER_DARK}, {SILVER}40, {SILVER_DARK}); border-radius: 3px; }}
     hr {{
         border: none !important; height: 1px !important;
-        background: linear-gradient(90deg, transparent, rgba(192,192,192,0.3), transparent) !important;
+        background: linear-gradient(90deg, transparent, rgba(192,192,192,0.25), transparent) !important;
         margin: 2rem 0 !important;
     }}
-    button[data-baseweb="tab"] {{ color: {SILVER_DARK} !important; font-family: 'Inter', sans-serif !important; letter-spacing: 1px !important; }}
+    button[data-baseweb="tab"] {{ color: {SILVER_DARK} !important; font-family: 'Oswald', sans-serif !important; letter-spacing: 2px !important; text-transform: uppercase !important; font-size: 0.85rem !important; }}
     button[data-baseweb="tab"][aria-selected="true"] {{ color: {SILVER_LIGHT} !important; border-bottom: 2px solid {SILVER} !important; }}
-    img {{ border-radius: 4px !important; border: 1px solid rgba(192,192,192,0.1) !important; }}
+    img {{ border-radius: 2px !important; border: 1px solid rgba(192,192,192,0.08) !important; }}
     </style>
     """
     st.markdown(base_css, unsafe_allow_html=True)
 
-set_elegant_theme(BG_IMAGE_PATH)
+set_rock_theme(BG_IMAGE_PATH)
 
 # ═══════════════════════════════════════════════════════════
 #  DATI DEFAULT & MIGRAZIONE
@@ -228,7 +250,6 @@ def load_data():
     try:
         with open(DB_FILE, "r", encoding="utf-8") as f:
             raw = json.load(f)
-        # Migrazione: se è una lista (formato vecchio), wrappa in dict
         if isinstance(raw, list):
             for g in raw:
                 if "category" not in g: g["category"] = "Elettrica"
@@ -236,12 +257,13 @@ def load_data():
             payload = {"guitars": raw, "wishlist": DEFAULT_WISHLIST}
             save_data(payload)
             return payload
-        # Assicura chiavi
         if "guitars" not in raw: raw["guitars"] = []
         if "wishlist" not in raw: raw["wishlist"] = []
         for g in raw["guitars"]:
             if "category" not in g: g["category"] = "Elettrica"
             if "maintenanceLog" not in g: g["maintenanceLog"] = []
+        for w in raw.get("wishlist", []):
+            if "imagePath" not in w: w["imagePath"] = ""
         return raw
     except Exception:
         return {"guitars": DEFAULT_GUITARS, "wishlist": DEFAULT_WISHLIST}
@@ -250,10 +272,10 @@ def save_data(payload):
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=4, ensure_ascii=False)
 
-def save_image(uploaded_file, guitar_id):
+def save_image(uploaded_file, item_id, prefix=""):
     if uploaded_file is not None:
         file_ext = uploaded_file.name.split(".")[-1]
-        filename = f"{guitar_id}.{file_ext}"
+        filename = f"{prefix}{item_id}.{file_ext}"
         file_path = os.path.join(UPLOAD_DIR, filename)
         img = Image.open(uploaded_file)
         img.thumbnail((1200, 1200))
@@ -272,8 +294,6 @@ if "show_wishlist_form" not in st.session_state:
     st.session_state.show_wishlist_form = False
 if "editing_wish_id" not in st.session_state:
     st.session_state.editing_wish_id = None
-if "gallery_page" not in st.session_state:
-    st.session_state.gallery_page = 0
 
 def get_guitars():
     return st.session_state.db.get("guitars", [])
@@ -337,7 +357,6 @@ def fmt_currency(v):
 with st.sidebar:
     st.header("🎸 Gestione Vault")
 
-    # Sfondo
     st.markdown("---")
     st.subheader("🖼️ Sfondo")
     bg_upload = st.file_uploader("Carica foto sfondo", type=["jpg", "jpeg", "png"], key="bg_upload")
@@ -355,7 +374,6 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Statistiche
     guitars = get_guitars()
     total_val = sum(g.get("marketValue", 0) for g in guitars)
     total_paid = sum(g.get("pricePaid", 0) for g in guitars)
@@ -365,7 +383,7 @@ with st.sidebar:
     st.metric("Valore Vault", fmt_currency(total_val), delta=fmt_currency(total_val - total_paid))
     st.metric("🔴 Setup urgente", len(overdue))
 
-    # Mini chart categorie — HTML/CSS senza matplotlib
+    # Chart categorie HTML/CSS
     if guitars:
         st.markdown("---")
         st.caption("📊 Distribuzione Categorie")
@@ -380,8 +398,8 @@ with st.sidebar:
             col = CATEGORY_COLORS.get(cat, "#808080")
             chart_html += f"""
             <div style="margin-bottom:6px;">
-                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:2px;">
-                    <span>{CATEGORY_EMOJI.get(cat, '🎸')} {cat}</span>
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:2px; font-family:Oswald,sans-serif; letter-spacing:1px;">
+                    <span>{CATEGORY_EMOJI.get(cat, '🎸')} {cat.upper()}</span>
                     <span>{count} ({pct:.0f}%)</span>
                 </div>
                 <div style="width:100%; height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden;">
@@ -392,7 +410,7 @@ with st.sidebar:
         chart_html += "</div>"
         st.markdown(chart_html, unsafe_allow_html=True)
 
-        # Mini chart valore per marca — HTML/CSS
+        # Chart valore per marca
         st.caption("📊 Valore per Marca")
         brands = {}
         for g in guitars:
@@ -404,8 +422,8 @@ with st.sidebar:
             pct = val / max_val * 100
             bchart_html += f"""
             <div style="margin-bottom:6px;">
-                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:2px;">
-                    <span>{brand}</span>
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:2px; font-family:Oswald,sans-serif; letter-spacing:1px;">
+                    <span>{brand.upper()}</span>
                     <span>{fmt_currency(val)}</span>
                 </div>
                 <div style="width:100%; height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden;">
@@ -425,6 +443,11 @@ with st.sidebar:
         foto_count = 0
         for g in guitars:
             ip = g.get("imagePath", "")
+            if ip and os.path.exists(ip):
+                zf.write(ip, arcname=os.path.basename(ip))
+                foto_count += 1
+        for w in get_wishlist():
+            ip = w.get("imagePath", "")
             if ip and os.path.exists(ip):
                 zf.write(ip, arcname=os.path.basename(ip))
                 foto_count += 1
@@ -456,6 +479,8 @@ with st.sidebar:
                 for g in new_data.get("guitars", []):
                     if "category" not in g: g["category"] = "Elettrica"
                     if "maintenanceLog" not in g: g["maintenanceLog"] = []
+                for w in new_data.get("wishlist", []):
+                    if "imagePath" not in w: w["imagePath"] = ""
                 for name in fl:
                     if name.lower().endswith(('.jpg','.jpeg','.png','.webp')):
                         with open(os.path.join(UPLOAD_DIR, os.path.basename(name)), 'wb') as fo:
@@ -486,7 +511,6 @@ tab_rack, tab_gallery, tab_wishlist, tab_compare = st.tabs([
 with tab_rack:
     guitars = get_guitars()
 
-    # Pulsante aggiungi
     c1, c2, c3, c4 = st.columns([1.5,2,2,1.5])
     c1.metric("Totale", len(guitars))
     c2.metric("Valore", fmt_currency(sum(g.get("marketValue",0) for g in guitars)), 
@@ -565,7 +589,7 @@ with tab_rack:
                         gid = sel["id"] if sel else f"g-{int(datetime.now().timestamp())}"
                         img_path = sel.get("imagePath","") if sel else ""
                         if uploaded_photo is not None:
-                            img_path = save_image(uploaded_photo, gid)
+                            img_path = save_image(uploaded_photo, gid, prefix="g_")
                         new_g = {
                             "id": gid, "brand": brand, "model": model, "category": category,
                             "year": year, "serialNumber": serial, "factory": factory,
@@ -609,7 +633,6 @@ with tab_rack:
     if not displayed:
         st.info("Nessuna chitarra trovata.")
 
-    # LISTA CHITARRE
     for g in displayed:
         status, days = maintenance_status(g)
         cat = g.get("category", "Elettrica")
@@ -626,29 +649,27 @@ with tab_rack:
                     st.caption("📷 Nessuna foto")
 
             with cinfo:
-                # Header con badge categoria
                 st.markdown(f"""
                 <div style="margin-bottom:6px;">
-                    <span style="background:{cat_color}22; border:1px solid {cat_color}66; color:{cat_color}; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-family:Inter; letter-spacing:1px; text-transform:uppercase;">{cat_emoji} {cat}</span>
+                    <span style="background:{cat_color}22; border:1px solid {cat_color}66; color:{cat_color}; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-family:Oswald,sans-serif; letter-spacing:1px; text-transform:uppercase;">{cat_emoji} {cat}</span>
                 </div>
                 <div style="margin-bottom:8px;">
-                    <span style="font-family:'Cinzel',serif; font-size:1.1rem; color:#C0C0C0; letter-spacing:1px;">{g['brand']}</span>
-                    <span style="position:relative; display:inline-block; padding:2px 12px; margin:0 6px; font-family:'Playfair Display',serif; font-size:1.3rem; color:#0a0a0a; font-weight:700;">
+                    <span style="font-family:'Oswald',sans-serif; font-size:1.2rem; color:#FFFFF0; letter-spacing:2px; text-transform:uppercase;">{g['brand']}</span>
+                    <span style="position:relative; display:inline-block; padding:2px 12px; margin:0 6px; font-family:'Oswald',sans-serif; font-size:1.3rem; color:#0a0a0a; font-weight:700; letter-spacing:1px; text-transform:uppercase;">
                         <span style="position:absolute; left:-4px; right:-4px; top:15%; bottom:15%; background:linear-gradient(90deg, rgba(218,165,32,0.85), rgba(255,215,0,0.9), rgba(218,165,32,0.85)); transform:skewX(-10deg); border-radius:2px; z-index:0; filter:blur(0.5px);"></span>
                         <span style="position:relative; z-index:1;">{g['model']}</span>
                     </span>
-                    <span style="font-family:'Cinzel',serif; font-size:0.9rem; color:#707070;">({g.get('year','N/D')})</span>
+                    <span style="font-family:'Roboto Mono',monospace; font-size:0.85rem; color:#707070;">({g.get('year','N/D')})</span>
                 </div>
                 """, unsafe_allow_html=True)
 
-                # Barra progresso setup
                 progress = min(days / 120.0, 1.0)
                 bar_color = "#4CAF50" if status == "ok" else ("#FFC107" if status == "warning" else "#F44336")
                 st.markdown(f"""
                 <div style="margin-bottom:8px;">
-                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#707070; margin-bottom:2px;">
-                        <span>Setup: {g.get('lastSetup','Mai')}</span>
-                        <span>{days} giorni fa</span>
+                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#707070; margin-bottom:2px; font-family:'Roboto Mono',monospace;">
+                        <span>SETUP: {g.get('lastSetup','MAI')}</span>
+                        <span>{days} GIORNI FA</span>
                     </div>
                     <div style="width:100%; height:4px; background:#222; border-radius:2px;">
                         <div style="width:{progress*100}%; height:100%; background:{bar_color}; border-radius:2px; transition:width 0.3s;"></div>
@@ -670,15 +691,14 @@ with tab_rack:
                     st.write(f"**Corde:** `{g.get('stringGauge','N/D')}`")
                     st.write(f"**Note:** {g.get('notes','Nessuna')}")
                 with t4:
-                    # Log manutenzione
                     log = g.get("maintenanceLog", [])
                     if log:
                         for entry in sorted(log, key=lambda x: x.get("date",""), reverse=True):
                             st.markdown(f"""
                             <div style="border-left:2px solid #707070; padding-left:8px; margin-bottom:6px;">
-                                <span style="color:#C0C0C0; font-size:0.85rem;"><b>{entry.get('date')}</b> — {entry.get('type','Intervento')}</span><br/>
+                                <span style="color:#FFFFF0; font-family:'Oswald',sans-serif; font-size:0.85rem; letter-spacing:1px;"><b>{entry.get('date')}</b> — {entry.get('type','Intervento').upper()}</span><br/>
                                 <span style="color:#707070; font-size:0.8rem;">{entry.get('notes','')}</span>
-                                {f'<br/><span style="color:#B8860B; font-size:0.8rem;">€ {entry.get("cost",0)}</span>' if entry.get('cost') else ''}
+                                {f'<br/><span style="color:#B8860B; font-family:Roboto Mono,monospace; font-size:0.8rem;">€ {entry.get("cost",0)}</span>' if entry.get('cost') else ''}
                             </div>
                             """, unsafe_allow_html=True)
                     else:
@@ -699,14 +719,12 @@ with tab_rack:
                                     "notes": log_notes
                                 }
                                 g["maintenanceLog"].append(new_entry)
-                                # Aggiorna anche lastSetup se è un setup
                                 if "setup" in log_type.lower() or "corde" in log_type.lower():
                                     g["lastSetup"] = log_date.strftime("%Y-%m-%d")
                                 set_guitars(guitars)
                                 st.success("Intervento aggiunto!")
                                 st.rerun()
 
-                # Azioni
                 a1, a2, a3, a4 = st.columns(4)
                 if a1.button("✏️ Modifica", key=f"edit_{g['id']}"):
                     st.session_state.show_form = True
@@ -724,7 +742,6 @@ with tab_rack:
                     st.success("Setup aggiornato!")
                     st.rerun()
                 if a3.button("📄 Scheda", key=f"card_{g['id']}"):
-                    # Download JSON singola chitarra
                     st.download_button("Scarica JSON", data=json.dumps(g, indent=2, ensure_ascii=False),
                                        file_name=f"{g['brand']}_{g['model']}.json", mime="application/json",
                                        key=f"dl_{g['id']}")
@@ -744,7 +761,6 @@ with tab_gallery:
     if not guitars:
         st.info("Nessuna chitarra da mostrare.")
     else:
-        # Filtro categoria galleria
         gcat = st.multiselect("Filtra categoria", ["Elettrica","Acustica","Classica","Basso","Altro"], default=[], key="gal_cat")
         gal_items = guitars
         if gcat:
@@ -761,10 +777,10 @@ with tab_gallery:
                         st.image(ip, use_container_width=True)
                     else:
                         st.markdown("<div style='height:140px; background:#141414; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#707070; font-size:0.8rem;'>Nessuna foto</div>", unsafe_allow_html=True)
-                    st.markdown(f"<center><b style='color:#C0C0C0; font-size:0.85rem;'>{g['brand']}</b><br/><span style='color:#707070; font-size:0.8rem;'>{g['model']}</span></center>", unsafe_allow_html=True)
+                    st.markdown(f"<center><b style='color:#FFFFF0; font-family:Oswald,sans-serif; font-size:0.85rem; letter-spacing:1px;'>{g['brand'].upper()}</b><br/><span style='color:#707070; font-size:0.8rem;'>{g['model']}</span></center>", unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
-#  TAB 3: WISHLIST
+#  TAB 3: WISHLIST (con foto)
 # ═══════════════════════════════════════════════════════════
 with tab_wishlist:
     wishlist = get_wishlist()
@@ -795,6 +811,8 @@ with tab_wishlist:
                 st.rerun()
 
             with st.form("wish_form"):
+                w_upload = st.file_uploader("📷 Foto dello strumento desiderato", type=["jpg","jpeg","png","webp"])
+
                 w1, w2, w3 = st.columns(3)
                 w_brand = w1.text_input("Marca *", value=wsel["brand"] if wsel else "")
                 w_model = w2.text_input("Modello *", value=wsel["model"] if wsel else "")
@@ -810,9 +828,13 @@ with tab_wishlist:
                 if st.form_submit_button("💾 Salva"):
                     if w_brand and w_model:
                         wid = wsel["id"] if wsel else f"w-{int(datetime.now().timestamp())}"
+                        w_img = wsel.get("imagePath","") if wsel else ""
+                        if w_upload is not None:
+                            w_img = save_image(w_upload, wid, prefix="w_")
                         new_w = {
                             "id": wid, "brand": w_brand, "model": w_model, "category": w_cat,
-                            "budget": w_budget, "priority": w_priority, "year": w_year, "notes": w_notes
+                            "budget": w_budget, "priority": w_priority, "year": w_year,
+                            "notes": w_notes, "imagePath": w_img
                         }
                         if wsel:
                             wishlist[widx] = new_w
@@ -826,34 +848,74 @@ with tab_wishlist:
                         st.error("Inserisci Marca e Modello.")
         st.divider()
 
-    # Lista wishlist
     if not wishlist:
         st.info("La wishlist è vuota.")
     else:
-        # Ordina per priorità
         prio_order = {"Alta":0, "Media":1, "Bassa":2}
         wishlist.sort(key=lambda x: prio_order.get(x.get("priority","Media"), 1))
 
         for w in wishlist:
             pcol = {"Alta":"#F44336", "Media":"#FFC107", "Bassa":"#4CAF50"}.get(w.get("priority","Media"), "#707070")
             with st.container(border=True):
-                c1, c2, c3, c4 = st.columns([3,1,1,1])
-                with c1:
+                # Layout con foto
+                has_img = w.get("imagePath") and os.path.exists(w.get("imagePath"))
+                if has_img:
+                    cimg, cinfo = st.columns([1, 3])
+                    with cimg:
+                        st.image(w["imagePath"], use_container_width=True)
+                else:
+                    cimg, cinfo = st.columns([1, 3])
+                    with cimg:
+                        st.markdown("<div style='height:120px; background:#141414; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#707070; font-size:0.75rem;'>Nessuna foto</div>", unsafe_allow_html=True)
+
+                with cinfo:
                     st.markdown(f"""
-                    <b style="color:#C0C0C0; font-family:Cinzel;">{w['brand']} {w['model']}</b>
-                    <span style="background:{pcol}22; border:1px solid {pcol}66; color:{pcol}; padding:1px 6px; border-radius:10px; font-size:0.7rem; margin-left:8px;">{w.get('priority','Media')}</span>
-                    <br/><span style="color:#707070; font-size:0.8rem;">{w.get('category','Elettrica')} · Budget {fmt_currency(w.get('budget',0))}</span>
+                    <b style="color:#FFFFF0; font-family:Oswald,sans-serif; font-size:1.1rem; letter-spacing:2px; text-transform:uppercase;">{w['brand']} {w['model']}</b>
+                    <span style="background:{pcol}22; border:1px solid {pcol}66; color:{pcol}; padding:1px 6px; border-radius:10px; font-size:0.7rem; margin-left:8px; font-family:Oswald,sans-serif; letter-spacing:1px;">{w.get('priority','MEDIA')}</span>
+                    <br/><span style="color:#707070; font-size:0.8rem; font-family:Inter;">{w.get('category','Elettrica')} · Budget {fmt_currency(w.get('budget',0))} · Anno {w.get('year','N/D')}</span>
                     """, unsafe_allow_html=True)
                     if w.get("notes"):
                         st.caption(w["notes"])
-                with c2:
-                    if st.button("✏️", key=f"wedit_{w['id']}"):
+
+                    a1, a2, a3 = st.columns([1,1,1])
+                    if a1.button("✏️ Modifica", key=f"wedit_{w['id']}"):
                         st.session_state.show_wishlist_form = True
                         st.session_state.editing_wish_id = w["id"]
                         st.rerun()
-                with c3:
-                    if st.button("🗑️", key=f"wdel_{w['id']}", type="primary"):
+                    if a2.button("🗑️ Elimina", key=f"wdel_{w['id']}", type="primary"):
+                        if w.get("imagePath") and os.path.exists(w["imagePath"]):
+                            try: os.remove(w["imagePath"])
+                            except: pass
                         set_wishlist([x for x in wishlist if x["id"] != w["id"]])
+                        st.rerun()
+                    # Pulsante "Acquistato" per spostare in collezione
+                    if a3.button("🛒 Acquistato!", key=f"wbuy_{w['id']}"):
+                        # Sposta in collezione con dati base
+                        new_g = {
+                            "id": f"g-{int(datetime.now().timestamp())}",
+                            "brand": w["brand"],
+                            "model": w["model"],
+                            "category": w.get("category", "Elettrica"),
+                            "year": w.get("year", 2024),
+                            "serialNumber": "",
+                            "factory": "",
+                            "condition": "Ottimo",
+                            "pricePaid": w.get("budget", 0),
+                            "marketValue": w.get("budget", 0),
+                            "body": "", "neckWood": "", "fretboard": "",
+                            "pickups": "", "hardware": "",
+                            "stringGauge": "",
+                            "lastSetup": datetime.now().strftime("%Y-%m-%d"),
+                            "notes": f"Acquistato dalla wishlist. {w.get('notes','')}",
+                            "imagePath": w.get("imagePath", ""),
+                            "maintenanceLog": []
+                        }
+                        guitars = get_guitars()
+                        guitars.append(new_g)
+                        set_guitars(guitars)
+                        # Rimuovi da wishlist
+                        set_wishlist([x for x in wishlist if x["id"] != w["id"]])
+                        st.success(f"🎸 {w['brand']} {w['model']} aggiunto alla collezione!")
                         st.rerun()
 
 # ═══════════════════════════════════════════════════════════
@@ -873,7 +935,6 @@ with tab_compare:
         if sel1 and sel2 and sel1 != sel2:
             g1, g2 = opts[sel1], opts[sel2]
 
-            # Foto
             f1, f2 = st.columns(2)
             for col, g in zip([f1, f2], [g1, g2]):
                 with col:
@@ -883,7 +944,6 @@ with tab_compare:
                     else:
                         st.markdown("<div style='height:200px; background:#141414; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#707070;'>Nessuna foto</div>", unsafe_allow_html=True)
 
-            # Tabella confronto
             fields = [
                 ("Categoria", "category"), ("Anno", "year"), ("Seriale", "serialNumber"),
                 ("Fabbrica", "factory"), ("Stato", "condition"), ("Prezzo Pagato", "pricePaid"),
@@ -900,9 +960,9 @@ with tab_compare:
                     v1 = fmt_currency(v1) if v1 else "N/D"
                     v2 = fmt_currency(v2) if v2 else "N/D"
                 col_l, col_v1, col_v2 = st.columns([1,2,2])
-                col_l.markdown(f"<span style='color:#707070; font-size:0.85rem;'>{label}</span>", unsafe_allow_html=True)
-                col_v1.markdown(f"<span style='color:#C0C0C0; font-size:0.9rem;'>{v1}</span>", unsafe_allow_html=True)
-                col_v2.markdown(f"<span style='color:#C0C0C0; font-size:0.9rem;'>{v2}</span>", unsafe_allow_html=True)
+                col_l.markdown(f"<span style='color:#707070; font-size:0.85rem; font-family:Oswald,sans-serif; letter-spacing:1px; text-transform:uppercase;'>{label}</span>", unsafe_allow_html=True)
+                col_v1.markdown(f"<span style='color:#FFFFF0; font-size:0.9rem;'>{v1}</span>", unsafe_allow_html=True)
+                col_v2.markdown(f"<span style='color:#FFFFF0; font-size:0.9rem;'>{v2}</span>", unsafe_allow_html=True)
                 st.markdown("<hr style='margin:4px 0; border:none; height:1px; background:linear-gradient(90deg,transparent,rgba(192,192,192,0.1),transparent);'>", unsafe_allow_html=True)
         else:
             st.warning("Seleziona due strumenti diversi.")

@@ -5,8 +5,6 @@ import base64
 import io, zipfile
 from datetime import datetime, timedelta
 from PIL import Image
-import matplotlib.pyplot as plt
-import numpy as np
 
 # ═══════════════════════════════════════════════════════════
 #  CONFIGURAZIONE PAGINA
@@ -367,7 +365,7 @@ with st.sidebar:
     st.metric("Valore Vault", fmt_currency(total_val), delta=fmt_currency(total_val - total_paid))
     st.metric("🔴 Setup urgente", len(overdue))
 
-    # Mini chart categorie
+    # Mini chart categorie — HTML/CSS senza matplotlib
     if guitars:
         st.markdown("---")
         st.caption("📊 Distribuzione Categorie")
@@ -375,34 +373,48 @@ with st.sidebar:
         for g in guitars:
             c = g.get("category", "Elettrica")
             cats[c] = cats.get(c, 0) + 1
-        fig, ax = plt.subplots(figsize=(3, 2.2), facecolor="#0a0a0a")
-        ax.set_facecolor("#0a0a0a")
-        colors = [CATEGORY_COLORS.get(c, "#808080") for c in cats.keys()]
-        wedges, texts, autotexts = ax.pie(cats.values(), labels=cats.keys(), autopct='%1.0f%%',
-                                          colors=colors, textprops={'color':'#C0C0C0', 'fontsize':7})
-        for autotext in autotexts:
-            autotext.set_color('#0a0a0a')
-            autotext.set_fontweight('bold')
-            autotext.set_fontsize(7)
-        ax.axis('equal')
-        st.pyplot(fig, use_container_width=True)
+        total_c = sum(cats.values())
+        chart_html = "<div style='margin-bottom:12px;'>"
+        for cat, count in sorted(cats.items(), key=lambda x: -x[1]):
+            pct = count / total_c * 100
+            col = CATEGORY_COLORS.get(cat, "#808080")
+            chart_html += f"""
+            <div style="margin-bottom:6px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:2px;">
+                    <span>{CATEGORY_EMOJI.get(cat, '🎸')} {cat}</span>
+                    <span>{count} ({pct:.0f}%)</span>
+                </div>
+                <div style="width:100%; height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden;">
+                    <div style="width:{pct}%; height:100%; background:{col}; border-radius:3px;"></div>
+                </div>
+            </div>
+            """
+        chart_html += "</div>"
+        st.markdown(chart_html, unsafe_allow_html=True)
 
-        # Mini chart valore per marca
+        # Mini chart valore per marca — HTML/CSS
         st.caption("📊 Valore per Marca")
         brands = {}
         for g in guitars:
             b = g.get("brand", "Altro")
             brands[b] = brands.get(b, 0) + g.get("marketValue", 0)
-        fig2, ax2 = plt.subplots(figsize=(3, 2), facecolor="#0a0a0a")
-        ax2.set_facecolor("#0a0a0a")
-        ax2.barh(list(brands.keys()), list(brands.values()), color='#707070')
-        ax2.set_xlabel('€', color='#707070', fontsize=7)
-        ax2.tick_params(colors='#C0C0C0', labelsize=7)
-        ax2.spines['bottom'].set_color('#333')
-        ax2.spines['left'].set_color('#333')
-        ax2.spines['top'].set_visible(False)
-        ax2.spines['right'].set_visible(False)
-        st.pyplot(fig2, use_container_width=True)
+        max_val = max(brands.values()) if brands else 1
+        bchart_html = "<div style='margin-bottom:12px;'>"
+        for brand, val in sorted(brands.items(), key=lambda x: -x[1]):
+            pct = val / max_val * 100
+            bchart_html += f"""
+            <div style="margin-bottom:6px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:2px;">
+                    <span>{brand}</span>
+                    <span>{fmt_currency(val)}</span>
+                </div>
+                <div style="width:100%; height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden;">
+                    <div style="width:{pct}%; height:100%; background:linear-gradient(90deg, #707070, #C0C0C0); border-radius:3px;"></div>
+                </div>
+            </div>
+            """
+        bchart_html += "</div>"
+        st.markdown(bchart_html, unsafe_allow_html=True)
 
     st.markdown("---")
 

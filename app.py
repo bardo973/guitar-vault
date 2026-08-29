@@ -23,7 +23,7 @@ if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
 # ═══════════════════════════════════════════════════════════
-#  TEMA — CARATTERE VINTAGE / ROCK
+#  TEMA — CARATTERE VINTAGE / ROCK MIGLIORATO
 # ═══════════════════════════════════════════════════════════
 def set_rock_theme(bg_image_path=None):
     # Palette
@@ -64,11 +64,51 @@ def set_rock_theme(bg_image_path=None):
     """
 
     base_css += f"""
+    /* SCANLINE OVERLAY — look vintage amplificatore */
+    .stApp::after {{
+        content: "";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.08),
+            rgba(0, 0, 0, 0.08) 1px,
+            transparent 1px,
+            transparent 2px
+        );
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0.35;
+    }}
+    
+    /* Keyframes */
+    @keyframes fadeInUp {{
+        from {{ opacity: 0; transform: translateY(30px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
+    }}
+    @keyframes slideInLeft {{
+        from {{ opacity: 0; transform: translateX(-30px); }}
+        to {{ opacity: 1; transform: translateX(0); }}
+    }}
+    @keyframes pulseRed {{
+        0%, 100% {{ box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }}
+        50% {{ box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }}
+    }}
+    @keyframes shimmer {{
+        0% {{ background-position: -200% 0; }}
+        100% {{ background-position: 200% 0; }}
+    }}
+    @keyframes glowPulse {{
+        0%, 100% {{ text-shadow: 0 0 10px rgba(192,192,192,0.3), 0 0 20px rgba(192,192,192,0.1); }}
+        50% {{ text-shadow: 0 0 20px rgba(192,192,192,0.6), 0 0 40px rgba(192,192,192,0.2); }}
+    }}
+
     [data-testid="stHeader"] {{
         background: linear-gradient(90deg, #0a0a0a, #151515, #0a0a0a) !important;
         border-bottom: 1px solid {SILVER_DARK}40 !important;
     }}
-    /* TITOLI — Oswald bold, uppercase, spaziatura ampia */
+    
+    /* TITOLI — Oswald bold, uppercase, spaziatura ampia, glow animato */
     h1 {{
         font-family: 'Oswald', sans-serif !important;
         color: {IVORY} !important;
@@ -79,6 +119,7 @@ def set_rock_theme(bg_image_path=None):
         margin-bottom: 0.2rem !important;
         font-weight: 700 !important;
         text-transform: uppercase !important;
+        animation: glowPulse 3s ease-in-out infinite !important;
     }}
     h2 {{
         font-family: 'Oswald', sans-serif !important;
@@ -87,6 +128,7 @@ def set_rock_theme(bg_image_path=None):
         font-weight: 500 !important;
         text-transform: uppercase !important;
         font-size: 1.4rem !important;
+        animation: fadeInUp 0.6s ease-out !important;
     }}
     h3 {{
         font-family: 'Oswald', sans-serif !important;
@@ -96,6 +138,7 @@ def set_rock_theme(bg_image_path=None):
         text-transform: uppercase !important;
         font-size: 1.1rem !important;
     }}
+    
     /* Pennellata dietro i nomi */
     div[data-testid="stVerticalBlock"] h3::before,
     div[data-testid="stVerticalBlock"] h4::before {{
@@ -109,6 +152,7 @@ def set_rock_theme(bg_image_path=None):
         z-index: -1;
         filter: blur(1px);
     }}
+    
     /* Testo generale — Inter pulito */
     p, label, .stMarkdown {{
         color: {SILVER_DARK} !important;
@@ -117,6 +161,7 @@ def set_rock_theme(bg_image_path=None):
         letter-spacing: 0.3px !important;
         line-height: 1.6 !important;
     }}
+    
     /* Metriche — Roboto Mono per look tecnico */
     div[data-testid="stMetricValue"] {{
         color: {SILVER_LIGHT} !important;
@@ -134,7 +179,8 @@ def set_rock_theme(bg_image_path=None):
         text-transform: uppercase !important;
         font-size: 0.75rem !important;
     }}
-    /* Bottoni — stile vintage/rock */
+    
+    /* Bottoni — stile vintage/rock con effetto pressione */
     .stButton > button {{
         background: linear-gradient(145deg, #141414, #0a0a0a) !important;
         color: {SILVER} !important;
@@ -145,27 +191,61 @@ def set_rock_theme(bg_image_path=None):
         text-transform: uppercase !important;
         font-size: 0.8rem !important;
         font-weight: 500 !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
-        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        position: relative;
+        overflow: hidden;
+    }}
+    .stButton > button::after {{
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+        transform: rotate(30deg);
+        transition: all 0.5s;
+    }}
+    .stButton > button:hover::after {{
+        left: 100%;
     }}
     .stButton > button:hover {{
         border-color: {SILVER_LIGHT} !important;
-        box-shadow: 0 0 20px rgba(192,192,192,0.15), 0 4px 12px rgba(0,0,0,0.6) !important;
+        box-shadow: 0 0 25px rgba(192,192,192,0.15), 0 6px 16px rgba(0,0,0,0.7) !important;
         color: {IVORY} !important;
-        transform: translateY(-1px) !important;
+        transform: translateY(-2px) !important;
+    }}
+    .stButton > button:active {{
+        transform: translateY(1px) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.6) !important;
     }}
     .stButton > button[kind="primary"] {{
         background: linear-gradient(145deg, #1a1a1a, #0f0f0f) !important;
         border: 1px solid {SILVER}60 !important;
+        box-shadow: 0 0 15px rgba(192,192,192,0.08) !important;
     }}
-    /* Card / Container — vetro scuro */
+    .stButton > button[kind="primary"]:hover {{
+        box-shadow: 0 0 25px rgba(192,192,192,0.2), 0 6px 16px rgba(0,0,0,0.7) !important;
+        border-color: {SILVER_LIGHT} !important;
+    }}
+    
+    /* Card / Container — vetro scuro con animazione ingresso */
     div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"] {{
         background: rgba(15, 15, 15, 0.88) !important;
         backdrop-filter: blur(20px) saturate(1.2) !important;
         border: 1px solid rgba(192,192,192,0.10) !important;
         border-radius: 4px !important;
         box-shadow: 0 4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02) !important;
+        animation: fadeInUp 0.5s ease-out !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }}
+    div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
+        transform: translateY(-4px) !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 20px rgba(192,192,192,0.05), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+        border-color: rgba(192,192,192,0.18) !important;
+    }}
+    
     /* Sidebar */
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%) !important;
@@ -179,6 +259,7 @@ def set_rock_theme(bg_image_path=None):
         letter-spacing: 4px !important;
         text-transform: uppercase !important;
     }}
+    
     /* Input */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
@@ -188,23 +269,157 @@ def set_rock_theme(bg_image_path=None):
         color: {SILVER_LIGHT} !important;
         border-radius: 2px !important;
         font-family: 'Inter', sans-serif !important;
+        transition: all 0.3s ease !important;
+    }}
+    .stTextInput > div > div > input:focus,
+    .stNumberInput > div > div > input:focus {{
+        border-color: {SILVER}60 !important;
+        box-shadow: 0 0 10px rgba(192,192,192,0.1) !important;
     }}
     .stFileUploader > div {{
         background: rgba(15, 15, 15, 0.8) !important;
         border: 1px dashed rgba(192,192,192,0.18) !important;
         border-radius: 4px !important;
+        transition: all 0.3s ease !important;
     }}
+    .stFileUploader > div:hover {{
+        border-color: {SILVER}40 !important;
+        background: rgba(20, 20, 20, 0.9) !important;
+    }}
+    
+    /* Scrollbar */
     ::-webkit-scrollbar {{ width: 6px; }}
     ::-webkit-scrollbar-track {{ background: #0a0a0a; }}
     ::-webkit-scrollbar-thumb {{ background: linear-gradient(180deg, {SILVER_DARK}, {SILVER}40, {SILVER_DARK}); border-radius: 3px; }}
+    
     hr {{
         border: none !important; height: 1px !important;
         background: linear-gradient(90deg, transparent, rgba(192,192,192,0.25), transparent) !important;
         margin: 2rem 0 !important;
     }}
-    button[data-baseweb="tab"] {{ color: {SILVER_DARK} !important; font-family: 'Oswald', sans-serif !important; letter-spacing: 2px !important; text-transform: uppercase !important; font-size: 0.85rem !important; }}
-    button[data-baseweb="tab"][aria-selected="true"] {{ color: {SILVER_LIGHT} !important; border-bottom: 2px solid {SILVER} !important; }}
-    img {{ border-radius: 2px !important; border: 1px solid rgba(192,192,192,0.08) !important; }}
+    
+    /* Tabs */
+    button[data-baseweb="tab"] {{ 
+        color: {SILVER_DARK} !important; 
+        font-family: 'Oswald', sans-serif !important; 
+        letter-spacing: 2px !important; 
+        text-transform: uppercase !important; 
+        font-size: 0.85rem !important;
+        transition: all 0.3s ease !important;
+        position: relative;
+    }}
+    button[data-baseweb="tab"]:hover {{
+        color: {SILVER} !important;
+    }}
+    button[data-baseweb="tab"][aria-selected="true"] {{ 
+        color: {SILVER_LIGHT} !important; 
+        border-bottom: 2px solid {SILVER} !important;
+        text-shadow: 0 0 10px rgba(192,192,192,0.3) !important;
+    }}
+    
+    /* Immagini */
+    img {{ 
+        border-radius: 2px !important; 
+        border: 1px solid rgba(192,192,192,0.08) !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }}
+    img:hover {{
+        transform: scale(1.02);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
+        border-color: rgba(192,192,192,0.15) !important;
+    }}
+    
+    /* Badge categorie migliorati */
+    .cat-badge {{
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-family: 'Oswald', sans-serif;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-weight: 500;
+        border: 1px solid;
+        backdrop-filter: blur(4px);
+        animation: fadeInUp 0.4s ease-out;
+    }}
+    
+    /* Progress bar animata */
+    .setup-bar-container {{
+        width: 100%;
+        height: 4px;
+        background: #1a1a1a;
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+    }}
+    .setup-bar-fill {{
+        height: 100%;
+        border-radius: 2px;
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }}
+    .setup-bar-fill::after {{
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+    }}
+    
+    /* Alert metriche */
+    .metric-urgent {{
+        animation: pulseRed 2s infinite;
+        border-radius: 4px;
+        padding: 4px 8px;
+    }}
+    
+    /* Galleria effetto Polaroid */
+    .polaroid {{
+        background: #141414;
+        padding: 8px 8px 20px 8px;
+        border-radius: 2px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(192,192,192,0.05);
+    }}
+    .polaroid:hover {{
+        transform: translateY(-6px) rotate(0.5deg);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 20px rgba(192,192,192,0.05);
+    }}
+    
+    /* Wishlist card priority glow */
+    .priority-high {{ box-shadow: 0 0 15px rgba(244, 67, 54, 0.15) !important; border-color: rgba(244, 67, 54, 0.3) !important; }}
+    .priority-medium {{ box-shadow: 0 0 15px rgba(255, 193, 7, 0.1) !important; border-color: rgba(255, 193, 7, 0.2) !important; }}
+    .priority-low {{ box-shadow: 0 0 15px rgba(76, 175, 80, 0.1) !important; border-color: rgba(76, 175, 80, 0.2) !important; }}
+    
+    /* Stagger animation per liste */
+    .stagger-1 {{ animation-delay: 0.05s !important; }}
+    .stagger-2 {{ animation-delay: 0.1s !important; }}
+    .stagger-3 {{ animation-delay: 0.15s !important; }}
+    .stagger-4 {{ animation-delay: 0.2s !important; }}
+    .stagger-5 {{ animation-delay: 0.25s !important; }}
+    .stagger-6 {{ animation-delay: 0.3s !important; }}
+    
+    /* Form container */
+    div[data-testid="stForm"] {{
+        background: rgba(10, 10, 10, 0.6) !important;
+        border: 1px solid rgba(192,192,192,0.08) !important;
+        border-radius: 4px !important;
+        padding: 1rem !important;
+    }}
+    
+    /* Expander */
+    details {{
+        background: rgba(15, 15, 15, 0.5) !important;
+        border: 1px solid rgba(192,192,192,0.06) !important;
+        border-radius: 2px !important;
+    }}
     </style>
     """
     st.markdown(base_css, unsafe_allow_html=True)
@@ -379,9 +594,17 @@ with st.sidebar:
     total_paid = sum(g.get("pricePaid", 0) for g in guitars)
     overdue = [g for g in guitars if is_overdue(g.get("lastSetup"))]
 
-    st.metric("Chitarre", len(guitars))
-    st.metric("Valore Vault", fmt_currency(total_val), delta=fmt_currency(total_val - total_paid))
-    st.metric("🔴 Setup urgente", len(overdue))
+    c1, c2 = st.columns(2)
+    c1.metric("Chitarre", len(guitars))
+    c2.metric("Valore Vault", fmt_currency(total_val), delta=fmt_currency(total_val - total_paid))
+    
+    urgent_col = st.container()
+    with urgent_col:
+        if len(overdue) > 0:
+            st.markdown(f'<div class="metric-urgent">', unsafe_allow_html=True)
+        st.metric("🔴 Setup urgente", len(overdue))
+        if len(overdue) > 0:
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # Chart categorie HTML/CSS
     if guitars:
@@ -397,13 +620,13 @@ with st.sidebar:
             pct = count / total_c * 100
             col = CATEGORY_COLORS.get(cat, "#808080")
             chart_html += f"""
-            <div style="margin-bottom:6px;">
-                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:2px; font-family:Oswald,sans-serif; letter-spacing:1px;">
+            <div style="margin-bottom:8px; animation: fadeInUp 0.5s ease-out;">
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:3px; font-family:Oswald,sans-serif; letter-spacing:1px;">
                     <span>{CATEGORY_EMOJI.get(cat, '🎸')} {cat.upper()}</span>
                     <span>{count} ({pct:.0f}%)</span>
                 </div>
-                <div style="width:100%; height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden;">
-                    <div style="width:{pct}%; height:100%; background:{col}; border-radius:3px;"></div>
+                <div style="width:100%; height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);">
+                    <div style="width:{pct}%; height:100%; background:linear-gradient(90deg, {col}88, {col}); border-radius:3px; transition: width 1s ease-out;"></div>
                 </div>
             </div>
             """
@@ -418,16 +641,16 @@ with st.sidebar:
             brands[b] = brands.get(b, 0) + g.get("marketValue", 0)
         max_val = max(brands.values()) if brands else 1
         bchart_html = "<div style='margin-bottom:12px;'>"
-        for brand, val in sorted(brands.items(), key=lambda x: -x[1]):
+        for i, (brand, val) in enumerate(sorted(brands.items(), key=lambda x: -x[1])):
             pct = val / max_val * 100
             bchart_html += f"""
-            <div style="margin-bottom:6px;">
-                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:2px; font-family:Oswald,sans-serif; letter-spacing:1px;">
+            <div style="margin-bottom:8px; animation: fadeInUp 0.5s ease-out; animation-delay: {i*0.1}s;">
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:3px; font-family:Oswald,sans-serif; letter-spacing:1px;">
                     <span>{brand.upper()}</span>
                     <span>{fmt_currency(val)}</span>
                 </div>
-                <div style="width:100%; height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden;">
-                    <div style="width:{pct}%; height:100%; background:linear-gradient(90deg, #707070, #C0C0C0); border-radius:3px;"></div>
+                <div style="width:100%; height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);">
+                    <div style="width:{pct}%; height:100%; background:linear-gradient(90deg, #707070, #C0C0C0, #E8E8E8); border-radius:3px; transition: width 1s ease-out;"></div>
                 </div>
             </div>
             """
@@ -496,7 +719,7 @@ with st.sidebar:
 #  HEADER
 # ═══════════════════════════════════════════════════════════
 st.markdown("<h1 style='text-align:center;'>🎸 Guitar Rack & Vault Pro 🎸</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#707070; font-family:Inter; font-size:0.95rem; letter-spacing:2px; text-transform:uppercase;'>Collezione · Inventario · Manutenzione · Wishlist</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#707070; font-family:Inter; font-size:0.95rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:2rem;'>Collezione · Inventario · Manutenzione · Wishlist</p>", unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
 #  TABS PRINCIPALI
@@ -515,7 +738,15 @@ with tab_rack:
     c1.metric("Totale", len(guitars))
     c2.metric("Valore", fmt_currency(sum(g.get("marketValue",0) for g in guitars)), 
               delta=fmt_currency(sum(g.get("marketValue",0) for g in guitars) - sum(g.get("pricePaid",0) for g in guitars)))
-    c3.metric("🔴 Urgenti", len([g for g in guitars if is_overdue(g.get("lastSetup"))]), delta_color="inverse")
+    
+    with c3:
+        urgent_count = len([g for g in guitars if is_overdue(g.get("lastSetup"))])
+        if urgent_count > 0:
+            st.markdown('<div class="metric-urgent">', unsafe_allow_html=True)
+        st.metric("🔴 Urgenti", urgent_count, delta_color="inverse")
+        if urgent_count > 0:
+            st.markdown('</div>', unsafe_allow_html=True)
+            
     with c4:
         st.write("")
         if st.button("➕ Aggiungi Chitarra", use_container_width=True, type="primary"):
@@ -633,27 +864,36 @@ with tab_rack:
     if not displayed:
         st.info("Nessuna chitarra trovata.")
 
-    for g in displayed:
+    for i, g in enumerate(displayed):
         status, days = maintenance_status(g)
         cat = g.get("category", "Elettrica")
         cat_color = CATEGORY_COLORS.get(cat, "#808080")
         cat_emoji = CATEGORY_EMOJI.get(cat, "🎸")
+        stagger_class = f"stagger-{(i % 6) + 1}"
 
         with st.container(border=True):
+            # Aggiungi classe per stagger animation
+            st.markdown(f'<div class="{stagger_class}">', unsafe_allow_html=True)
+            
             cimg, cinfo = st.columns([1, 3])
             with cimg:
                 ip = g.get("imagePath")
                 if ip and os.path.exists(ip):
                     st.image(ip, use_container_width=True)
                 else:
-                    st.caption("📷 Nessuna foto")
+                    st.markdown("""
+                    <div style='height:180px; background:linear-gradient(145deg, #141414, #0f0f0f); border-radius:4px; display:flex; align-items:center; justify-content:center; color:#505050; font-size:0.8rem; border:1px dashed rgba(192,192,192,0.1);'>
+                        <span style="font-size:2rem; opacity:0.3;">🎸</span>
+                    </div>""", unsafe_allow_html=True)
 
             with cinfo:
                 st.markdown(f"""
-                <div style="margin-bottom:6px;">
-                    <span style="background:{cat_color}22; border:1px solid {cat_color}66; color:{cat_color}; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-family:Oswald,sans-serif; letter-spacing:1px; text-transform:uppercase;">{cat_emoji} {cat}</span>
+                <div style="margin-bottom:10px;">
+                    <span class="cat-badge" style="background:{cat_color}15; color:{cat_color}; border-color:{cat_color}50;">
+                        {cat_emoji} {cat}
+                    </span>
                 </div>
-                <div style="margin-bottom:8px;">
+                <div style="margin-bottom:12px;">
                     <span style="font-family:'Oswald',sans-serif; font-size:1.2rem; color:#FFFFF0; letter-spacing:2px; text-transform:uppercase;">{g['brand']}</span>
                     <span style="position:relative; display:inline-block; padding:2px 12px; margin:0 6px; font-family:'Oswald',sans-serif; font-size:1.3rem; color:#0a0a0a; font-weight:700; letter-spacing:1px; text-transform:uppercase;">
                         <span style="position:absolute; left:-4px; right:-4px; top:15%; bottom:15%; background:linear-gradient(90deg, rgba(218,165,32,0.85), rgba(255,215,0,0.9), rgba(218,165,32,0.85)); transform:skewX(-10deg); border-radius:2px; z-index:0; filter:blur(0.5px);"></span>
@@ -665,14 +905,15 @@ with tab_rack:
 
                 progress = min(days / 120.0, 1.0)
                 bar_color = "#4CAF50" if status == "ok" else ("#FFC107" if status == "warning" else "#F44336")
+                
                 st.markdown(f"""
-                <div style="margin-bottom:8px;">
-                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#707070; margin-bottom:2px; font-family:'Roboto Mono',monospace;">
+                <div style="margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#707070; margin-bottom:4px; font-family:'Roboto Mono',monospace;">
                         <span>SETUP: {g.get('lastSetup','MAI')}</span>
-                        <span>{days} GIORNI FA</span>
+                        <span style="color:{bar_color}; font-weight:600;">{days} GIORNI FA</span>
                     </div>
-                    <div style="width:100%; height:4px; background:#222; border-radius:2px;">
-                        <div style="width:{progress*100}%; height:100%; background:{bar_color}; border-radius:2px; transition:width 0.3s;"></div>
+                    <div class="setup-bar-container">
+                        <div class="setup-bar-fill" style="width:{progress*100}%; background:{bar_color};"></div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -695,7 +936,7 @@ with tab_rack:
                     if log:
                         for entry in sorted(log, key=lambda x: x.get("date",""), reverse=True):
                             st.markdown(f"""
-                            <div style="border-left:2px solid #707070; padding-left:8px; margin-bottom:6px;">
+                            <div style="border-left:2px solid #707070; padding-left:10px; margin-bottom:8px; animation: slideInLeft 0.4s ease-out;">
                                 <span style="color:#FFFFF0; font-family:'Oswald',sans-serif; font-size:0.85rem; letter-spacing:1px;"><b>{entry.get('date')}</b> — {entry.get('type','Intervento').upper()}</span><br/>
                                 <span style="color:#707070; font-size:0.8rem;">{entry.get('notes','')}</span>
                                 {f'<br/><span style="color:#B8860B; font-family:Roboto Mono,monospace; font-size:0.8rem;">€ {entry.get("cost",0)}</span>' if entry.get('cost') else ''}
@@ -751,6 +992,8 @@ with tab_rack:
                         except: pass
                     set_guitars([x for x in guitars if x["id"] != g["id"]])
                     st.rerun()
+            
+            st.markdown('</div>', unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
 #  TAB 2: GALLERIA
@@ -768,16 +1011,35 @@ with tab_gallery:
 
         cols_per_row = 4
         rows = [gal_items[i:i+cols_per_row] for i in range(0, len(gal_items), cols_per_row)]
-        for row in rows:
+        for row_idx, row in enumerate(rows):
             cols = st.columns(cols_per_row)
-            for col, g in zip(cols, row):
+            for col_idx, (col, g) in enumerate(zip(cols, row)):
                 with col:
                     ip = g.get("imagePath")
-                    if ip and os.path.exists(ip):
+                    has_img = ip and os.path.exists(ip)
+                    
+                    # Effetto polaroid
+                    st.markdown(f'<div class="polaroid stagger-{(col_idx % 6) + 1}">', unsafe_allow_html=True)
+                    
+                    if has_img:
                         st.image(ip, use_container_width=True)
                     else:
-                        st.markdown("<div style='height:140px; background:#141414; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#707070; font-size:0.8rem;'>Nessuna foto</div>", unsafe_allow_html=True)
-                    st.markdown(f"<center><b style='color:#FFFFF0; font-family:Oswald,sans-serif; font-size:0.85rem; letter-spacing:1px;'>{g['brand'].upper()}</b><br/><span style='color:#707070; font-size:0.8rem;'>{g['model']}</span></center>", unsafe_allow_html=True)
+                        st.markdown("""
+                        <div style='height:160px; background:linear-gradient(145deg, #1a1a1a, #141414); display:flex; align-items:center; justify-content:center; color:#505050; font-size:0.8rem;'>
+                            <span style="font-size:2.5rem; opacity:0.2;">🎸</span>
+                        </div>""", unsafe_allow_html=True)
+                    
+                    st.markdown(f"""
+                    <center style="margin-top:8px;">
+                        <b style='color:#FFFFF0; font-family:Oswald,sans-serif; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase;'>{g['brand']}</b><br/>
+                        <span style='color:#707070; font-size:0.8rem; font-family:Inter;'>{g['model']}</span><br/>
+                        <span class="cat-badge" style="background:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}15; color:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}; border-color:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}50; margin-top:4px; display:inline-block;">
+                            {CATEGORY_EMOJI.get(g.get('category','Elettrica'), '🎸')} {g.get('category','Elettrica')}
+                        </span>
+                    </center>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
 #  TAB 3: WISHLIST (con foto)
@@ -854,10 +1116,13 @@ with tab_wishlist:
         prio_order = {"Alta":0, "Media":1, "Bassa":2}
         wishlist.sort(key=lambda x: prio_order.get(x.get("priority","Media"), 1))
 
-        for w in wishlist:
+        for i, w in enumerate(wishlist):
             pcol = {"Alta":"#F44336", "Media":"#FFC107", "Bassa":"#4CAF50"}.get(w.get("priority","Media"), "#707070")
+            prio_class = {"Alta":"priority-high", "Media":"priority-medium", "Bassa":"priority-low"}.get(w.get("priority","Media"), "")
+            
             with st.container(border=True):
-                # Layout con foto
+                st.markdown(f'<div class="{prio_class} stagger-{(i % 6) + 1}" style="padding: 4px; border-radius: 4px;">', unsafe_allow_html=True)
+                
                 has_img = w.get("imagePath") and os.path.exists(w.get("imagePath"))
                 if has_img:
                     cimg, cinfo = st.columns([1, 3])
@@ -866,12 +1131,17 @@ with tab_wishlist:
                 else:
                     cimg, cinfo = st.columns([1, 3])
                     with cimg:
-                        st.markdown("<div style='height:120px; background:#141414; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#707070; font-size:0.75rem;'>Nessuna foto</div>", unsafe_allow_html=True)
+                        st.markdown("""
+                        <div style='height:140px; background:linear-gradient(145deg, #141414, #0f0f0f); border-radius:4px; display:flex; align-items:center; justify-content:center; color:#505050; font-size:0.75rem; border:1px dashed rgba(192,192,192,0.1);'>
+                            <span style="font-size:2rem; opacity:0.3;">💭</span>
+                        </div>""", unsafe_allow_html=True)
 
                 with cinfo:
                     st.markdown(f"""
                     <b style="color:#FFFFF0; font-family:Oswald,sans-serif; font-size:1.1rem; letter-spacing:2px; text-transform:uppercase;">{w['brand']} {w['model']}</b>
-                    <span style="background:{pcol}22; border:1px solid {pcol}66; color:{pcol}; padding:1px 6px; border-radius:10px; font-size:0.7rem; margin-left:8px; font-family:Oswald,sans-serif; letter-spacing:1px;">{w.get('priority','MEDIA')}</span>
+                    <span class="cat-badge" style="background:{pcol}22; color:{pcol}; border-color:{pcol}66; margin-left:8px;">
+                        {w.get('priority','MEDIA')}
+                    </span>
                     <br/><span style="color:#707070; font-size:0.8rem; font-family:Inter;">{w.get('category','Elettrica')} · Budget {fmt_currency(w.get('budget',0))} · Anno {w.get('year','N/D')}</span>
                     """, unsafe_allow_html=True)
                     if w.get("notes"):
@@ -917,6 +1187,8 @@ with tab_wishlist:
                         set_wishlist([x for x in wishlist if x["id"] != w["id"]])
                         st.success(f"🎸 {w['brand']} {w['model']} aggiunto alla collezione!")
                         st.rerun()
+                
+                st.markdown('</div>', unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
 #  TAB 4: CONFRONTO
@@ -940,29 +1212,10 @@ with tab_compare:
                 with col:
                     ip = g.get("imagePath")
                     if ip and os.path.exists(ip):
+                        st.markdown(f'<div style="border-radius:4px; overflow:hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">', unsafe_allow_html=True)
                         st.image(ip, use_container_width=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
                     else:
-                        st.markdown("<div style='height:200px; background:#141414; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#707070;'>Nessuna foto</div>", unsafe_allow_html=True)
-
-            fields = [
-                ("Categoria", "category"), ("Anno", "year"), ("Seriale", "serialNumber"),
-                ("Fabbrica", "factory"), ("Stato", "condition"), ("Prezzo Pagato", "pricePaid"),
-                ("Valore Attuale", "marketValue"), ("Body", "body"), ("Manico", "neckWood"),
-                ("Tastiera", "fretboard"), ("Pickups", "pickups"), ("Hardware", "hardware"),
-                ("Corde", "stringGauge"), ("Ultimo Setup", "lastSetup"), ("Note", "notes")
-            ]
-
-            st.markdown("<br/>", unsafe_allow_html=True)
-            for label, key in fields:
-                v1 = g1.get(key, "N/D")
-                v2 = g2.get(key, "N/D")
-                if key in ["pricePaid", "marketValue"]:
-                    v1 = fmt_currency(v1) if v1 else "N/D"
-                    v2 = fmt_currency(v2) if v2 else "N/D"
-                col_l, col_v1, col_v2 = st.columns([1,2,2])
-                col_l.markdown(f"<span style='color:#707070; font-size:0.85rem; font-family:Oswald,sans-serif; letter-spacing:1px; text-transform:uppercase;'>{label}</span>", unsafe_allow_html=True)
-                col_v1.markdown(f"<span style='color:#FFFFF0; font-size:0.9rem;'>{v1}</span>", unsafe_allow_html=True)
-                col_v2.markdown(f"<span style='color:#FFFFF0; font-size:0.9rem;'>{v2}</span>", unsafe_allow_html=True)
-                st.markdown("<hr style='margin:4px 0; border:none; height:1px; background:linear-gradient(90deg,transparent,rgba(192,192,192,0.1),transparent);'>", unsafe_allow_html=True)
-        else:
-            st.warning("Seleziona due strumenti diversi.")
+                        st.markdown("""
+                        <div style='height:240px; background:linear-gradient(145deg, #141414, #0f0f0f); border-radius:4px; display:flex; align-items:center; justify-content:center; color:#505050; font-size:0.9rem; border:1px dashed rgba(192,192,192,0.1);'>
+                            <span style="font-size:3rem; opacity:0.2;">🎸

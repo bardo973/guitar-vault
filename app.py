@@ -644,7 +644,7 @@ with st.sidebar:
         for i, (brand, val) in enumerate(sorted(brands.items(), key=lambda x: -x[1])):
             pct = val / max_val * 100
             bchart_html += f"""
-            <div style="margin-bottom:8px; animation: fadeInUp 0.5s ease-out; animation-delay: {i*0.1}s;">
+            <div style="margin-bottom:8px; animation: fadeInUp 0.5s ease-out; animation-delay: {round(i*0.1, 1)}s;">
                 <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:3px; font-family:Oswald,sans-serif; letter-spacing:1px;">
                     <span>{brand.upper()}</span>
                     <span>{fmt_currency(val)}</span>

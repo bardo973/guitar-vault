@@ -1218,4 +1218,28 @@ with tab_compare:
                     else:
                         st.markdown("""
                         <div style='height:240px; background:linear-gradient(145deg, #141414, #0f0f0f); border-radius:4px; display:flex; align-items:center; justify-content:center; color:#505050; font-size:0.9rem; border:1px dashed rgba(192,192,192,0.1);'>
-                            <span style="font-size:3rem; opacity:0.2;">🎸
+                            <span style="font-size:3rem; opacity:0.2;"></span>
+                        </div>""", unsafe_allow_html=True)
+
+            fields = [
+                ("Categoria", "category"), ("Anno", "year"), ("Seriale", "serialNumber"),
+                ("Fabbrica", "factory"), ("Stato", "condition"), ("Prezzo Pagato", "pricePaid"),
+                ("Valore Attuale", "marketValue"), ("Body", "body"), ("Manico", "neckWood"),
+                ("Tastiera", "fretboard"), ("Pickups", "pickups"), ("Hardware", "hardware"),
+                ("Corde", "stringGauge"), ("Ultimo Setup", "lastSetup"), ("Note", "notes")
+            ]
+
+            st.markdown("<br/>", unsafe_allow_html=True)
+            for label, key in fields:
+                v1 = g1.get(key, "N/D")
+                v2 = g2.get(key, "N/D")
+                if key in ["pricePaid", "marketValue"]:
+                    v1 = fmt_currency(v1) if v1 else "N/D"
+                    v2 = fmt_currency(v2) if v2 else "N/D"
+                col_l, col_v1, col_v2 = st.columns([1,2,2])
+                col_l.markdown(f"<span style='color:#707070; font-size:0.85rem; font-family:Oswald,sans-serif; letter-spacing:1px; text-transform:uppercase;'>{label}</span>", unsafe_allow_html=True)
+                col_v1.markdown(f"<span style='color:#FFFFF0; font-size:0.9rem;'>{v1}</span>", unsafe_allow_html=True)
+                col_v2.markdown(f"<span style='color:#FFFFF0; font-size:0.9rem;'>{v2}</span>", unsafe_allow_html=True)
+                st.markdown("<hr style='margin:4px 0; border:none; height:1px; background:linear-gradient(90deg,transparent,rgba(192,192,192,0.1),transparent);'>", unsafe_allow_html=True)
+        else:
+            st.warning("Seleziona due strumenti diversi.")

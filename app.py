@@ -22,27 +22,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 🌌 Ambient Floating Particles Background
-st.markdown(particles_bg(15), unsafe_allow_html=True)
-
 SAVE_FILE_PKL = "fantamanager_state_v2.pkl"
 SAVE_FILE_JSON = "fantamanager_save.json"
 ACCOUNTS_FILE = "fantamanager_accounts.json"
 NOMI_SQUADRE = ["BARDO", "NILO", "GALVA", "ROBBA", "PAOLO B.", "ASTI", "DODO", "PECU", "GIOPPY", "BEPPE"]
 
 def get_nomi_squadre():
-    """Ritorna la lista dinamica delle squadre dallo stato, o il default."""
-    return st.session_state.get("nomi_squadre", list(NOMI_SQUADRE))
-ANNO_CORRENTE = 2026
-CONTRATTO_ANNI = 3
-CREDITI_INIZIALI = 50
-ROSA_REQ = {"P": 3, "D": 9, "C": 9, "A": 7}
-MAX_UNDO = 10
 
-# ============================================================
-# CSS CUSTOM
-# ============================================================
-st.markdown("""
+# 🎨 CSS Custom + Particelle Sfondo
+st.html("""
 <style>
     .stApp {
         background: linear-gradient(180deg, #0b0f19 0%, #12122e 100%);
@@ -333,12 +321,12 @@ st.markdown("""
 
     /* 🌌 Ambient Particles */
     .particles {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        pointer-events: none;
-        z-index: 0;
-        overflow: hidden;
+        position: fixed !important;
+        top: 0 !important; left: 0 !important;
+        width: 100vw !important; height: 100vh !important;
+        pointer-events: none !important;
+        z-index: 9998 !important;
+        overflow: hidden !important;
     }
     .particle {
         position: absolute;
@@ -355,6 +343,21 @@ st.markdown("""
     }
 
 </style>
+""" + particles_bg(15))
+
+    """Ritorna la lista dinamica delle squadre dallo stato, o il default."""
+    return st.session_state.get("nomi_squadre", list(NOMI_SQUADRE))
+ANNO_CORRENTE = 2026
+CONTRATTO_ANNI = 3
+CREDITI_INIZIALI = 50
+ROSA_REQ = {"P": 3, "D": 9, "C": 9, "A": 7}
+MAX_UNDO = 10
+
+# ============================================================
+# CSS CUSTOM
+# ============================================================
+st.markdown("""
+
 """, unsafe_allow_html=True)
 
 # ============================================================
@@ -1309,6 +1312,7 @@ def live_pulse_badge(text="ASTA IN CORSO"):
 def slot_number(value, color="#ffd700"):
     """Numero con effetto slot machine."""
     return f'<span class="slot-number slot-roll" style="color:{color};">{value}</span>'
+
 
 
 def render_flip_card(row, stats_per_stagione=None, stats_2627=None):

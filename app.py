@@ -22,6 +22,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# 🌌 Ambient Floating Particles Background
+st.markdown(particles_bg(15), unsafe_allow_html=True)
+
 SAVE_FILE_PKL = "fantamanager_state_v2.pkl"
 SAVE_FILE_JSON = "fantamanager_save.json"
 ACCOUNTS_FILE = "fantamanager_accounts.json"
@@ -158,6 +161,199 @@ st.markdown("""
     .flip-card-back {
         transform: rotateY(180deg);
     }
+
+    /* ═══════════════════════════════════════════════════════════
+       🎨 CHICCHE GRAFICHE EXTRA — Aurora, Neumorphism, Shimmer,
+          Holographic, Pulse, Liquid, Slot, Confetti, Particles
+       ═══════════════════════════════════════════════════════════ */
+
+    /* 🌌 Aurora Text */
+    .aurora-text {
+        background: linear-gradient(90deg, #00d26a, #00a8e8, #7b2cbf, #ff6b6b, #00d26a);
+        background-size: 400% 400%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: aurora 5s ease infinite;
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+    @keyframes aurora {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* 🧊 Neumorphic Metrics */
+    .neu-metric {
+        background: #12122e;
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.03);
+        box-shadow: 8px 8px 16px #0a0a1a, -8px -8px 16px #1a1a42;
+        transition: all 0.3s ease;
+    }
+    .neu-metric:hover {
+        box-shadow: 12px 12px 24px #0a0a1a, -12px -12px 24px #1a1a42;
+        transform: translateY(-2px);
+    }
+    .neu-metric .value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #00d26a;
+        text-shadow: 0 0 20px rgba(0,210,106,0.3);
+    }
+    .neu-metric .label {
+        font-size: 0.85rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+    }
+
+    /* ✨ Shimmer Effect */
+    .shimmer-card {
+        position: relative;
+        overflow: hidden;
+    }
+    .shimmer-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 50%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+        transform: skewX(-20deg);
+        animation: shimmer 3s infinite;
+        pointer-events: none;
+        z-index: 10;
+    }
+    @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 200%; }
+    }
+
+    /* 🔴 Pulse Live */
+    .live-pulse {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0,210,106,0.1);
+        border: 1px solid rgba(0,210,106,0.3);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 700;
+        color: #00d26a;
+        font-size: 0.9em;
+    }
+    .pulse-dot {
+        width: 8px; height: 8px;
+        background: #00d26a;
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(0,210,106,0.7);
+        animation: pulse-live 2s infinite;
+    }
+    @keyframes pulse-live {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0,210,106,0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0,210,106,0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0,210,106,0); }
+    }
+
+    /* 🌈 Holographic Border (Top Player) */
+    .holo-top {
+        position: relative;
+        background: linear-gradient(145deg, #1e1e3f, #2a2a4a);
+        border-radius: 12px;
+        padding: 14px;
+        overflow: hidden;
+    }
+    .holo-top::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        background: linear-gradient(45deg, #00d26a, #00a8e8, #ff00ff, #ffd700, #00d26a);
+        background-size: 400% 400%;
+        border-radius: 14px;
+        z-index: -1;
+        animation: holo-rotate 3s linear infinite;
+    }
+    .holo-top::after {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        background: linear-gradient(145deg, #1e1e3f, #2a2a4a);
+        border-radius: 10px;
+        z-index: -1;
+    }
+    @keyframes holo-rotate {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* 🎰 Slot Machine Number */
+    .slot-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #ffd700;
+        font-family: 'Courier New', monospace;
+        text-shadow: 0 0 10px rgba(255,215,0,0.4);
+        display: inline-block;
+    }
+    .slot-roll {
+        animation: slot-roll 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    @keyframes slot-roll {
+        0% { transform: translateY(-20px); opacity: 0; filter: blur(4px); }
+        100% { transform: translateY(0); opacity: 1; filter: blur(0); }
+    }
+
+    /* 🎊 Confetti */
+    .confetti-container {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+        overflow: hidden;
+    }
+    .confetti {
+        position: absolute;
+        width: 10px; height: 10px;
+        background: #00d26a;
+        animation: confetti-fall 3s ease-out forwards;
+    }
+    .confetti:nth-child(2n) { background: #ffd700; left: 20%; animation-delay: 0.2s; }
+    .confetti:nth-child(3n) { background: #ff6b6b; left: 40%; animation-delay: 0.4s; }
+    .confetti:nth-child(4n) { background: #3b82f6; left: 60%; animation-delay: 0.1s; }
+    .confetti:nth-child(5n) { background: #a855f7; left: 80%; animation-delay: 0.3s; }
+    @keyframes confetti-fall {
+        0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* 🌌 Ambient Particles */
+    .particles {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+    }
+    .particle {
+        position: absolute;
+        width: 3px; height: 3px;
+        background: rgba(0,210,106,0.15);
+        border-radius: 50%;
+        animation: float-particle 20s infinite linear;
+    }
+    @keyframes float-particle {
+        0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-10vh) translateX(50px); opacity: 0; }
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1025,6 +1221,96 @@ def gauge_svg(value, max_val=100, size=60, label=""):
 # ============================================================
 # 🎴 FLIP CARD 3D — UNIVERSALE
 # ============================================================
+
+# ============================================================
+# 🎨 CHICCHE GRAFICHE — FUNZIONI HELPER
+# ============================================================
+
+def liquid_progress(pct, color="#00d26a", size=120, label=""):
+    """Genera un anello di progresso liquido in SVG."""
+    import math
+    w, h = size, size
+    r = size // 2 - 4
+    c = size // 2
+    circ = 2 * math.pi * r
+    dash = circ * (pct / 100)
+    return f'''<svg width="{w}" height="{h}" style="display:block;margin:auto;">
+        <defs>
+            <linearGradient id="liquidGrad{pct}" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="{color}" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="{color}" stop-opacity="0.3"/>
+            </linearGradient>
+        </defs>
+        <circle cx="{c}" cy="{c}" r="{r}" fill="none" stroke="#1a1a2e" stroke-width="8"/>
+        <circle cx="{c}" cy="{c}" r="{r}" fill="none" stroke="url(#liquidGrad{pct})" stroke-width="8"
+            stroke-dasharray="{dash:.1f} {circ:.1f}" stroke-linecap="round"
+            transform="rotate(-90 {c} {c})" style="filter:drop-shadow(0 0 6px {color});"/>
+        <text x="{c}" y="{c+5}" text-anchor="middle" fill="#fff" font-size="18" font-weight="bold" font-family="Segoe UI">{pct}%</text>
+        {f'<text x="{c}" y="{c+22}" text-anchor="middle" fill="#888" font-size="9">{label}</text>' if label else ''}
+    </svg>'''
+
+def sparkline(values, width=60, height=20, color="#00d26a"):
+    """Mini grafico SVG per tabelle."""
+    if not values or len(values) < 2:
+        return "—"
+    min_v, max_v = min(values), max(values)
+    rng = max_v - min_v if max_v != min_v else 1
+    pts = []
+    n = len(values)
+    for i, v in enumerate(values):
+        x = (i / (n-1)) * width
+        y = height - ((v - min_v) / rng) * height
+        pts.append(f"{x:.1f},{y:.1f}")
+    return f'''<svg width="{width}" height="{height}" style="vertical-align:middle;">
+        <polyline points="{' '.join(pts)}" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="{pts[-1].split(',')[0]}" cy="{pts[-1].split(',')[1]}" r="2" fill="{color}"/>
+    </svg>'''
+
+def confetti_html(n=12):
+    """Genera HTML confetti per celebrazioni."""
+    pieces = []
+    for i in range(n):
+        left = (i * 8) % 100
+        delay = (i * 0.15) % 1.5
+        dur = 2 + (i % 3) * 0.5
+        size = 6 + (i % 4)
+        pieces.append(f'<div class="confetti" style="left:{left}%;animation-delay:{delay}s;animation-duration:{dur}s;width:{size}px;height:{size}px;"></div>')
+    return "<div class='confetti-container'>" + "".join(pieces) + "</div>"
+
+def particles_bg(n=15):
+    """Genera particelle di sfondo fluttuanti."""
+    pieces = []
+    for i in range(n):
+        left = (i * 7) % 100
+        delay = i * 1.2
+        dur = 15 + (i % 5) * 3
+        size = 2 + (i % 3)
+        pieces.append(f'<div class="particle" style="left:{left}%;animation-delay:{delay}s;animation-duration:{dur}s;width:{size}px;height:{size}px;"></div>')
+    return "<div class='particles'>" + "".join(pieces) + "</div>"
+
+def aurora_title(text, tag="h1"):
+    """Titolo con effetto aurora."""
+    return f"<{tag} class='aurora-text'>{text}</{tag}>"
+
+def neu_metric(value, label, color="#00d26a"):
+    """Metric box neumorphic."""
+    return f'''<div class="neu-metric">
+        <div class="value" style="color:{color};">{value}</div>
+        <div class="label">{label}</div>
+    </div>'''
+
+def live_pulse_badge(text="ASTA IN CORSO"):
+    """Badge pulse live per asta."""
+    return f'''<div class="live-pulse">
+        <div class="pulse-dot"></div>
+        {text}
+    </div>'''
+
+def slot_number(value, color="#ffd700"):
+    """Numero con effetto slot machine."""
+    return f'<span class="slot-number slot-roll" style="color:{color};">{value}</span>'
+
+
 def render_flip_card(row, stats_per_stagione=None, stats_2627=None):
     """Genera HTML per una flip card 3D: fronte=info, retro=stats."""
     nome = row["Nome"] if hasattr(row, "__getitem__") else row.get("Nome", "N/D")
@@ -1044,13 +1330,14 @@ def render_flip_card(row, stats_per_stagione=None, stats_2627=None):
     flame_badge = flame_indicator(nome, stats_per_stagione) if stats_per_stagione else ""
 
     # FRONTE
-    front_html = f'''<div style="background:linear-gradient(135deg, rgba(30,30,63,0.95) 0%, rgba(42,42,74,0.8) 100%);backdrop-filter:blur(10px);border-radius:12px;padding:14px;height:100%;box-sizing:border-box;border-left:4px solid {colore};box-shadow:0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);display:flex;flex-direction:column;justify-content:space-between;"><div><div style="font-size:1.1em;font-weight:bold;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.5);">{nome}</div><div style="font-size:0.85em;color:#aaa;">{sa} | <span style="color:{colore};font-weight:600;">{ruolo}</span></div></div><div style="text-align:center;margin:8px 0;"><div style="font-size:2em;font-weight:bold;color:#ffd700;">{fm}</div><div style="font-size:0.75em;color:#888;">FantaMedia</div></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;"><span style="background:{colore}30;color:{colore};padding:2px 8px;border-radius:12px;font-size:0.7em;font-weight:600;border:1px solid {colore}40;">{badge_fascia}</span><span style="background:rgba(26,26,46,0.6);color:#ddd;padding:2px 8px;border-radius:12px;font-size:0.7em;">{quot}cr</span>{pc_txt}</div>{flame_badge}</div>'''
+    front_html = f'''<div class="shimmer-card" style="background:linear-gradient(135deg, rgba(30,30,63,0.95) 0%, rgba(42,42,74,0.8) 100%);backdrop-filter:blur(10px);border-radius:12px;padding:14px;height:100%;box-sizing:border-box;border-left:4px solid {colore};box-shadow:0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);display:flex;flex-direction:column;justify-content:space-between;"><div><div style="font-size:1.1em;font-weight:bold;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.5);">{nome}</div><div style="font-size:0.85em;color:#aaa;">{sa} | <span style="color:{colore};font-weight:600;">{ruolo}</span></div></div><div style="text-align:center;margin:8px 0;"><div style="font-size:2em;font-weight:bold;color:#ffd700;">{fm}</div><div style="font-size:0.75em;color:#888;">FantaMedia</div></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;"><span style="background:{colore}30;color:{colore};padding:2px 8px;border-radius:12px;font-size:0.7em;font-weight:600;border:1px solid {colore}40;">{badge_fascia}</span><span style="background:rgba(26,26,46,0.6);color:#ddd;padding:2px 8px;border-radius:12px;font-size:0.7em;">{quot}cr</span>{pc_txt}</div>{flame_badge}</div>'''
 
     # RETRO (stats)
     stats_html = _build_stats_html(nome, stats_per_stagione if stats_per_stagione else {})
     back_html = f'''<div style="background:linear-gradient(135deg, #0f0f24 0%, #1a1a2e 100%);border-radius:12px;padding:14px;height:100%;box-sizing:border-box;border:1px solid {colore}40;box-shadow:0 8px 32px rgba(0,0,0,0.4);display:flex;flex-direction:column;justify-content:center;overflow:hidden;"><div style="font-size:0.85em;color:#00d26a;font-weight:bold;margin-bottom:6px;">📊 {nome}</div><div style="overflow-y:auto;max-height:140px;">{stats_html}</div></div>'''
 
-    return f'''<div class="flip-card" style="height:200px;margin-bottom:10px;"><div class="flip-card-inner"><div class="flip-card-front">{front_html}</div><div class="flip-card-back">{back_html}</div></div></div>'''
+    card_class = "flip-card holo-top" if fascia == "top" else "flip-card"
+    return f'''<div class="{card_class}" style="height:200px;margin-bottom:10px;"><div class="flip-card-inner"><div class="flip-card-front">{front_html}</div><div class="flip-card-back">{back_html}</div></div></div>'''
 
 
 
@@ -1458,6 +1745,7 @@ with st.sidebar:
         st.success(f"Crediti iniziali aggiornati a {new_cred}!")
 
     st.markdown("---")
+    st.markdown(f"<div style='text-align:center;margin-bottom:8px;'>{slot_number('💰 CREDITI', '#ffd700')}</div>", unsafe_allow_html=True)
     st.subheader("💰 Crediti per Squadra")
     st.caption("Modifica i crediti attuali di ogni squadra")
     crediti_df_edit = pd.DataFrame([
@@ -1535,7 +1823,7 @@ if check_wizard_needed() and menu == "🏠 Dashboard":
 # 0. DASHBOARD
 # ============================================================
 if menu == "🏠 Dashboard":
-    st.header("🏠 FantaManager Dashboard")
+    st.markdown(aurora_title("🏠 FantaManager Dashboard", "h1"), unsafe_allow_html=True)
     st.caption("Panoramica completa dello stato del fantacalcio 2026/27")
 
     tot_scadenze = sum(1 for sq in get_nomi_squadre() for g in st.session_state.squadre[sq]["rosa"]
@@ -1591,18 +1879,7 @@ if menu == "🏠 Dashboard":
                 poss = conti[ruolo]
                 pct = min(100, int((poss / req) * 100))
                 colore = "#00d26a" if pct >= 100 else "#eab308" if pct >= 60 else "#ef4444"
-                circ = 2 * 3.14159 * 24
-                dash = circ * (pct / 100)
-                svg_c = f'''<svg width="52" height="52" viewBox="0 0 52 52" style="margin:auto;display:block;">
-                    <circle cx="26" cy="26" r="24" fill="none" stroke="#1a1a2e" stroke-width="5"/>
-                    <circle cx="26" cy="26" r="24" fill="none" stroke="{colore}" stroke-width="5"
-                        stroke-dasharray="{dash:.1f} {circ:.1f}"
-                        stroke-linecap="round"
-                        transform="rotate(-90 26 26)"
-                        style="filter:drop-shadow(0 0 4px {colore});"/>
-                    <text x="26" y="30" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold" font-family="Segoe UI">{poss}/{req}</text>
-                </svg>'''
-                st.markdown(svg_c, unsafe_allow_html=True)
+                st.markdown(liquid_progress(pct, color=colore, size=90, label=f"{poss}/{req}"), unsafe_allow_html=True)
                 st.markdown(f"<div style='text-align:center;color:#888;font-size:0.7em;'>{ruolo}</div>", unsafe_allow_html=True)
 
     st.markdown("---")
@@ -1610,20 +1887,20 @@ if menu == "🏠 Dashboard":
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
         tot_giocatori = sum(len(st.session_state.squadre[sq]["rosa"]) for sq in get_nomi_squadre())
-        st.metric("Giocatori Assegnati", tot_giocatori)
+        st.markdown(neu_metric(tot_giocatori, "Giocatori Assegnati"), unsafe_allow_html=True)
     with c2:
         tot_crediti = sum(st.session_state.squadre[sq]["crediti"] for sq in get_nomi_squadre())
-        st.metric("Crediti Liberi", tot_crediti)
+        st.markdown(neu_metric(f"{tot_crediti}cr", "Crediti Liberi", "#ffd700"), unsafe_allow_html=True)
     with c3:
         squadre_complete = sum(1 for sq in get_nomi_squadre() if len(st.session_state.squadre[sq]["rosa"]) >= 25)
-        st.metric("Rose Completate", f"{squadre_complete}/10")
+        st.markdown(neu_metric(f"{squadre_complete}/10", "Rose Completate", "#3b82f6"), unsafe_allow_html=True)
     with c4:
         db = st.session_state.giocatori_db
         in_rosa = set(get_player_index().keys())
         svinc = db[~db["Nome"].str.lower().isin(in_rosa)] if not db.empty else pd.DataFrame()
-        st.metric("Svincolati", len(svinc))
+        st.markdown(neu_metric(len(svinc), "Svincolati", "#ef4444"), unsafe_allow_html=True)
     with c5:
-        st.metric("Contratti in Scadenza", tot_scadenze)
+        st.markdown(neu_metric(tot_scadenze, "Contratti in Scadenza", "#ff6b6b"), unsafe_allow_html=True)
 
 
     st.markdown("---")
@@ -1890,7 +2167,7 @@ if menu == "🏠 Dashboard":
 # 1. SCOUTING
 # ============================================================
 if menu == "🔍 Scouting & Database":
-    st.header("🔍 Hub Scouting 2026/27")
+    st.markdown(aurora_title("🔍 Hub Scouting 2026/27", "h1"), unsafe_allow_html=True)
     df = st.session_state.giocatori_db.copy()
     df = arricchisci_con_stats_2627(df)
     stats_2627 = None
@@ -2515,7 +2792,8 @@ if menu == "🔍 Scouting & Database":
 # 2. ASTA LIVE
 # ============================================================
 if menu == "🔨 Asta Live":
-    st.header("🔨 Gestione Asta")
+    st.markdown(aurora_title("🔨 Gestione Asta", "h1"), unsafe_allow_html=True)
+    st.markdown(live_pulse_badge("ASTA LIVE"), unsafe_allow_html=True)
     st.caption("Gestisci l'asta in tempo reale: seleziona giocatore, raccogli offerte, assegna.")
 
     # --- SIMULAZIONE ASTA AVVERSARIA ---
@@ -2816,6 +3094,7 @@ if menu == "🔨 Asta Live":
                             st.session_state.pop("_asta_prezzo", None)
                             invalidate_cache()
                             save_state()
+                            st.markdown(confetti_html(16), unsafe_allow_html=True)
                             st.balloons()
                             st.success(f"🎉 {g_asta} assegnato a {vincitore} per {prezzo_vincita}cr!")
                             st.rerun()

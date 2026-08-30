@@ -29,321 +29,9 @@ NOMI_SQUADRE = ["BARDO", "NILO", "GALVA", "ROBBA", "PAOLO B.", "ASTI", "DODO", "
 
 def get_nomi_squadre():
 
-# 🎨 CSS Custom + Particelle Sfondo
-st.html("""
-<style>
-    .stApp {
-        background: linear-gradient(180deg, #0b0f19 0%, #12122e 100%);
-    }
-    .stSidebar { background-color: #0f0f24 !important; }
-    h1, h2, h3 { color: #00d26a !important; font-family: 'Segoe UI', sans-serif; }
-    .stButton>button {
-        border-radius: 8px; font-weight: 600; transition: all 0.2s;
-        background: linear-gradient(90deg, #00d26a, #00a854);
-        color: white; border: none;
-    }
-    .stButton>button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,210,106,0.3);
-    }
-    .stButton>button[kind="secondary"] {
-        background: #2a2a4a; color: #ddd;
-    }
-    .card-giocatore {
-        background: #1e1e3f; border-radius: 10px; padding: 12px;
-        margin-bottom: 8px; border-left: 4px solid #00d26a;
-    }
-    .badge-prestito {
-        background: #ff6b6b; color: white; padding: 2px 8px;
-        border-radius: 12px; font-size: 0.75em; font-weight: bold;
-    }
-    .metric-box {
-        background: #1a1a2e; border-radius: 10px; padding: 16px;
-        text-align: center; border: 1px solid #2a2a4a;
-    }
-    div[data-testid="stMetricValue"] { font-size: 1.8rem !important; font-weight: 700 !important; }
-
-    .card-3d-titolare {
-        background: linear-gradient(145deg, #1e1e3f, #2a2a4a);
-        border-radius: 12px;
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
-        position: relative;
-    }
-    .card-3d-titolare:hover {
-        transform: translateY(-6px) scale(1.03);
-        box-shadow: 0 20px 40px rgba(0,210,106,0.25), 0 0 0 1px rgba(0,210,106,0.1);
-    }
-    .card-3d-titolare:active {
-        transform: translateY(-2px) scale(1.01);
-        box-shadow: 0 0 30px rgba(0,210,106,0.6), 0 8px 16px rgba(0,0,0,0.4);
-    }
-    .card-3d-panchina {
-        background: linear-gradient(145deg, #15152b, #1a1a2e);
-        border-radius: 10px;
-        padding: 8px 12px;
-        margin-bottom: 6px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        opacity: 0.75;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-    .card-3d-panchina:hover {
-        transform: translateY(-3px) scale(1.02);
-        opacity: 1;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-    }
-    .card-3d-panchina:active {
-        transform: translateY(-1px);
-        box-shadow: 0 0 15px rgba(0,210,106,0.3);
-    }
-
-    /* ✨ Chicche grafiche — Glassmorphism & Glow */
-    .card-giocatore {
-        background: rgba(30,30,63,0.7) !important;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
-    }
-    .stButton>button {
-        box-shadow: 0 0 15px rgba(0,210,106,0.2);
-    }
-    .stButton>button:hover {
-        box-shadow: 0 0 25px rgba(0,210,106,0.5);
-        transform: translateY(-2px) scale(1.02);
-    }
-    div[data-testid="stMetricValue"] {
-        text-shadow: 0 0 10px rgba(0,210,106,0.3);
-    }
-    .stScatterChart {
-        background: transparent !important;
-    }
-
-    /* 🎴 Flip Card 3D */
-    .flip-card {
-        background-color: transparent;
-        perspective: 1000px;
-    }
-    .flip-card-inner {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        text-align: left;
-        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        transform-style: preserve-3d;
-    }
-    .flip-card:hover .flip-card-inner {
-        transform: rotateY(180deg);
-    }
-    .flip-card-front, .flip-card-back {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-        border-radius: 12px;
-    }
-    .flip-card-back {
-        transform: rotateY(180deg);
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       🎨 CHICCHE GRAFICHE EXTRA — Aurora, Neumorphism, Shimmer,
-          Holographic, Pulse, Liquid, Slot, Confetti, Particles
-       ═══════════════════════════════════════════════════════════ */
-
-    /* 🌌 Aurora Text */
-    .aurora-text {
-        background: linear-gradient(90deg, #00d26a, #00a8e8, #7b2cbf, #ff6b6b, #00d26a);
-        background-size: 400% 400%;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        animation: aurora 5s ease infinite;
-        font-weight: 800;
-        letter-spacing: -1px;
-    }
-    @keyframes aurora {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-
-    /* 🧊 Neumorphic Metrics */
-    .neu-metric {
-        background: #12122e;
-        border-radius: 16px;
-        padding: 20px;
-        text-align: center;
-        border: 1px solid rgba(255,255,255,0.03);
-        box-shadow: 8px 8px 16px #0a0a1a, -8px -8px 16px #1a1a42;
-        transition: all 0.3s ease;
-    }
-    .neu-metric:hover {
-        box-shadow: 12px 12px 24px #0a0a1a, -12px -12px 24px #1a1a42;
-        transform: translateY(-2px);
-    }
-    .neu-metric .value {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #00d26a;
-        text-shadow: 0 0 20px rgba(0,210,106,0.3);
-    }
-    .neu-metric .label {
-        font-size: 0.85rem;
-        color: #888;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-top: 4px;
-    }
-
-    /* ✨ Shimmer Effect */
-    .shimmer-card {
-        position: relative;
-        overflow: hidden;
-    }
-    .shimmer-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: -100%;
-        width: 50%; height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-        transform: skewX(-20deg);
-        animation: shimmer 3s infinite;
-        pointer-events: none;
-        z-index: 10;
-    }
-    @keyframes shimmer {
-        0% { left: -100%; }
-        100% { left: 200%; }
-    }
-
-    /* 🔴 Pulse Live */
-    .live-pulse {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(0,210,106,0.1);
-        border: 1px solid rgba(0,210,106,0.3);
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: 700;
-        color: #00d26a;
-        font-size: 0.9em;
-    }
-    .pulse-dot {
-        width: 8px; height: 8px;
-        background: #00d26a;
-        border-radius: 50%;
-        box-shadow: 0 0 0 0 rgba(0,210,106,0.7);
-        animation: pulse-live 2s infinite;
-    }
-    @keyframes pulse-live {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0,210,106,0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0,210,106,0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0,210,106,0); }
-    }
-
-    /* 🌈 Holographic Border (Top Player) */
-    .holo-top {
-        position: relative;
-        background: linear-gradient(145deg, #1e1e3f, #2a2a4a);
-        border-radius: 12px;
-        padding: 14px;
-        overflow: hidden;
-    }
-    .holo-top::before {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        background: linear-gradient(45deg, #00d26a, #00a8e8, #ff00ff, #ffd700, #00d26a);
-        background-size: 400% 400%;
-        border-radius: 14px;
-        z-index: -1;
-        animation: holo-rotate 3s linear infinite;
-    }
-    .holo-top::after {
-        content: '';
-        position: absolute;
-        inset: 2px;
-        background: linear-gradient(145deg, #1e1e3f, #2a2a4a);
-        border-radius: 10px;
-        z-index: -1;
-    }
-    @keyframes holo-rotate {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-
-    /* 🎰 Slot Machine Number */
-    .slot-number {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: #ffd700;
-        font-family: 'Courier New', monospace;
-        text-shadow: 0 0 10px rgba(255,215,0,0.4);
-        display: inline-block;
-    }
-    .slot-roll {
-        animation: slot-roll 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-    }
-    @keyframes slot-roll {
-        0% { transform: translateY(-20px); opacity: 0; filter: blur(4px); }
-        100% { transform: translateY(0); opacity: 1; filter: blur(0); }
-    }
-
-    /* 🎊 Confetti */
-    .confetti-container {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        pointer-events: none;
-        z-index: 9999;
-        overflow: hidden;
-    }
-    .confetti {
-        position: absolute;
-        width: 10px; height: 10px;
-        background: #00d26a;
-        animation: confetti-fall 3s ease-out forwards;
-    }
-    .confetti:nth-child(2n) { background: #ffd700; left: 20%; animation-delay: 0.2s; }
-    .confetti:nth-child(3n) { background: #ff6b6b; left: 40%; animation-delay: 0.4s; }
-    .confetti:nth-child(4n) { background: #3b82f6; left: 60%; animation-delay: 0.1s; }
-    .confetti:nth-child(5n) { background: #a855f7; left: 80%; animation-delay: 0.3s; }
-    @keyframes confetti-fall {
-        0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
-        100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-    }
-
-    /* 🌌 Ambient Particles */
-    .particles {
-        position: fixed !important;
-        top: 0 !important; left: 0 !important;
-        width: 100vw !important; height: 100vh !important;
-        pointer-events: none !important;
-        z-index: 9998 !important;
-        overflow: hidden !important;
-    }
-    .particle {
-        position: absolute;
-        width: 3px; height: 3px;
-        background: rgba(0,210,106,0.15);
-        border-radius: 50%;
-        animation: float-particle 20s infinite linear;
-    }
-    @keyframes float-particle {
-        0% { transform: translateY(100vh) translateX(0); opacity: 0; }
-        10% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { transform: translateY(-10vh) translateX(50px); opacity: 0; }
-    }
-
-</style>
-""" + particles_bg(15))
+def get_nomi_squadre():
+    """Ritorna la lista dinamica delle squadre dallo stato, o il default."""
+    return st.session_state.get("nomi_squadre", list(NOMI_SQUADRE))
 
     """Ritorna la lista dinamica delle squadre dallo stato, o il default."""
     return st.session_state.get("nomi_squadre", list(NOMI_SQUADRE))
@@ -356,9 +44,7 @@ MAX_UNDO = 10
 # ============================================================
 # CSS CUSTOM
 # ============================================================
-st.markdown("""
 
-""", unsafe_allow_html=True)
 
 # ============================================================
 # LISTONE DEFAULT
@@ -1202,7 +888,7 @@ def flame_indicator(nome: str, stats_per_stagione: dict) -> str:
 # ============================================================
 def gauge_svg(value, max_val=100, size=60, label=""):
     """Genera un mini tachimetro SVG."""
-    import math
+
     pct = min(1.0, max(0.0, value / max_val))
     angle = -135 + (pct * 270)
     rad = math.radians(angle)
@@ -1231,7 +917,7 @@ def gauge_svg(value, max_val=100, size=60, label=""):
 
 def liquid_progress(pct, color="#00d26a", size=120, label=""):
     """Genera un anello di progresso liquido in SVG."""
-    import math
+
     w, h = size, size
     r = size // 2 - 4
     c = size // 2
@@ -1290,6 +976,329 @@ def particles_bg(n=15):
         size = 2 + (i % 3)
         pieces.append(f'<div class="particle" style="left:{left}%;animation-delay:{delay}s;animation-duration:{dur}s;width:{size}px;height:{size}px;"></div>')
     return "<div class='particles'>" + "".join(pieces) + "</div>"
+
+
+# ============================================================
+# 🎨 CSS CUSTOM + INJECTION
+# ============================================================
+CUSTOM_CSS = """<style>
+
+    .stApp {
+        background: linear-gradient(180deg, #080c14 0%, #0f0f24 50%, #12122e 100%);
+    }
+    .stSidebar { background-color: #0f0f24 !important; }
+    h1, h2, h3 { color: #00d26a !important; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    .stButton>button {
+        border-radius: 8px; font-weight: 600; transition: all 0.2s;
+        background: linear-gradient(90deg, #00d26a, #00a854);
+        color: white; border: none;
+    }
+    .stButton>button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,210,106,0.3);
+    }
+    .stButton>button[kind="secondary"] {
+        background: #2a2a4a; color: #ddd;
+    }
+    .card-giocatore {
+        background: #1e1e3f; border-radius: 10px; padding: 12px;
+        margin-bottom: 8px; border-left: 4px solid #00d26a;
+    }
+    .badge-prestito {
+        background: #ff6b6b; color: white; padding: 2px 8px;
+        border-radius: 12px; font-size: 0.75em; font-weight: bold;
+    }
+    .metric-box {
+        background: #1a1a2e; border-radius: 10px; padding: 16px;
+        text-align: center; border: 1px solid #2a2a4a;
+    }
+    div[data-testid="stMetricValue"] { font-size: 1.8rem !important; font-weight: 700 !important; }
+
+    .card-3d-titolare {
+        background: linear-gradient(145deg, #1e1e3f, #2a2a4a);
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+    }
+    .card-3d-titolare:hover {
+        transform: translateY(-6px) scale(1.03);
+        box-shadow: 0 20px 40px rgba(0,210,106,0.25), 0 0 0 1px rgba(0,210,106,0.1);
+    }
+    .card-3d-titolare:active {
+        transform: translateY(-2px) scale(1.01);
+        box-shadow: 0 0 30px rgba(0,210,106,0.6), 0 8px 16px rgba(0,0,0,0.4);
+    }
+    .card-3d-panchina {
+        background: linear-gradient(145deg, #15152b, #1a1a2e);
+        border-radius: 10px;
+        padding: 8px 12px;
+        margin-bottom: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        opacity: 0.75;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .card-3d-panchina:hover {
+        transform: translateY(-3px) scale(1.02);
+        opacity: 1;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    .card-3d-panchina:active {
+        transform: translateY(-1px);
+        box-shadow: 0 0 15px rgba(0,210,106,0.3);
+    }
+
+    /* ✨ Chicche grafiche — Glassmorphism & Glow */
+    .card-giocatore {
+        background: rgba(30,30,63,0.7) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .stButton>button {
+        box-shadow: 0 0 15px rgba(0,210,106,0.2);
+    }
+    .stButton>button:hover {
+        box-shadow: 0 0 25px rgba(0,210,106,0.5);
+        transform: translateY(-2px) scale(1.02);
+    }
+    div[data-testid="stMetricValue"] {
+        text-shadow: 0 0 10px rgba(0,210,106,0.3);
+    }
+    .stScatterChart {
+        background: transparent !important;
+    }
+
+    /* 🎴 Flip Card 3D */
+    .flip-card {
+        background-color: transparent;
+        perspective: 1000px;
+    }
+    .flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: left;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-style: preserve-3d;
+    }
+    .flip-card:hover .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+    .flip-card-front, .flip-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 12px;
+    }
+    .flip-card-back {
+        transform: rotateY(180deg);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       🎨 CHICCHE GRAFICHE EXTRA — Aurora, Neumorphism, Shimmer,
+          Holographic, Pulse, Liquid, Slot, Confetti, Particles
+       ═══════════════════════════════════════════════════════════ */
+
+    /* 🌌 Aurora Text */
+    .aurora-text {
+        background: linear-gradient(90deg, #00d26a, #00a8e8, #7b2cbf, #ff6b6b, #00d26a);
+        background-size: 400% 400%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: aurora 5s ease infinite;
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+    @keyframes aurora {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* 🧊 Neumorphic Metrics */
+    .neu-metric {
+        background: #12122e;
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.03);
+        box-shadow: 8px 8px 16px #0a0a1a, -8px -8px 16px #1a1a42;
+        transition: all 0.3s ease;
+    }
+    .neu-metric:hover {
+        box-shadow: 12px 12px 24px #0a0a1a, -12px -12px 24px #1a1a42;
+        transform: translateY(-2px);
+    }
+    .neu-metric .value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #00d26a;
+        text-shadow: 0 0 20px rgba(0,210,106,0.3);
+    }
+    .neu-metric .label {
+        font-size: 0.85rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+    }
+
+    /* ✨ Shimmer Effect */
+    .shimmer-card {
+        position: relative;
+        overflow: hidden;
+    }
+    .shimmer-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 50%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+        transform: skewX(-20deg);
+        animation: shimmer 3s infinite;
+        pointer-events: none;
+        z-index: 10;
+    }
+    @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 200%; }
+    }
+
+    /* 🔴 Pulse Live */
+    .live-pulse {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0,210,106,0.1);
+        border: 1px solid rgba(0,210,106,0.3);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 700;
+        color: #00d26a;
+        font-size: 0.9em;
+    }
+    .pulse-dot {
+        width: 8px; height: 8px;
+        background: #00d26a;
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(0,210,106,0.7);
+        animation: pulse-live 2s infinite;
+    }
+    @keyframes pulse-live {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0,210,106,0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0,210,106,0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0,210,106,0); }
+    }
+
+    /* 🌈 Holographic Border (Top Player) */
+    .holo-top {
+        position: relative;
+        background: linear-gradient(145deg, #1e1e3f, #2a2a4a);
+        border-radius: 12px;
+        padding: 14px;
+        overflow: hidden;
+    }
+    .holo-top::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        background: linear-gradient(45deg, #00d26a, #00a8e8, #ff00ff, #ffd700, #00d26a);
+        background-size: 400% 400%;
+        border-radius: 14px;
+        z-index: -1;
+        animation: holo-rotate 3s linear infinite;
+    }
+    .holo-top::after {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        background: linear-gradient(145deg, #1e1e3f, #2a2a4a);
+        border-radius: 10px;
+        z-index: -1;
+    }
+    @keyframes holo-rotate {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* 🎰 Slot Machine Number */
+    .slot-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #ffd700;
+        font-family: 'Courier New', monospace;
+        text-shadow: 0 0 10px rgba(255,215,0,0.4);
+        display: inline-block;
+    }
+    .slot-roll {
+        animation: slot-roll 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    @keyframes slot-roll {
+        0% { transform: translateY(-20px); opacity: 0; filter: blur(4px); }
+        100% { transform: translateY(0); opacity: 1; filter: blur(0); }
+    }
+
+    /* 🎊 Confetti */
+    .confetti-container {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+        overflow: hidden;
+    }
+    .confetti {
+        position: absolute;
+        width: 10px; height: 10px;
+        background: #00d26a;
+        animation: confetti-fall 3s ease-out forwards;
+    }
+    .confetti:nth-child(2n) { background: #ffd700; left: 20%; animation-delay: 0.2s; }
+    .confetti:nth-child(3n) { background: #ff6b6b; left: 40%; animation-delay: 0.4s; }
+    .confetti:nth-child(4n) { background: #3b82f6; left: 60%; animation-delay: 0.1s; }
+    .confetti:nth-child(5n) { background: #a855f7; left: 80%; animation-delay: 0.3s; }
+    @keyframes confetti-fall {
+        0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* 🌌 Ambient Particles */
+    .particles {
+        position: fixed !important;
+        top: 0 !important; left: 0 !important;
+        width: 100vw !important; height: 100vh !important;
+        pointer-events: none !important;
+        z-index: 0 !important;
+        overflow: hidden !important;
+    }
+    .particle {
+        position: absolute;
+        width: 3px; height: 3px;
+        background: rgba(0,210,106,0.15);
+        border-radius: 50%;
+        animation: float-particle 20s infinite linear;
+    }
+    @keyframes float-particle {
+        0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-10vh) translateX(50px); opacity: 0; }
+    }
+
+
+</style>"""
+
+def inject_custom_css():
+    """Inietta il CSS custom e le particelle di sfondo."""
+    st.markdown(CUSTOM_CSS + particles_bg(15), unsafe_allow_html=True)
 
 def aurora_title(text, tag="h1"):
     """Titolo con effetto aurora."""
@@ -1515,7 +1524,7 @@ def require_auth():
         render_login()
         st.stop()
     # Se l'utente è cambiato dall'ultima volta, ricarica tutto
-    if st.session_state.get("_last_user") != st.session_state.current_user:
+    if "_last_user" in st.session_state and st.session_state._last_user != st.session_state.current_user:
         for k in list(st.session_state.keys()):
             if k not in ["current_user", "_last_user"]:
                 del st.session_state[k]
@@ -1526,6 +1535,9 @@ def require_auth():
 # INIZIALIZZAZIONE
 # ============================================================
 require_auth()
+
+if "asta_timer_active" not in st.session_state:
+    st.session_state.asta_timer_active = False
 
 if "initialized" not in st.session_state:
     st.session_state.squadre = {}
@@ -2046,7 +2058,7 @@ if menu == "🏠 Dashboard":
                 if crediti_rim > 0:
                     pie_data["Libero"] = crediti_rim
 
-                import math
+            
                 size = 150
                 total = sum(pie_data.values())
                 svg_pie = [f'<svg width="{size}" height="{size}" viewBox="0 0 {size} {size}" style="display:block;margin:auto;">']
@@ -2161,7 +2173,7 @@ if menu == "🏠 Dashboard":
             html_spese += f'<td style="padding:8px;text-align:center;border-bottom:1px solid #2a2a4a;background:{_heat_spese(val)};color:#fff;font-weight:bold;border-radius:4px;">{int(val)}cr<br><span style="font-size:0.7em;color:#ccc;">({n_val})</span></td>'
         html_spese += '</tr>'
     html_spese += '</tbody></table>'
-    st.html(html_spese)
+    st.markdown(html_spese, unsafe_allow_html=True)
     st.markdown("---")
     st.subheader("💰 Classifica Crediti")
     crediti_df = pd.DataFrame([{"Squadra": sq, "Crediti": st.session_state.squadre[sq]["crediti"]} for sq in get_nomi_squadre()]).sort_values("Crediti", ascending=False)
@@ -2340,13 +2352,13 @@ if menu == "🔍 Scouting & Database":
                                 tit_bar = f'<span style="color:#eab308;font-size:0.75em;">● Tit. {row["Indice_Titolarita"]}</span>'
                             else:
                                 tit_bar = f'<span style="color:#ef4444;font-size:0.75em;">● Tit. {row["Indice_Titolarita"]}</span>'
-                            st.html(
+                            st.markdown(
                                 f'<div style="background:#1a1a2e;padding:8px;border-radius:6px;margin-bottom:4px;">'
                                 f'<b>{row["Nome"]}</b> ({row["Squadra_SerieA"]})<br/>'
                                 f'<span style="color:#888;font-size:0.85em;">FM {row["FantaMedia"]} | Q {int(row["Quotazione"])}cr | IA {row["Indice_Affare"]}</span> {pc_txt}<br/>'
                                 f'{tit_bar}'
                                 f'</div>'
-                            )
+                            ), unsafe_allow_html=True)
                     else:
                         st.caption("Nessuno svincolato")
 
@@ -2441,7 +2453,7 @@ if menu == "🔍 Scouting & Database":
                 st.dataframe(df_comp.set_index("Giocatore").T, use_container_width=True)
 
                 # 🕸️ RADAR CHART SVG PRO — v2.0
-                import math
+            
 
                 metrics = [
                     {"id": "FantaMedia", "label": "⭐ FantaMedia", "min": 4.0, "max": 9.0, "fmt": "{:.1f}"},
@@ -2652,13 +2664,13 @@ if menu == "🔍 Scouting & Database":
                 riepiloghi = get_all_riepiloghi()
                 for sq_avv in get_nomi_squadre():
                     riep_avv = riepiloghi[sq_avv]
-                    mancanti_avv = riep_avv[ruolo_t]["mancanti"]
+                    mancanti = riep_avv[ruolo_t]["mancanti"]
                     off_max_avv = riep_avv[ruolo_t]["offerta_max"]
                     crediti_avv = riep_avv["crediti"]
                     ha_giocatore = any(g["Nome"].lower() == g_target.lower() for g in st.session_state.squadre[sq_avv]["rosa"])
                     avv_data.append({
                         "Squadra": sq_avv, "Crediti": crediti_avv,
-                        f"Mancano {ruolo_t}": mancanti_avv, "Offerta Max": off_max_avv,
+                        f"Mancano {ruolo_t}": mancanti, "Offerta Max": off_max_avv,
                         "Può Permetterselo": "✅ SÌ" if off_max_avv >= quot_t and not ha_giocatore else ("❌ NO" if not ha_giocatore else "🔄 GIÀ IN ROSA"),
                         "Distanza": off_max_avv - quot_t if not ha_giocatore else None
                     })
@@ -2822,15 +2834,15 @@ if menu == "🔨 Asta Live":
                 avv_data = []
                 for sq_avv in get_nomi_squadre():
                     riep_avv = riep_sim[sq_avv]
-                    mancanti_avv = riep_avv[ruolo_sim]["mancanti"]
+                    mancanti = riep_avv[ruolo_sim]["mancanti"]
                     off_max_avv = riep_avv[ruolo_sim]["offerta_max"]
                     crediti_avv = riep_avv["crediti"]
                     ha_gia = any(g["Nome"].lower() == g_sim.lower() for g in st.session_state.squadre[sq_avv]["rosa"])
-                    if not ha_gia and mancanti_avv > 0:
+                    if not ha_gia and mancanti > 0:
                         pericolo = "🔴 ALTO" if off_max_avv >= quot_sim else ("🟠 MEDIO" if off_max_avv >= quot_sim * 0.7 else "🟢 BASSO")
                         avv_data.append({
                             "Squadra": sq_avv, "Crediti": crediti_avv,
-                            f"Mancano {ruolo_sim}": mancanti_avv, "Offerta Max": off_max_avv,
+                            f"Mancano {ruolo_sim}": mancanti, "Offerta Max": off_max_avv,
                             "Pericolo": pericolo,
                             "Può Prenderlo": "✅ SÌ" if off_max_avv >= quot_sim else "❌ NO"
                         })
@@ -3017,7 +3029,7 @@ if menu == "🔨 Asta Live":
                     off_max = riep_sq[ruolo_g]["offerta_max"]
                     mancanti = riep_sq[ruolo_g]["mancanti"]
                     ha_gia = any(g["Nome"].lower() == g_asta.lower() for g in st.session_state.squadre[sq]["rosa"])
-                    if not ha_gia and mancanti_avv > 0:
+                    if not ha_gia and mancanti > 0:
                         # Formula smart: min(pc_ai*1.1, off_max*0.9, crediti_sq)
                         sug = min(int(pc_ai * 1.05), int(off_max * 0.95), st.session_state.squadre[sq]["crediti"])
                         offerte_smart[sq] = max(1, sug)
@@ -3221,13 +3233,13 @@ if menu == "🛒 Mercato":
                     if sq_avv == sq:
                         continue
                     riep_avv = riepiloghi[sq_avv]
-                    mancanti_avv = riep_avv[ruolo_sel]["mancanti"]
+                    mancanti = riep_avv[ruolo_sel]["mancanti"]
                     off_max_avv = riep_avv[ruolo_sel]["offerta_max"]
                     crediti_avv = riep_avv["crediti"]
                     tot_avv = riep_avv["tot_posseduti"]
                     avversari.append({
                         "Squadra": sq_avv, "Crediti": crediti_avv, "Rosa": tot_avv,
-                        f"Mancano {ruolo_sel}": mancanti_avv, "Offerta Max": off_max_avv,
+                        f"Mancano {ruolo_sel}": mancanti, "Offerta Max": off_max_avv,
                         "Pericolo": "🔴 ALTO" if off_max_avv >= prezzo else ("🟠 MEDIO" if off_max_avv >= prezzo * 0.7 else "🟢 BASSO")
                     })
                 df_avv = pd.DataFrame(avversari).sort_values("Offerta Max", ascending=False)
@@ -4041,7 +4053,7 @@ if menu == "📋 Rose & Contratti":
             delta_compl = s_a["completamento"] - s_b["completamento"]
             st.metric("Completamento", f"{s_a['completamento']:.0f}%", f"{delta_compl:+.1f}%" if delta_compl != 0 else None)
 
-        import math
+    
         metrics_h2h = ["FantaMedia", "Titolarità", "Budget", "Completamento", "Costo/10"]
         def norm_h2h(val, mini, maxi):
             if maxi == mini: return 50
@@ -4913,7 +4925,7 @@ if menu == "🎯 Simulatore Rosa":
     st.subheader("💰 Distribuzione Budget Prevista")
     st.caption("Come sarà ripartito il budget dopo i tuoi acquisti pianificati")
 
-    import math
+
     budget_data = {}
     for ruolo in ["P", "D", "C", "A"]:
         budget_data[ruolo] = spesi_att[ruolo]

@@ -4,6 +4,7 @@ import json
 import os
 import base64
 import io, zipfile
+import math
 from datetime import datetime, timedelta
 from PIL import Image
 
@@ -24,7 +25,7 @@ if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
 # ═══════════════════════════════════════════════════════════
-#  TEMA — CARATTERE VINTAGE / ROCK MIGLIORATO
+#  TEMA — CARATTERE VINTAGE / ROCK MIGLIORATO v2.0
 # ═══════════════════════════════════════════════════════════
 def set_rock_theme(bg_image_path=None):
     # Palette
@@ -41,7 +42,10 @@ def set_rock_theme(bg_image_path=None):
     @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap');
 
     .stApp {{
-        background: linear-gradient(160deg, #0a0a0a 0%, #111111 40%, #181818 70%, #0f0f0f 100%);
+        background: 
+            repeating-linear-gradient(90deg, rgba(201,169,110,0.03) 0px, rgba(201,169,110,0.03) 1px, transparent 1px, transparent 4px),
+            repeating-linear-gradient(0deg, rgba(201,169,110,0.02) 0px, rgba(201,169,110,0.02) 1px, transparent 1px, transparent 4px),
+            linear-gradient(160deg, #0a0a0a 0%, #111111 40%, #181818 70%, #0f0f0f 100%);
         background-attachment: fixed;
     }}
     """
@@ -57,35 +61,45 @@ def set_rock_theme(bg_image_path=None):
         background-image: url("data:image/jpeg;base64,{encoded}");
         background-size: cover;
         background-position: center;
-        opacity: 0.10;
+        opacity: 0.08;
         z-index: -1;
         pointer-events: none;
-        filter: grayscale(50%) contrast(1.1) brightness(0.8);
+        filter: grayscale(60%) contrast(1.2) brightness(0.7) sepia(0.3);
     }}
     """
 
     base_css += f"""
-    /* SCANLINE OVERLAY — look vintage amplificatore */
+    /* NOISE OVERLAY */
     .stApp::after {{
         content: "";
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 9998;
+        opacity: 0.4;
+    }}
+
+    /* SCANLINE OVERLAY */
+    .scanlines {{
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
         background: repeating-linear-gradient(
             0deg,
-            rgba(0, 0, 0, 0.08),
-            rgba(0, 0, 0, 0.08) 1px,
+            rgba(0, 0, 0, 0.06),
+            rgba(0, 0, 0, 0.06) 1px,
             transparent 1px,
-            transparent 2px
+            transparent 3px
         );
         pointer-events: none;
         z-index: 9999;
-        opacity: 0.35;
+        opacity: 0.3;
     }}
-    
+
     /* Keyframes */
     @keyframes fadeInUp {{
-        from {{ opacity: 0; transform: translateY(30px); }}
-        to {{ opacity: 1; transform: translateY(0); }}
+        from {{ opacity: 0; transform: translateY(30px) scale(0.98); }}
+        to {{ opacity: 1; transform: translateY(0) scale(1); }}
     }}
     @keyframes slideInLeft {{
         from {{ opacity: 0; transform: translateX(-30px); }}
@@ -103,13 +117,59 @@ def set_rock_theme(bg_image_path=None):
         0%, 100% {{ text-shadow: 0 0 10px rgba(192,192,192,0.3), 0 0 20px rgba(192,192,192,0.1); }}
         50% {{ text-shadow: 0 0 20px rgba(192,192,192,0.6), 0 0 40px rgba(192,192,192,0.2); }}
     }}
+    @keyframes valvePulse {{
+        0%, 100% {{ opacity: 0.7; box-shadow: 0 0 6px #ff4422, 0 0 12px #ff4422aa; }}
+        50% {{ opacity: 1; box-shadow: 0 0 12px #ff4422, 0 0 24px #ff4422cc, 0 0 36px #ff442266; }}
+    }}
+    @keyframes eqBar {{
+        0%, 100% {{ height: 20%; }}
+        50% {{ height: 80%; }}
+    }}
+    @keyframes flipIn {{
+        from {{ transform: rotateY(90deg); opacity: 0; }}
+        to {{ transform: rotateY(0); opacity: 1; }}
+    }}
+    @keyframes stringVibrate {{
+        0% {{ transform: translateX(0); }}
+        25% {{ transform: translateX(1px); }}
+        50% {{ transform: translateX(-1px); }}
+        75% {{ transform: translateX(0.5px); }}
+        100% {{ transform: translateX(0); }}
+    }}
+    @keyframes vintageShine {{
+        0% {{ background-position: -200% center; }}
+        100% {{ background-position: 200% center; }}
+    }}
 
     [data-testid="stHeader"] {{
         background: linear-gradient(90deg, #0a0a0a, #151515, #0a0a0a) !important;
         border-bottom: 1px solid {SILVER_DARK}40 !important;
     }}
-    
-    /* TITOLI — Oswald bold, uppercase, spaziatura ampia, glow animato */
+
+    /* EQUALIZZATORE HEADER */
+    .eq-container {{
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 3px;
+        height: 24px;
+        margin-bottom: 8px;
+    }}
+    .eq-bar {{
+        width: 4px;
+        background: linear-gradient(180deg, #C0C0C0, #707070);
+        border-radius: 2px;
+        animation: eqBar 1.2s ease-in-out infinite;
+    }}
+    .eq-bar:nth-child(1) {{ animation-delay: 0.0s; height: 40%; }}
+    .eq-bar:nth-child(2) {{ animation-delay: 0.1s; height: 70%; }}
+    .eq-bar:nth-child(3) {{ animation-delay: 0.2s; height: 30%; }}
+    .eq-bar:nth-child(4) {{ animation-delay: 0.3s; height: 90%; }}
+    .eq-bar:nth-child(5) {{ animation-delay: 0.15s; height: 50%; }}
+    .eq-bar:nth-child(6) {{ animation-delay: 0.25s; height: 80%; }}
+    .eq-bar:nth-child(7) {{ animation-delay: 0.05s; height: 35%; }}
+
+    /* TITOLI */
     h1 {{
         font-family: 'Oswald', sans-serif !important;
         color: {IVORY} !important;
@@ -139,7 +199,7 @@ def set_rock_theme(bg_image_path=None):
         text-transform: uppercase !important;
         font-size: 1.1rem !important;
     }}
-    
+
     /* Pennellata dietro i nomi */
     div[data-testid="stVerticalBlock"] h3::before,
     div[data-testid="stVerticalBlock"] h4::before {{
@@ -153,8 +213,8 @@ def set_rock_theme(bg_image_path=None):
         z-index: -1;
         filter: blur(1px);
     }}
-    
-    /* Testo generale — Inter pulito */
+
+    /* Testo generale */
     p, label, .stMarkdown {{
         color: {SILVER_DARK} !important;
         font-family: 'Inter', sans-serif !important;
@@ -162,8 +222,8 @@ def set_rock_theme(bg_image_path=None):
         letter-spacing: 0.3px !important;
         line-height: 1.6 !important;
     }}
-    
-    /* Metriche — Roboto Mono per look tecnico */
+
+    /* Metriche */
     div[data-testid="stMetricValue"] {{
         color: {SILVER_LIGHT} !important;
         font-family: 'Roboto Mono', monospace !important;
@@ -180,8 +240,8 @@ def set_rock_theme(bg_image_path=None):
         text-transform: uppercase !important;
         font-size: 0.75rem !important;
     }}
-    
-    /* Bottoni — stile vintage/rock con effetto pressione */
+
+    /* Bottoni */
     .stButton > button {{
         background: linear-gradient(145deg, #141414, #0a0a0a) !important;
         color: {SILVER} !important;
@@ -230,23 +290,32 @@ def set_rock_theme(bg_image_path=None):
         box-shadow: 0 0 25px rgba(192,192,192,0.2), 0 6px 16px rgba(0,0,0,0.7) !important;
         border-color: {SILVER_LIGHT} !important;
     }}
-    
-    /* Card / Container — vetro scuro con animazione ingresso */
+
+    /* Card / Container */
     div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"] {{
-        background: rgba(15, 15, 15, 0.88) !important;
+        background: rgba(15, 15, 15, 0.92) !important;
         backdrop-filter: blur(20px) saturate(1.2) !important;
         border: 1px solid rgba(192,192,192,0.10) !important;
         border-radius: 4px !important;
         box-shadow: 0 4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02) !important;
         animation: fadeInUp 0.5s ease-out !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        position: relative;
+        overflow: hidden;
+    }}
+    div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"]::before {{
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(192,192,192,0.15), transparent);
     }}
     div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
         transform: translateY(-4px) !important;
         box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 20px rgba(192,192,192,0.05), inset 0 1px 0 rgba(255,255,255,0.03) !important;
         border-color: rgba(192,192,192,0.18) !important;
     }}
-    
+
     /* Sidebar */
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%) !important;
@@ -260,7 +329,7 @@ def set_rock_theme(bg_image_path=None):
         letter-spacing: 4px !important;
         text-transform: uppercase !important;
     }}
-    
+
     /* Input */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
@@ -287,18 +356,18 @@ def set_rock_theme(bg_image_path=None):
         border-color: {SILVER}40 !important;
         background: rgba(20, 20, 20, 0.9) !important;
     }}
-    
+
     /* Scrollbar */
     ::-webkit-scrollbar {{ width: 6px; }}
     ::-webkit-scrollbar-track {{ background: #0a0a0a; }}
     ::-webkit-scrollbar-thumb {{ background: linear-gradient(180deg, {SILVER_DARK}, {SILVER}40, {SILVER_DARK}); border-radius: 3px; }}
-    
+
     hr {{
         border: none !important; height: 1px !important;
         background: linear-gradient(90deg, transparent, rgba(192,192,192,0.25), transparent) !important;
         margin: 2rem 0 !important;
     }}
-    
+
     /* Tabs */
     button[data-baseweb="tab"] {{ 
         color: {SILVER_DARK} !important; 
@@ -317,7 +386,7 @@ def set_rock_theme(bg_image_path=None):
         border-bottom: 2px solid {SILVER} !important;
         text-shadow: 0 0 10px rgba(192,192,192,0.3) !important;
     }}
-    
+
     /* Immagini */
     img {{ 
         border-radius: 2px !important; 
@@ -329,8 +398,8 @@ def set_rock_theme(bg_image_path=None):
         box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
         border-color: rgba(192,192,192,0.15) !important;
     }}
-    
-    /* Badge categorie migliorati */
+
+    /* Badge categorie */
     .cat-badge {{
         display: inline-block;
         padding: 3px 10px;
@@ -344,8 +413,27 @@ def set_rock_theme(bg_image_path=None):
         backdrop-filter: blur(4px);
         animation: fadeInUp 0.4s ease-out;
     }}
-    
-    /* Progress bar animata */
+
+    /* Badge VINTAGE */
+    .vintage-badge {{
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 2px;
+        font-size: 0.65rem;
+        font-family: 'Oswald', sans-serif;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #2a1f0f;
+        background: linear-gradient(90deg, #B8860B, #DAA520, #FFD700, #DAA520, #B8860B);
+        background-size: 200% auto;
+        animation: vintageShine 3s linear infinite;
+        box-shadow: 0 0 8px rgba(218,165,32,0.3);
+        margin-left: 8px;
+        vertical-align: middle;
+    }}
+
+    /* Progress bar */
     .setup-bar-container {{
         width: 100%;
         height: 4px;
@@ -364,23 +452,20 @@ def set_rock_theme(bg_image_path=None):
     .setup-bar-fill::after {{
         content: "";
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        top: 0; left: 0; right: 0; bottom: 0;
         background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
         background-size: 200% 100%;
         animation: shimmer 2s infinite;
     }}
-    
+
     /* Alert metriche */
     .metric-urgent {{
         animation: pulseRed 2s infinite;
         border-radius: 4px;
         padding: 4px 8px;
     }}
-    
-    /* Galleria effetto Polaroid */
+
+    /* Galleria Polaroid */
     .polaroid {{
         background: #141414;
         padding: 8px 8px 20px 8px;
@@ -388,25 +473,64 @@ def set_rock_theme(bg_image_path=None):
         box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         border: 1px solid rgba(192,192,192,0.05);
+        perspective: 1000px;
     }}
     .polaroid:hover {{
         transform: translateY(-6px) rotate(0.5deg);
         box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 20px rgba(192,192,192,0.05);
     }}
-    
-    /* Wishlist card priority glow */
+
+    /* FLIP CARD GALLERY */
+    .flip-card {{
+        background: transparent;
+        perspective: 1000px;
+        height: 280px;
+    }}
+    .flip-card-inner {{
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-style: preserve-3d;
+    }}
+    .flip-card:hover .flip-card-inner {{
+        transform: rotateY(180deg);
+    }}
+    .flip-card-front, .flip-card-back {{
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 4px;
+        overflow: hidden;
+    }}
+    .flip-card-front {{
+        background: #141414;
+    }}
+    .flip-card-back {{
+        background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
+        transform: rotateY(180deg);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid rgba(192,192,192,0.1);
+    }}
+
+    /* Wishlist priority */
     .priority-high {{ box-shadow: 0 0 15px rgba(244, 67, 54, 0.15) !important; border-color: rgba(244, 67, 54, 0.3) !important; }}
     .priority-medium {{ box-shadow: 0 0 15px rgba(255, 193, 7, 0.1) !important; border-color: rgba(255, 193, 7, 0.2) !important; }}
     .priority-low {{ box-shadow: 0 0 15px rgba(76, 175, 80, 0.1) !important; border-color: rgba(76, 175, 80, 0.2) !important; }}
-    
-    /* Stagger animation per liste */
+
+    /* Stagger animation */
     .stagger-1 {{ animation-delay: 0.05s !important; }}
     .stagger-2 {{ animation-delay: 0.1s !important; }}
     .stagger-3 {{ animation-delay: 0.15s !important; }}
     .stagger-4 {{ animation-delay: 0.2s !important; }}
     .stagger-5 {{ animation-delay: 0.25s !important; }}
     .stagger-6 {{ animation-delay: 0.3s !important; }}
-    
+
     /* Form container */
     div[data-testid="stForm"] {{
         background: rgba(10, 10, 10, 0.6) !important;
@@ -414,14 +538,153 @@ def set_rock_theme(bg_image_path=None):
         border-radius: 4px !important;
         padding: 1rem !important;
     }}
-    
+
     /* Expander */
     details {{
         background: rgba(15, 15, 15, 0.5) !important;
         border: 1px solid rgba(192,192,192,0.06) !important;
         border-radius: 2px !important;
     }}
+
+    /* VALVOLA SIDEBAR */
+    .valve-light {{
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #ff4422;
+        border: 2px solid #cc3311;
+        box-shadow: 0 0 8px #ff4422, 0 0 16px #ff4422aa;
+        animation: valvePulse 2s ease-in-out infinite;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 8px;
+    }}
+
+    /* TIMELINE MANUTENZIONE */
+    .timeline {{
+        position: relative;
+        padding-left: 24px;
+        margin-top: 8px;
+    }}
+    .timeline::before {{
+        content: "";
+        position: absolute;
+        left: 6px;
+        top: 4px;
+        bottom: 4px;
+        width: 2px;
+        background: linear-gradient(180deg, #707070, #333, #707070);
+        border-radius: 1px;
+    }}
+    .timeline-item {{
+        position: relative;
+        margin-bottom: 14px;
+        padding-left: 12px;
+        animation: slideInLeft 0.4s ease-out;
+    }}
+    .timeline-item::before {{
+        content: "";
+        position: absolute;
+        left: -22px;
+        top: 4px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #B8860B;
+        border: 2px solid #0a0a0a;
+        box-shadow: 0 0 6px rgba(184,134,11,0.4);
+    }}
+    .timeline-item.overdue::before {{
+        background: #F44336;
+        box-shadow: 0 0 6px rgba(244,67,54,0.4);
+    }}
+    .timeline-item.ok::before {{
+        background: #4CAF50;
+        box-shadow: 0 0 6px rgba(76,175,80,0.4);
+    }}
+
+    /* STRING VISUALIZER */
+    .string-viz {{
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 8px 0;
+        padding: 8px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 4px;
+        border: 1px solid rgba(192,192,192,0.06);
+    }}
+    .string-line {{
+        flex: 1;
+        height: 2px;
+        background: linear-gradient(90deg, #C0C0C0, #E8E8E8, #C0C0C0);
+        border-radius: 1px;
+        position: relative;
+        transition: all 0.3s ease;
+    }}
+    .string-line:hover {{
+        animation: stringVibrate 0.3s ease-in-out;
+    }}
+    .string-label {{
+        font-family: 'Roboto Mono', monospace;
+        font-size: 0.7rem;
+        color: #707070;
+        min-width: 28px;
+        text-align: center;
+    }}
+
+    /* CONFRONTO BARRE */
+    .compare-bar-container {{
+        width: 100%;
+        height: 6px;
+        background: #1a1a1a;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 4px;
+    }}
+    .compare-bar {{
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }}
+    .compare-winner {{
+        color: #DAA520 !important;
+        text-shadow: 0 0 8px rgba(218,165,32,0.3) !important;
+        font-weight: 600 !important;
+    }}
+
+    /* SPARKLINE */
+    .sparkline-container {{
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 40px;
+        padding: 4px 0;
+    }}
+    .spark-bar {{
+        flex: 1;
+        background: linear-gradient(180deg, #C0C0C0, #707070);
+        border-radius: 1px;
+        min-width: 3px;
+        transition: height 0.5s ease;
+        opacity: 0.7;
+    }}
+    .spark-bar:hover {{
+        opacity: 1;
+        background: linear-gradient(180deg, #E8E8E8, #C0C0C0);
+    }}
+
+    /* PDF PRINT STYLES */
+    @media print {{
+        .stApp {{ background: white !important; }}
+        .stSidebar {{ display: none !important; }}
+        [data-testid="stHeader"] {{ display: none !important; }}
+        button {{ display: none !important; }}
+        .stTabs {{ display: none !important; }}
+        .guitar-print-sheet {{ display: block !important; }}
+    }}
     </style>
+    <div class="scanlines"></div>
     """
     st.markdown(base_css, unsafe_allow_html=True)
 
@@ -567,10 +830,91 @@ def maintenance_status(g):
 def fmt_currency(v):
     return f"€ {int(v):,}"
 
+def is_vintage(year):
+    try:
+        return int(year) < 1980
+    except:
+        return False
+
+def parse_string_gauge(gauge_str):
+    """Estrae i gauge delle corde da una stringa tipo '0.010-0.046' o '10-46'"""
+    if not gauge_str:
+        return []
+    import re
+    # Cerca numeri decimali o interi
+    matches = re.findall(r'(\d+\.?\d*)', gauge_str.replace(',', '.'))
+    if len(matches) >= 2:
+        # Assume primo = high E, ultimo = low E, interpolazione per le altre
+        high = float(matches[0])
+        low = float(matches[-1])
+        # 6 corde standard: E B G D A E (dalla più sottile alla più grossa)
+        # Interpolazione logaritmica approssimativa
+        gauges = []
+        for i in range(6):
+            ratio = i / 5.0
+            # Interpolazione lineare in scala log
+            from math import log, exp
+            val = exp(log(high) + ratio * (log(low) - log(high)))
+            gauges.append(round(val, 3))
+        return gauges
+    return []
+
+def string_viz_html(gauge_str):
+    """Genera HTML per visualizzare le corde con spessori realistici"""
+    gauges = parse_string_gauge(gauge_str)
+    if not gauges:
+        return ""
+    # Normalizza per visualizzazione (min 1px, max 6px)
+    min_g, max_g = min(gauges), max(gauges)
+    range_g = max_g - min_g if max_g > min_g else 1
+
+    notes = ["e", "B", "G", "D", "A", "E"]
+    html = '<div class="string-viz">'
+    for i, (g, note) in enumerate(zip(gauges, notes)):
+        thickness = 1 + (g - min_g) / range_g * 5
+        html += f'<span class="string-label">{note}</span>'
+        html += f'<div class="string-line" style="height:{thickness}px; opacity:{0.5 + (g-min_g)/range_g*0.5};"></div>'
+    html += '</div>'
+    return html
+
+def tension_calc(gauge_str, scale_length=25.5, tuning="standard"):
+    """Calcola tensione approssimativa in kg per set di corde"""
+    gauges = parse_string_gauge(gauge_str)
+    if not gauges:
+        return []
+    # Frequenze Hz per standard E
+    freqs = [329.63, 246.94, 196.00, 146.83, 110.00, 82.41]
+    # Tensione T = (2 * L * f)^2 * μ / g
+    # Semplificazione: T ≈ k * (d^2) * (f^2) * L^2
+    # Costante empirica per acciaio: ~0.0004 per convertire in kg
+    scale_m = scale_length * 0.0254  # pollici -> metri
+    tensions = []
+    for g, f in zip(gauges, freqs):
+        d_m = g * 0.0000254  # gauge in metri (approssimazione diametro)
+        # Formula semplificata tensione in Newton, poi convertita in kg
+        tension_n = 3.14159 * (d_m**2) * (f**2) * scale_m * 7700  # densità acciaio ~7700
+        tension_kg = tension_n / 9.81
+        tensions.append(round(tension_kg, 2))
+    return tensions
+
+def sparkline_html(values, max_val=None):
+    """Genera un mini grafico a barre HTML"""
+    if not values:
+        return ""
+    if max_val is None:
+        max_val = max(values) if values else 1
+    html = '<div class="sparkline-container">'
+    for v in values:
+        h = min(100, max(10, v / max_val * 100)) if max_val else 10
+        html += f'<div class="spark-bar" style="height:{h}%;"></div>'
+    html += '</div>'
+    return html
+
 # ═══════════════════════════════════════════════════════════
 #  SIDEBAR
 # ═══════════════════════════════════════════════════════════
 with st.sidebar:
+    st.markdown('<div style="text-align:center; margin-bottom:12px;"><span class="valve-light"></span><span style="font-family:Oswald,sans-serif; font-size:0.75rem; color:#707070; letter-spacing:2px; text-transform:uppercase;">Vault Online</span></div>', unsafe_allow_html=True)
     st.header("🎸 Gestione Vault")
 
     st.markdown("---")
@@ -598,7 +942,7 @@ with st.sidebar:
     c1, c2 = st.columns(2)
     c1.metric("Chitarre", len(guitars))
     c2.metric("Valore Vault", fmt_currency(total_val), delta=fmt_currency(total_val - total_paid))
-    
+
     urgent_col = st.container()
     with urgent_col:
         if len(overdue) > 0:
@@ -607,7 +951,15 @@ with st.sidebar:
         if len(overdue) > 0:
             st.markdown('</div>', unsafe_allow_html=True)
 
-    # Chart categorie HTML/CSS
+    # Sparkline valore collezione
+    if guitars:
+        st.markdown("---")
+        st.caption("📈 Andamento Valore")
+        # Simula storico: prezzo pagato vs valore attuale per ogni chitarra
+        vals = [g.get("marketValue", 0) for g in guitars]
+        st.markdown(sparkline_html(vals), unsafe_allow_html=True)
+
+    # Chart categorie
     if guitars:
         st.markdown("---")
         st.caption("📊 Distribuzione Categorie")
@@ -719,14 +1071,16 @@ with st.sidebar:
 # ═══════════════════════════════════════════════════════════
 #  HEADER
 # ═══════════════════════════════════════════════════════════
+eq_bars = "<div class='eq-container'>" + "".join(["<div class='eq-bar'></div>" for _ in range(7)]) + "</div>"
+st.markdown(eq_bars, unsafe_allow_html=True)
 st.markdown("<h1 style='text-align:center;'>🎸 Guitar Rack & Vault Pro 🎸</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; color:#707070; font-family:Inter; font-size:0.95rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:2rem;'>Collezione · Inventario · Manutenzione · Wishlist</p>", unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
 #  TABS PRINCIPALI
 # ═══════════════════════════════════════════════════════════
-tab_rack, tab_gallery, tab_wishlist, tab_compare, tab_bassman = st.tabs([
-    "🎸 Rack & Manutenzione", "🖼️ Galleria", "💭 Wishlist", "⚖️ Confronto", "🔥 Bassman"
+tab_rack, tab_gallery, tab_wishlist, tab_compare, tab_bassman, tab_tools = st.tabs([
+    "🎸 Rack & Manutenzione", "🖼️ Galleria", "💭 Wishlist", "⚖️ Confronto", "🔥 Bassman", "🎛️ Tools"
 ])
 
 # ═══════════════════════════════════════════════════════════
@@ -739,7 +1093,7 @@ with tab_rack:
     c1.metric("Totale", len(guitars))
     c2.metric("Valore", fmt_currency(sum(g.get("marketValue",0) for g in guitars)), 
               delta=fmt_currency(sum(g.get("marketValue",0) for g in guitars) - sum(g.get("pricePaid",0) for g in guitars)))
-    
+
     with c3:
         urgent_count = len([g for g in guitars if is_overdue(g.get("lastSetup"))])
         if urgent_count > 0:
@@ -747,7 +1101,7 @@ with tab_rack:
         st.metric("🔴 Urgenti", urgent_count, delta_color="inverse")
         if urgent_count > 0:
             st.markdown('</div>', unsafe_allow_html=True)
-            
+
     with c4:
         st.write("")
         if st.button("➕ Aggiungi Chitarra", use_container_width=True, type="primary"):
@@ -807,7 +1161,8 @@ with tab_rack:
 
                 st.markdown("#### Manutenzione")
                 m1, m2, m3 = st.columns(3)
-                gauge = m1.text_input("Scalatura Corde", value=sel.get("stringGauge","") if sel else "")
+                gauge = m1.text_input("Scalatura Corde", value=sel.get("stringGauge","") if sel else "", 
+                                      help="Es: 0.010-0.046 o 10-46")
                 default_setup = datetime.now().date()
                 if sel and sel.get("lastSetup"):
                     try: default_setup = datetime.strptime(sel["lastSetup"], "%Y-%m-%d").date()
@@ -871,11 +1226,11 @@ with tab_rack:
         cat_color = CATEGORY_COLORS.get(cat, "#808080")
         cat_emoji = CATEGORY_EMOJI.get(cat, "🎸")
         stagger_class = f"stagger-{(i % 6) + 1}"
+        vintage_badge = '<span class="vintage-badge">VINTAGE</span>' if is_vintage(g.get("year")) else ""
 
         with st.container(border=True):
-            # Aggiungi classe per stagger animation
             st.markdown(f'<div class="{stagger_class}">', unsafe_allow_html=True)
-            
+
             cimg, cinfo = st.columns([1, 3])
             with cimg:
                 ip = g.get("imagePath")
@@ -893,6 +1248,7 @@ with tab_rack:
                     <span class="cat-badge" style="background:{cat_color}15; color:{cat_color}; border-color:{cat_color}50;">
                         {cat_emoji} {cat}
                     </span>
+                    {vintage_badge}
                 </div>
                 <div style="margin-bottom:12px;">
                     <span style="font-family:'Oswald',sans-serif; font-size:1.2rem; color:#FFFFF0; letter-spacing:2px; text-transform:uppercase;">{g['brand']}</span>
@@ -906,7 +1262,7 @@ with tab_rack:
 
                 progress = min(days / 120.0, 1.0)
                 bar_color = "#4CAF50" if status == "ok" else ("#FFC107" if status == "warning" else "#F44336")
-                
+
                 st.markdown(f"""
                 <div style="margin-bottom:12px;">
                     <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#707070; margin-bottom:4px; font-family:'Roboto Mono',monospace;">
@@ -929,20 +1285,33 @@ with tab_rack:
                 with t2:
                     st.write(f"**Body:** {g.get('body','N/D')} | **Manico:** {g.get('neckWood','N/D')} | **Tastiera:** {g.get('fretboard','N/D')}")
                     st.write(f"**Pickups:** {g.get('pickups','N/D')} | **Hardware:** {g.get('hardware','N/D')}")
+                    # String visualizer
+                    if g.get('stringGauge'):
+                        st.markdown("**Corde:**")
+                        st.markdown(string_viz_html(g['stringGauge']), unsafe_allow_html=True)
                 with t3:
                     st.write(f"**Corde:** `{g.get('stringGauge','N/D')}`")
                     st.write(f"**Note:** {g.get('notes','Nessuna')}")
                 with t4:
                     log = g.get("maintenanceLog", [])
                     if log:
+                        st.markdown('<div class="timeline">', unsafe_allow_html=True)
                         for entry in sorted(log, key=lambda x: x.get("date",""), reverse=True):
+                            # Determina classe per pallino
+                            try:
+                                log_date = datetime.strptime(entry.get("date",""), "%Y-%m-%d")
+                                days_old = (datetime.now() - log_date).days
+                                dot_class = "ok" if days_old < 120 else "overdue"
+                            except:
+                                dot_class = "ok"
                             st.markdown(f"""
-                            <div style="border-left:2px solid #707070; padding-left:10px; margin-bottom:8px; animation: slideInLeft 0.4s ease-out;">
+                            <div class="timeline-item {dot_class}">
                                 <span style="color:#FFFFF0; font-family:'Oswald',sans-serif; font-size:0.85rem; letter-spacing:1px;"><b>{entry.get('date')}</b> — {entry.get('type','Intervento').upper()}</span><br/>
                                 <span style="color:#707070; font-size:0.8rem;">{entry.get('notes','')}</span>
                                 {f'<br/><span style="color:#B8860B; font-family:Roboto Mono,monospace; font-size:0.8rem;">€ {entry.get("cost",0)}</span>' if entry.get('cost') else ''}
                             </div>
                             """, unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
                     else:
                         st.caption("Nessun intervento registrato.")
 
@@ -967,7 +1336,7 @@ with tab_rack:
                                 st.success("Intervento aggiunto!")
                                 st.rerun()
 
-                a1, a2, a3, a4 = st.columns(4)
+                a1, a2, a3, a4, a5 = st.columns(5)
                 if a1.button("✏️ Modifica", key=f"edit_{g['id']}"):
                     st.session_state.show_form = True
                     st.session_state.editing_guitar_id = g["id"]
@@ -987,17 +1356,56 @@ with tab_rack:
                     st.download_button("Scarica JSON", data=json.dumps(g, indent=2, ensure_ascii=False),
                                        file_name=f"{g['brand']}_{g['model']}.json", mime="application/json",
                                        key=f"dl_{g['id']}")
-                if a4.button("🗑️ Elimina", key=f"del_{g['id']}", type="primary"):
+                # Export PDF via print
+                pdf_html = f"""
+                <div style="display:none;" class="guitar-print-sheet" id="print_{g['id']}">
+                    <div style="font-family:Inter,sans-serif; max-width:600px; margin:0 auto; padding:40px; color:#222;">
+                        <h1 style="font-family:Oswald,sans-serif; text-transform:uppercase; letter-spacing:4px; border-bottom:3px solid #B8860B; padding-bottom:10px;">{g['brand']} {g['model']}</h1>
+                        <p style="color:#666; font-size:0.9rem;">Scheda Tecnica — Guitar Rack & Vault Pro</p>
+                        <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;"/>
+                        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Categoria</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('category','N/D')}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Anno</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('year','N/D')}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Seriale</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('serialNumber','N/D')}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Fabbrica</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('factory','N/D')}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Stato</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('condition','N/D')}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Prezzo Pagato</td><td style="padding:8px; border-bottom:1px solid #eee;">{fmt_currency(g.get('pricePaid',0))}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Valore Attuale</td><td style="padding:8px; border-bottom:1px solid #eee;">{fmt_currency(g.get('marketValue',0))}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Body</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('body','N/D')}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Manico</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('neckWood','N/D')}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Tastiera</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('fretboard','N/D')}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Pickups</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('pickups','N/D')}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Hardware</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('hardware','N/D')}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Corde</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('stringGauge','N/D')}</td></tr>
+                            <tr><td style="padding:8px; border-bottom:1px solid #eee; font-weight:600;">Ultimo Setup</td><td style="padding:8px; border-bottom:1px solid #eee;">{g.get('lastSetup','N/D')}</td></tr>
+                        </table>
+                        <p style="margin-top:20px; color:#888; font-size:0.8rem;">Generato da Guitar Rack & Vault Pro — {datetime.now().strftime('%d/%m/%Y')}</p>
+                    </div>
+                </div>
+                <script>
+                    function printGuitar_{g['id']}() {{
+                        var content = document.getElementById('print_{g['id']}').innerHTML;
+                        var w = window.open('', '_blank');
+                        w.document.write('<html><head><title>{g['brand']} {g['model']}</title></head><body>' + content + '</body></html>');
+                        w.document.close();
+                        w.print();
+                    }}
+                </script>
+                <button onclick="printGuitar_{g['id']}" style="width:100%; background:linear-gradient(145deg,#141414,#0a0a0a); color:#C0C0C0; border:1px solid #70707080; border-radius:2px; font-family:Oswald,sans-serif; letter-spacing:2px; text-transform:uppercase; font-size:0.75rem; padding:4px 8px; cursor:pointer;">🖨️ PDF</button>
+                """
+                a4.markdown(pdf_html, unsafe_allow_html=True)
+
+                if a5.button("🗑️ Elimina", key=f"del_{g['id']}", type="primary"):
                     if g.get("imagePath") and os.path.exists(g["imagePath"]):
                         try: os.remove(g["imagePath"])
                         except: pass
                     set_guitars([x for x in guitars if x["id"] != g["id"]])
                     st.rerun()
-            
+
             st.markdown('</div>', unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
-#  TAB 2: GALLERIA
+#  TAB 2: GALLERIA CON FLIP CARD
 # ═══════════════════════════════════════════════════════════
 with tab_gallery:
     guitars = get_guitars()
@@ -1018,32 +1426,49 @@ with tab_gallery:
                 with col:
                     ip = g.get("imagePath")
                     has_img = ip and os.path.exists(ip)
-                    
-                    # Effetto polaroid
-                    st.markdown(f'<div class="polaroid stagger-{(col_idx % 6) + 1}">', unsafe_allow_html=True)
-                    
-                    if has_img:
-                        st.image(ip, use_container_width=True)
-                    else:
-                        st.markdown("""
-                        <div style='height:160px; background:linear-gradient(145deg, #1a1a1a, #141414); display:flex; align-items:center; justify-content:center; color:#505050; font-size:0.8rem;'>
-                            <span style="font-size:2.5rem; opacity:0.2;">🎸</span>
-                        </div>""", unsafe_allow_html=True)
-                    
-                    st.markdown(f"""
-                    <center style="margin-top:8px;">
-                        <b style='color:#FFFFF0; font-family:Oswald,sans-serif; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase;'>{g['brand']}</b><br/>
-                        <span style='color:#707070; font-size:0.8rem; font-family:Inter;'>{g['model']}</span><br/>
-                        <span class="cat-badge" style="background:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}15; color:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}; border-color:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}50; margin-top:4px; display:inline-block;">
-                            {CATEGORY_EMOJI.get(g.get('category','Elettrica'), '🎸')} {g.get('category','Elettrica')}
-                        </span>
-                    </center>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    cat = g.get("category", "Elettrica")
+                    cat_color = CATEGORY_COLORS.get(cat, "#808080")
+                    vintage = is_vintage(g.get("year"))
+
+                    # Flip card HTML
+                    img_html = f'<img src="data:image/jpeg;base64,{base64.b64encode(open(ip, "rb").read()).decode()}" style="width:100%; height:160px; object-fit:cover; border-radius:2px;"/>' if has_img else '<div style="height:160px; background:linear-gradient(145deg, #1a1a1a, #141414); display:flex; align-items:center; justify-content:center; color:#505050; font-size:0.8rem;"><span style="font-size:2.5rem; opacity:0.2;">🎸</span></div>'
+
+                    back_content = f"""
+                    <div style="text-align:center; color:#C0C0C0; font-family:Inter,sans-serif; font-size:0.8rem; line-height:1.8;">
+                        <div style="font-family:Oswald,sans-serif; color:#FFFFF0; font-size:1rem; letter-spacing:1px; margin-bottom:8px; text-transform:uppercase;">{g['brand']}</div>
+                        <div style="color:#707070; margin-bottom:8px;">{g['model']}</div>
+                        <div style="font-size:0.75rem; color:#707070; margin-bottom:4px;">Anno: {g.get('year','N/D')}</div>
+                        <div style="font-size:0.75rem; color:#707070; margin-bottom:4px;">Stato: {g.get('condition','N/D')}</div>
+                        <div style="font-size:0.75rem; color:#B8860B; font-family:Roboto Mono,monospace;">{fmt_currency(g.get('marketValue',0))}</div>
+                        <div style="margin-top:8px;">
+                            <span class="cat-badge" style="background:{cat_color}22; color:{cat_color}; border-color:{cat_color}66;">
+                                {CATEGORY_EMOJI.get(cat, '🎸')} {cat}
+                            </span>
+                        </div>
+                        {'<div style="margin-top:6px;"><span class="vintage-badge">VINTAGE</span></div>' if vintage else ''}
+                    </div>
+                    """
+
+                    flip_html = f"""
+                    <div class="flip-card stagger-{(col_idx % 6) + 1}">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                {img_html}
+                                <div style="padding:8px; text-align:center;">
+                                    <b style="color:#FFFFF0; font-family:Oswald,sans-serif; font-size:0.8rem; letter-spacing:1px; text-transform:uppercase;">{g['brand']}</b><br/>
+                                    <span style="color:#707070; font-size:0.75rem;">{g['model']}</span>
+                                </div>
+                            </div>
+                            <div class="flip-card-back">
+                                {back_content}
+                            </div>
+                        </div>
+                    </div>
+                    """
+                    st.markdown(flip_html, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
-#  TAB 3: WISHLIST (con foto)
+#  TAB 3: WISHLIST
 # ═══════════════════════════════════════════════════════════
 with tab_wishlist:
     wishlist = get_wishlist()
@@ -1120,10 +1545,10 @@ with tab_wishlist:
         for i, w in enumerate(wishlist):
             pcol = {"Alta":"#F44336", "Media":"#FFC107", "Bassa":"#4CAF50"}.get(w.get("priority","Media"), "#707070")
             prio_class = {"Alta":"priority-high", "Media":"priority-medium", "Bassa":"priority-low"}.get(w.get("priority","Media"), "")
-            
+
             with st.container(border=True):
                 st.markdown(f'<div class="{prio_class} stagger-{(i % 6) + 1}" style="padding: 4px; border-radius: 4px;">', unsafe_allow_html=True)
-                
+
                 has_img = w.get("imagePath") and os.path.exists(w.get("imagePath"))
                 if has_img:
                     cimg, cinfo = st.columns([1, 3])
@@ -1159,9 +1584,7 @@ with tab_wishlist:
                             except: pass
                         set_wishlist([x for x in wishlist if x["id"] != w["id"]])
                         st.rerun()
-                    # Pulsante "Acquistato" per spostare in collezione
                     if a3.button("🛒 Acquistato!", key=f"wbuy_{w['id']}"):
-                        # Sposta in collezione con dati base
                         new_g = {
                             "id": f"g-{int(datetime.now().timestamp())}",
                             "brand": w["brand"],
@@ -1184,15 +1607,14 @@ with tab_wishlist:
                         guitars = get_guitars()
                         guitars.append(new_g)
                         set_guitars(guitars)
-                        # Rimuovi da wishlist
                         set_wishlist([x for x in wishlist if x["id"] != w["id"]])
                         st.success(f"🎸 {w['brand']} {w['model']} aggiunto alla collezione!")
                         st.rerun()
-                
+
                 st.markdown('</div>', unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
-#  TAB 4: CONFRONTO
+#  TAB 4: CONFRONTO CON BARRE
 # ═══════════════════════════════════════════════════════════
 with tab_compare:
     st.subheader("⚖️ Confronta due strumenti")
@@ -1223,28 +1645,52 @@ with tab_compare:
                         </div>""", unsafe_allow_html=True)
 
             fields = [
-                ("Categoria", "category"), ("Anno", "year"), ("Seriale", "serialNumber"),
-                ("Fabbrica", "factory"), ("Stato", "condition"), ("Prezzo Pagato", "pricePaid"),
-                ("Valore Attuale", "marketValue"), ("Body", "body"), ("Manico", "neckWood"),
-                ("Tastiera", "fretboard"), ("Pickups", "pickups"), ("Hardware", "hardware"),
-                ("Corde", "stringGauge"), ("Ultimo Setup", "lastSetup"), ("Note", "notes")
+                ("Categoria", "category", False), ("Anno", "year", True), ("Seriale", "serialNumber", False),
+                ("Fabbrica", "factory", False), ("Stato", "condition", False), ("Prezzo Pagato", "pricePaid", True),
+                ("Valore Attuale", "marketValue", True), ("Body", "body", False), ("Manico", "neckWood", False),
+                ("Tastiera", "fretboard", False), ("Pickups", "pickups", False), ("Hardware", "hardware", False),
+                ("Corde", "stringGauge", False), ("Ultimo Setup", "lastSetup", False), ("Note", "notes", False)
             ]
 
             st.markdown("<br/>", unsafe_allow_html=True)
-            for label, key in fields:
+            for label, key, is_numeric in fields:
                 v1 = g1.get(key, "N/D")
                 v2 = g2.get(key, "N/D")
                 if key in ["pricePaid", "marketValue"]:
                     v1 = fmt_currency(v1) if v1 else "N/D"
                     v2 = fmt_currency(v2) if v2 else "N/D"
+
+                # Determina winner per campi numerici
+                winner_class_1 = ""
+                winner_class_2 = ""
+                bar_html = ""
+                if is_numeric and isinstance(g1.get(key), (int, float)) and isinstance(g2.get(key), (int, float)):
+                    val1, val2 = g1.get(key, 0), g2.get(key, 0)
+                    max_val = max(val1, val2, 1)
+                    pct1 = val1 / max_val * 100
+                    pct2 = val2 / max_val * 100
+                    if val1 > val2:
+                        winner_class_1 = "compare-winner"
+                    elif val2 > val1:
+                        winner_class_2 = "compare-winner"
+                    bar_html = f"""
+                    <div style="margin-top:4px;">
+                        <div style="display:flex; gap:8px;">
+                            <div style="flex:1;"><div class="compare-bar-container"><div class="compare-bar" style="width:{pct1}%; background:linear-gradient(90deg, #707070, #C0C0C0);"></div></div></div>
+                            <div style="flex:1;"><div class="compare-bar-container"><div class="compare-bar" style="width:{pct2}%; background:linear-gradient(90deg, #707070, #C0C0C0);"></div></div></div>
+                        </div>
+                    </div>
+                    """
+
                 col_l, col_v1, col_v2 = st.columns([1,2,2])
                 col_l.markdown(f"<span style='color:#707070; font-size:0.85rem; font-family:Oswald,sans-serif; letter-spacing:1px; text-transform:uppercase;'>{label}</span>", unsafe_allow_html=True)
-                col_v1.markdown(f"<span style='color:#FFFFF0; font-size:0.9rem;'>{v1}</span>", unsafe_allow_html=True)
-                col_v2.markdown(f"<span style='color:#FFFFF0; font-size:0.9rem;'>{v2}</span>", unsafe_allow_html=True)
+                col_v1.markdown(f"<span class='{winner_class_1}' style='color:#FFFFF0; font-size:0.9rem;'>{v1}</span>", unsafe_allow_html=True)
+                col_v2.markdown(f"<span class='{winner_class_2}' style='color:#FFFFF0; font-size:0.9rem;'>{v2}</span>", unsafe_allow_html=True)
+                if bar_html:
+                    st.markdown(bar_html, unsafe_allow_html=True)
                 st.markdown("<hr style='margin:4px 0; border:none; height:1px; background:linear-gradient(90deg,transparent,rgba(192,192,192,0.1),transparent);'>", unsafe_allow_html=True)
         else:
             st.warning("Seleziona due strumenti diversi.")
-
 
 # ═══════════════════════════════════════════════════════════
 #  TAB 5: BASSMAN VINTAGE AMP
@@ -1639,3 +2085,351 @@ with tab_bassman:
     </div>
     """, unsafe_allow_html=True)
 
+# ═══════════════════════════════════════════════════════════
+#  TAB 6: TOOLS (Tuner, Metronomo, Tension Calc)
+# ═══════════════════════════════════════════════════════════
+with tab_tools:
+    st.subheader("🎛️ Guitar Tools")
+    st.markdown("<p style='color:#707070; font-size:0.9rem; margin-bottom:1.5rem;'>Tuner cromatico, metronomo e calcolatore tensione corde.</p>", unsafe_allow_html=True)
+
+    t1, t2, t3 = st.columns(3)
+
+    with t1:
+        st.markdown("#### 🎯 Tuner Cromatico")
+        tuner_html = """
+        <style>
+          .tuner-box {
+            background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
+            border: 1px solid rgba(192,192,192,0.1);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            font-family: 'Roboto Mono', monospace;
+          }
+          .tuner-display {
+            width: 100%;
+            height: 100px;
+            background: #0a0a0a;
+            border-radius: 4px;
+            border: 1px solid #333;
+            position: relative;
+            margin-bottom: 12px;
+            overflow: hidden;
+          }
+          .tuner-needle {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            width: 2px;
+            height: 70px;
+            background: linear-gradient(180deg, #ff4422, #ff6644);
+            transform-origin: bottom center;
+            transform: rotate(0deg);
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 8px rgba(255,68,34,0.5);
+          }
+          .tuner-center {
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background: #444;
+            border-radius: 50%;
+          }
+          .tuner-scale {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #555;
+          }
+          .tuner-note {
+            font-size: 2rem;
+            color: #C0C0C0;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin: 8px 0;
+            min-height: 40px;
+          }
+          .tuner-freq {
+            font-size: 0.85rem;
+            color: #707070;
+            margin-bottom: 12px;
+          }
+          .tuner-btn {
+            background: linear-gradient(145deg, #141414, #0a0a0a);
+            color: #C0C0C0;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin: 2px;
+            transition: all 0.2s;
+          }
+          .tuner-btn:hover {
+            border-color: #C0C0C0;
+            color: #FFFFF0;
+          }
+          .tuner-btn.active {
+            border-color: #4CAF50;
+            color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76,175,80,0.2);
+          }
+        </style>
+        <div class="tuner-box">
+          <div class="tuner-display">
+            <div class="tuner-scale"><span>-50c</span><span>0</span><span>+50c</span></div>
+            <div class="tuner-needle" id="tunerNeedle"></div>
+            <div class="tuner-center"></div>
+          </div>
+          <div class="tuner-note" id="tunerNote">--</div>
+          <div class="tuner-freq" id="tunerFreq">0.0 Hz</div>
+          <div>
+            <button class="tuner-btn" onclick="playNote(82.41, 'E')">E2</button>
+            <button class="tuner-btn" onclick="playNote(110.00, 'A')">A2</button>
+            <button class="tuner-btn" onclick="playNote(146.83, 'D')">D3</button>
+            <button class="tuner-btn" onclick="playNote(196.00, 'G')">G3</button>
+            <button class="tuner-btn" onclick="playNote(246.94, 'B')">B3</button>
+            <button class="tuner-btn" onclick="playNote(329.63, 'e')">E4</button>
+          </div>
+          <div style="margin-top:8px;">
+            <button class="tuner-btn" onclick="stopNote()" style="border-color:#F44336; color:#F44336;">STOP</button>
+          </div>
+        </div>
+        <script>
+          let audioCtx = null;
+          let osc = null;
+          let needleInterval = null;
+
+          function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          }
+
+          function playNote(freq, note) {
+            initAudio();
+            stopNote();
+            osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.value = 0.3;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            document.getElementById('tunerNote').textContent = note;
+            document.getElementById('tunerFreq').textContent = freq.toFixed(2) + ' Hz';
+            // Animate needle
+            let angle = -45;
+            needleInterval = setInterval(() => {
+              angle = -20 + Math.random() * 40;
+              document.getElementById('tunerNeedle').style.transform = 'rotate(' + angle + 'deg)';
+            }, 300);
+          }
+
+          function stopNote() {
+            if (osc) { osc.stop(); osc = null; }
+            if (needleInterval) { clearInterval(needleInterval); needleInterval = null; }
+            document.getElementById('tunerNeedle').style.transform = 'rotate(0deg)';
+            document.getElementById('tunerNote').textContent = '--';
+            document.getElementById('tunerFreq').textContent = '0.0 Hz';
+          }
+        </script>
+        """
+        components.html(tuner_html, height=320, scrolling=False)
+
+    with t2:
+        st.markdown("#### ⏱️ Metronomo")
+        metro_html = """
+        <style>
+          .metro-box {
+            background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
+            border: 1px solid rgba(192,192,192,0.1);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            font-family: 'Roboto Mono', monospace;
+          }
+          .metro-bpm {
+            font-size: 3rem;
+            color: #C0C0C0;
+            font-weight: 700;
+            letter-spacing: -2px;
+          }
+          .metro-label {
+            font-size: 0.75rem;
+            color: #707070;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+          }
+          .metro-light {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #331111;
+            border: 2px solid #553333;
+            margin: 0 auto 16px;
+            transition: all 0.05s;
+          }
+          .metro-light.on {
+            background: #ff4422;
+            border-color: #ff6644;
+            box-shadow: 0 0 20px #ff4422, 0 0 40px #ff4422aa;
+          }
+          .metro-btn {
+            background: linear-gradient(145deg, #141414, #0a0a0a);
+            color: #C0C0C0;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin: 2px;
+            transition: all 0.2s;
+          }
+          .metro-btn:hover { border-color: #C0C0C0; color: #FFFFF0; }
+          .metro-slider {
+            width: 100%;
+            margin: 12px 0;
+            -webkit-appearance: none;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            outline: none;
+          }
+          .metro-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #C0C0C0;
+            border-radius: 50%;
+            cursor: pointer;
+          }
+        </style>
+        <div class="metro-box">
+          <div class="metro-light" id="metroLight"></div>
+          <div class="metro-bpm" id="metroBpm">120</div>
+          <div class="metro-label">BPM</div>
+          <input type="range" class="metro-slider" id="metroSlider" min="40" max="240" value="120" oninput="updateBpm(this.value)">
+          <div style="margin-top:8px;">
+            <button class="metro-btn" onclick="toggleMetro()" id="metroToggle">▶ START</button>
+            <button class="metro-btn" onclick="tapTempo()">TAP</button>
+          </div>
+        </div>
+        <script>
+          let metroInterval = null;
+          let bpm = 120;
+          let isRunning = false;
+          let tapTimes = [];
+          let audioCtx2 = null;
+
+          function initAudio2() {
+            if (!audioCtx2) audioCtx2 = new (window.AudioContext || window.webkitAudioContext)();
+          }
+
+          function playClick() {
+            initAudio2();
+            const osc = audioCtx2.createOscillator();
+            const gain = audioCtx2.createGain();
+            osc.type = 'square';
+            osc.frequency.value = 1000;
+            gain.gain.value = 0.1;
+            osc.connect(gain);
+            gain.connect(audioCtx2.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx2.currentTime + 0.05);
+            osc.stop(audioCtx2.currentTime + 0.05);
+          }
+
+          function updateBpm(val) {
+            bpm = parseInt(val);
+            document.getElementById('metroBpm').textContent = bpm;
+            if (isRunning) {
+              clearInterval(metroInterval);
+              metroInterval = setInterval(tick, 60000 / bpm);
+            }
+          }
+
+          function tick() {
+            const light = document.getElementById('metroLight');
+            light.classList.add('on');
+            playClick();
+            setTimeout(() => light.classList.remove('on'), 100);
+          }
+
+          function toggleMetro() {
+            const btn = document.getElementById('metroToggle');
+            if (isRunning) {
+              clearInterval(metroInterval);
+              isRunning = false;
+              btn.textContent = '▶ START';
+            } else {
+              initAudio2();
+              metroInterval = setInterval(tick, 60000 / bpm);
+              isRunning = true;
+              btn.textContent = '⏹ STOP';
+            }
+          }
+
+          function tapTempo() {
+            const now = Date.now();
+            tapTimes.push(now);
+            if (tapTimes.length > 4) tapTimes.shift();
+            if (tapTimes.length >= 2) {
+              const intervals = [];
+              for (let i = 1; i < tapTimes.length; i++) {
+                intervals.push(tapTimes[i] - tapTimes[i-1]);
+              }
+              const avg = intervals.reduce((a,b) => a+b) / intervals.length;
+              const newBpm = Math.round(60000 / avg);
+              if (newBpm >= 40 && newBpm <= 240) {
+                bpm = newBpm;
+                document.getElementById('metroBpm').textContent = bpm;
+                document.getElementById('metroSlider').value = bpm;
+                if (isRunning) {
+                  clearInterval(metroInterval);
+                  metroInterval = setInterval(tick, 60000 / bpm);
+                }
+              }
+            }
+          }
+        </script>
+        """
+        components.html(metro_html, height=320, scrolling=False)
+
+    with t3:
+        st.markdown("#### ⚖️ Tensione Corde")
+        with st.container(border=True):
+            tc_gauge = st.text_input("Scalatura", "0.010-0.046", key="tc_gauge")
+            tc_scale = st.slider("Scala (pollici)", 24.0, 27.0, 25.5, 0.1, key="tc_scale")
+            if st.button("Calcola", key="tc_calc"):
+                tensions = tension_calc(tc_gauge, tc_scale)
+                if tensions:
+                    notes = ["E", "B", "G", "D", "A", "E"]
+                    total = sum(tensions)
+                    st.success(f"Tensione totale: **{total:.1f} kg**")
+                    for note, ten in zip(notes, tensions):
+                        bar_w = min(100, ten / 10 * 100)
+                        st.markdown(f"""
+                        <div style="display:flex; align-items:center; gap:8px; margin:4px 0;">
+                            <span style="font-family:Roboto Mono; font-size:0.8rem; color:#707070; width:24px;">{note}</span>
+                            <div style="flex:1; height:8px; background:#1a1a1a; border-radius:4px; overflow:hidden;">
+                                <div style="width:{bar_w}%; height:100%; background:linear-gradient(90deg, #707070, #C0C0C0); border-radius:4px;"></div>
+                            </div>
+                            <span style="font-family:Roboto Mono; font-size:0.8rem; color:#C0C0C0; width:50px; text-align:right;">{ten:.1f}kg</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.error("Formato non riconosciuto. Usa 0.010-0.046")

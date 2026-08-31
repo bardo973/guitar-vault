@@ -421,6 +421,22 @@ def set_rock_theme(bg_image_path=None):
         border: 1px solid rgba(192,192,192,0.06) !important;
         border-radius: 2px !important;
     }}
+
+    /* === CARD ANIMATE E LUCCICANTI === */
+    @keyframes shimmerSpin {{ to {{ transform: rotate(360deg); }} }}
+    .shimmer-card {{ position: relative; border-radius: 16px; padding: 2px; overflow: hidden; background: rgba(15,15,15,0.9); }}
+    .shimmer-card::before {{ content: ""; position: absolute; inset: -100%; background: conic-gradient(from 0deg, transparent 0%, #f5d78e 12%, #fffbe8 20%, #c8c8d0 32%, transparent 45%, transparent 100%); opacity: 0; transition: opacity 0.5s; animation: shimmerSpin 3.5s linear infinite; }}
+    .shimmer-card:hover::before {{ opacity: 1; }}
+    .shimmer-card-inner {{ position: relative; border-radius: 14px; background: rgba(10,10,10,0.95); padding: 32px; border: 1px solid rgba(192,192,192,0.1); }}
+    .spotlight-card {{ position: relative; overflow: hidden; border-radius: 16px; border: 1px solid rgba(192,192,192,0.1); background: rgba(10,10,10,0.95); padding: 32px; transition: border-color 0.5s; }}
+    .spotlight-card:hover {{ border-color: rgba(255,255,255,0.25); }}
+    .spotlight-card::before {{ content: ""; position: absolute; inset: 0; background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 50%), rgba(245,215,142,0.18), rgba(255,255,255,0.06) 40%, transparent 70%); opacity: 0; transition: opacity 0.3s; pointer-events: none; }}
+    .spotlight-card:hover::before {{ opacity: 1; }}
+    @keyframes sparklePulse {{ 0%, 100% {{ opacity: 0; transform: scale(0.4); }} 50% {{ opacity: 1; transform: scale(1.2); }} }}
+    .sparkle-card {{ position: relative; overflow: hidden; border-radius: 16px; border: 1px solid rgba(192,192,192,0.1); background: rgba(10,10,10,0.95); padding: 32px; transition: border-color 0.5s; }}
+    .sparkle-card:hover {{ border-color: rgba(255,255,255,0.25); }}
+    .sparkle-particle {{ position: absolute; border-radius: 50%; background: #f5d78e; box-shadow: 0 0 8px 2px rgba(245,215,142,0.7); animation: sparklePulse 2s ease-in-out infinite paused; }}
+    .sparkle-card:hover .sparkle-particle {{ animation-play-state: running; }}
     </style>
     """
     st.markdown(base_css, unsafe_allow_html=True)
@@ -725,8 +741,8 @@ st.markdown("<p style='text-align:center; color:#707070; font-family:Inter; font
 # ═══════════════════════════════════════════════════════════
 #  TABS PRINCIPALI
 # ═══════════════════════════════════════════════════════════
-tab_rack, tab_gallery, tab_wishlist, tab_compare, tab_bassman = st.tabs([
-    "🎸 Rack & Manutenzione", "🖼️ Galleria", "💭 Wishlist", "⚖️ Confronto", "🔥 Bassman"
+tab_rack, tab_gallery, tab_wishlist, tab_compare, tab_bassman, tab_cards = st.tabs([
+    "🎸 Rack & Manutenzione", "🖼️ Galleria", "💭 Wishlist", "⚖️ Confronto", "🔥 Bassman", "✨ Card Animate"
 ])
 
 # ═══════════════════════════════════════════════════════════
@@ -1639,3 +1655,52 @@ with tab_bassman:
     </div>
     """, unsafe_allow_html=True)
 
+
+# ═══════════════════════════════════════════════════════════
+#  TAB 6: CARD ANIMATE E LUCCICANTI
+# ═══════════════════════════════════════════════════════════
+with tab_cards:
+    import random
+    st.subheader("✨ Card Animate e Luccicanti")
+    st.markdown("<p style='color:#707070; font-size:0.9rem; margin-bottom:1.5rem;'>Bordo shimmer rotante · Spotlight tracking · Sparkle particles</p>", unsafe_allow_html=True)
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.markdown('''
+        <div class="shimmer-card">
+            <div class="shimmer-card-inner">
+                <h3 style="color:#FFFFF0; font-family:Oswald,sans-serif; letter-spacing:2px; text-transform:uppercase; font-size:1.1rem; margin:0 0 12px;">Bordo Shimmer Rotante</h3>
+                <p style="color:#707070; font-size:0.85rem; line-height:1.6;">Un riflesso dorato e argentato ruota lungo il perimetro della card al passaggio del mouse.</p>
+            </div>
+        </div>
+        ''', unsafe_allow_html=True)
+
+    with c2:
+        st.markdown('''
+        <div class="spotlight-card" onmousemove="this.style.setProperty('--mx', event.offsetX+'px'); this.style.setProperty('--my', event.offsetY+'px');">
+            <h3 style="color:#FFFFF0; font-family:Oswald,sans-serif; letter-spacing:2px; text-transform:uppercase; font-size:1.1rem; margin:0 0 12px;">Spotlight Tracking</h3>
+            <p style="color:#707070; font-size:0.85rem; line-height:1.6;">Una luce radiale morbida segue il movimento del cursore sulla superficie della card.</p>
+        </div>
+        ''', unsafe_allow_html=True)
+
+    with c3:
+        sparks = ""
+        for i in range(18):
+            left = random.uniform(4, 96)
+            top = random.uniform(8, 92)
+            size = random.uniform(2, 6)
+            delay = random.uniform(0, 2.6)
+            dur = random.uniform(1.6, 3.2)
+            sparks += f'<span class="sparkle-particle" style="left:{left:.2f}%; top:{top:.2f}%; width:{size:.2f}px; height:{size:.2f}px; animation-delay:{delay:.2f}s; animation-duration:{dur:.2f}s;"></span>'
+        st.markdown(f'''
+        <div class="sparkle-card">
+            {sparks}
+            <div style="position:relative;">
+                <h3 style="color:#FFFFF0; font-family:Oswald,sans-serif; letter-spacing:2px; text-transform:uppercase; font-size:1.1rem; margin:0 0 12px;">Sparkle Particles</h3>
+                <p style="color:#707070; font-size:0.85rem; line-height:1.6;">Piccole scintille dorate compaiono e svaniscono in punti casuali della card.</p>
+            </div>
+        </div>
+        ''', unsafe_allow_html=True)
+
+    st.markdown("<br/><p style='text-align:center; color:#505050; font-size:0.8rem;'>Passa il mouse sulle card per attivare gli effetti.</p>", unsafe_allow_html=True)

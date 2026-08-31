@@ -2345,24 +2345,33 @@ if menu == "🔍 Scouting & Database":
                     if not df_r.empty:
                         for _, row in df_r.iterrows():
                             pc = row.get("Prezzo_Consigliato")
-                            pc_txt = f"💡{int(pc)}cr" if pd.notna(pc) else ""
-                            tit_bar = ""
-                            if row["Indice_Titolarita"] >= 80:
-                                tit_bar = f'<span style="color:#00d26a;font-size:0.75em;">● Tit. {row["Indice_Titolarita"]}</span>'
-                            elif row["Indice_Titolarita"] >= 60:
-                                tit_bar = f'<span style="color:#eab308;font-size:0.75em;">● Tit. {row["Indice_Titolarita"]}</span>'
+                            # Giocatori con prezzo consigliato > 40cr → Flip Card 3D
+                            if pd.notna(pc) and int(pc) > 40:
+                                rdict = row.to_dict()
+                                rdict["Proprietario"] = "Svincolato 🟢"
+                                if pd.isna(rdict.get("Indice_Affare")):
+                                    rdict["Indice_Affare"] = round(float(rdict.get("FantaMedia", 6.0)) / max(float(rdict.get("Quotazione", 1)), 1), 2)
+                                if pd.isna(rdict.get("Indice_Titolarita")):
+                                    rdict["Indice_Titolarita"] = calcola_indice_titolarita(rdict, stats_2627)
+                                st.markdown(render_flip_card(rdict, stats_ps, stats_2627), unsafe_allow_html=True)
                             else:
-                                tit_bar = f'<span style="color:#ef4444;font-size:0.75em;">● Tit. {row["Indice_Titolarita"]}</span>'
-                            st.markdown(
-                                f'<div style="background:#1a1a2e;padding:8px;border-radius:6px;margin-bottom:4px;">'
-                                f'<b>{row["Nome"]}</b> ({row["Squadra_SerieA"]})<br/>'
-                                f'<span style="color:#888;font-size:0.85em;">FM {row["FantaMedia"]} | Q {int(row["Quotazione"])}cr | IA {row["Indice_Affare"]}</span> {pc_txt}<br/>'
-                                f'{tit_bar}'
-                                f'</div>'
-                            ), unsafe_allow_html=True)
+                                pc_txt = f"💡{int(pc)}cr" if pd.notna(pc) else ""
+                                tit_bar = ""
+                                if row["Indice_Titolarita"] >= 80:
+                                    tit_bar = f'<span style="color:#00d26a;font-size:0.75em;">● Tit. {row["Indice_Titolarita"]}</span>'
+                                elif row["Indice_Titolarita"] >= 60:
+                                    tit_bar = f'<span style="color:#eab308;font-size:0.75em;">● Tit. {row["Indice_Titolarita"]}</span>'
+                                else:
+                                    tit_bar = f'<span style="color:#ef4444;font-size:0.75em;">● Tit. {row["Indice_Titolarita"]}</span>'
+                                st.markdown(
+                                    f'<div style="background:#1a1a2e;padding:8px;border-radius:6px;margin-bottom:4px;">'
+                                    f'<b>{row["Nome"]}</b> ({row["Squadra_SerieA"]})<br/>'
+                                    f'<span style="color:#888;font-size:0.85em;">FM {row["FantaMedia"]} | Q {int(row["Quotazione"])}cr | IA {row["Indice_Affare"]}</span> {pc_txt}<br/>'
+                                    f'{tit_bar}'
+                                    f'</div>'
+                                ), unsafe_allow_html=True
                     else:
                         st.caption("Nessuno svincolato")
-
             # ============================================================
             # 🎲 RANDOM PICK
             # ============================================================

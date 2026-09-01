@@ -741,13 +741,10 @@ st.markdown("<p style='text-align:center; color:#707070; font-family:Inter; font
 # ═══════════════════════════════════════════════════════════
 #  TABS PRINCIPALI
 # ═══════════════════════════════════════════════════════════
-tab_rack, tab_gallery, tab_wishlist, tab_compare, tab_bassman, tab_cards = st.tabs([
-    "🎸 Rack & Manutenzione", "🖼️ Galleria", "💭 Wishlist", "⚖️ Confronto", "🔥 Bassman", "✨ Card Animate"
+tab_rack, tab_gallery, tab_wishlist, tab_compare, tab_chicche = st.tabs([
+    "🎸 Rack & Manutenzione", "🖼️ Galleria", "💭 Wishlist", "⚖️ Confronto", "✨ Chicche"
 ])
 
-# ═══════════════════════════════════════════════════════════
-#  TAB 1: RACK
-# ═══════════════════════════════════════════════════════════
 with tab_rack:
     guitars = get_guitars()
 
@@ -1265,442 +1262,353 @@ with tab_compare:
 # ═══════════════════════════════════════════════════════════
 #  TAB 5: BASSMAN VINTAGE AMP
 # ═══════════════════════════════════════════════════════════
-with tab_bassman:
-    st.subheader("🔥 Fender Bassman 5F6-A")
-    st.markdown("<p style='color:#707070; font-size:0.9rem; margin-bottom:1.5rem;'>Twist the knobs, flip the switch, and feel the warmth of tweed.</p>", unsafe_allow_html=True)
 
-    bassman_html = """
+
+# ═══════════════════════════════════════════════════════════
+#  TAB 5: CHICCHE GRAFICHE INTERATTIVE
+# ═══════════════════════════════════════════════════════════
+with tab_chicche:
+    st.subheader("✨ Chicche Grafiche")
+    st.markdown("<p style='color:#707070; font-size:0.9rem; margin-bottom:1.5rem;'>Pedalboard virtuale, amp head interattivo, visualizzatore corde e equalizzatore animato.</p>", unsafe_allow_html=True)
+
+    # ── SEZIONE 1: PEDALBOARD VIRTUALE ──
+    st.markdown("#### 🎛️ Pedalboard Virtuale")
+    st.caption("Clicca sui pedali per attivarli/disattivarli")
+
+    pedalboard_html = """
     <style>
-      .amp-wrapper {
-        font-family: system-ui, -apple-system, sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-        padding: 24px;
-      }
-      .cabinet {
-        width: 520px;
-        max-width: 100%;
-        background: 
-          repeating-linear-gradient(90deg, #c9a96e 0px, #c9a96e 2px, #b8945f 2px, #b8945f 4px),
-          linear-gradient(180deg, #d4b87a 0%, #b8945f 100%);
-        background-blend-mode: multiply;
-        border-radius: 12px;
-        padding: 18px;
-        box-shadow: inset 0 2px 4px rgba(255,255,255,0.15), inset 0 -2px 4px rgba(0,0,0,0.2), 0 8px 32px rgba(0,0,0,0.4);
-        position: relative;
-      }
-      .control-panel {
-        background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
-        border-radius: 8px;
-        padding: 20px 16px 16px;
-        border: 2px solid #8B7355;
-        box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
-        position: relative;
-      }
-      .panel-label {
-        position: absolute;
-        top: -10px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #d4b87a;
-        color: #2a1f0f;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 3px;
-        padding: 2px 14px;
-        border-radius: 3px;
-        text-transform: uppercase;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      }
-      .knobs-row {
-        display: flex;
-        justify-content: space-between;
-        gap: 8px;
-        margin-bottom: 16px;
-        flex-wrap: wrap;
-      }
-      .knob-group {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        flex: 1;
-        min-width: 60px;
-      }
-      .knob-label {
-        font-size: 10px;
-        color: #a09080;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        font-weight: 500;
-      }
-      .knob-svg {
-        cursor: grab;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-      }
-      .knob-svg:active { cursor: grabbing; }
-      .knob-value {
-        font-size: 11px;
-        color: #e8d5b5;
-        font-variant-numeric: tabular-nums;
-        min-width: 24px;
-        text-align: center;
-        font-family: monospace;
-      }
-      .vu-section {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 20px;
-        margin-top: 8px;
-        padding-top: 12px;
-        border-top: 1px solid #333;
-      }
-      .pilot-light {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: #331111;
-        border: 2px solid #553333;
-        box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
-        transition: all 0.3s ease;
-      }
-      .pilot-light.on {
-        background: #ff4422;
-        border-color: #ff6644;
-        box-shadow: 0 0 8px #ff4422, 0 0 16px #ff4422aa, inset 0 -1px 2px rgba(0,0,0,0.3);
-        animation: pilotPulse 2s ease-in-out infinite;
-      }
-      @keyframes pilotPulse {
-        0%, 100% { opacity: 0.85; }
-        50% { opacity: 1; }
-      }
-      .power-switch {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        padding: 4px 10px;
-        border-radius: 6px;
-        transition: background 0.2s;
-        user-select: none;
-      }
-      .power-switch:hover { background: rgba(255,255,255,0.05); }
-      .switch-track {
-        width: 36px;
-        height: 18px;
-        background: #333;
-        border-radius: 9px;
-        position: relative;
-        transition: background 0.3s;
-        border: 1px solid #444;
-      }
-      .switch-track.on { background: #4a7c3f; }
-      .switch-thumb {
-        width: 14px;
-        height: 14px;
-        background: #ccc;
-        border-radius: 50%;
-        position: absolute;
-        top: 1px;
-        left: 2px;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-      }
-      .switch-track.on .switch-thumb {
-        left: 19px;
-        background: #fff;
-      }
-      .switch-label {
-        font-size: 11px;
-        color: #888;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        font-weight: 500;
-        transition: color 0.3s;
-      }
-      .switch-label.on { color: #7cb87c; }
-      .warm-glow {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        border-radius: 8px;
+    .pb-wrapper { font-family: 'Oswald', sans-serif; }
+    .pb-row {
+        display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+        padding: 24px 16px; background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+        border-radius: 8px; border: 1px solid rgba(192,192,192,0.08);
+        position: relative; overflow: hidden;
+    }
+    .pb-row::before {
+        content: ""; position: absolute; inset: 0;
+        background: repeating-linear-gradient(90deg, transparent 0px, transparent 39px, rgba(192,192,192,0.02) 39px, rgba(192,192,192,0.02) 40px);
         pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.6s ease;
-        background: radial-gradient(ellipse at 50% 30%, rgba(255,140,50,0.06) 0%, transparent 70%);
-      }
-      .warm-glow.on { opacity: 1; }
-      .amp-badge {
-        text-align: center;
-        margin-top: 8px;
-      }
-      .amp-badge h3 {
-        font-size: 18px;
-        font-weight: 600;
-        color: #2a1f0f;
-        letter-spacing: 4px;
-        text-transform: uppercase;
-        margin: 0;
-        text-shadow: 0 1px 0 rgba(255,255,255,0.3);
-      }
-      .amp-badge p {
-        font-size: 11px;
-        color: #5a4a30;
-        letter-spacing: 2px;
-        margin: 2px 0 0;
-        text-transform: uppercase;
-      }
-      .tone-readout {
-        margin-top: 12px;
-        padding: 10px 14px;
-        background: rgba(0,0,0,0.15);
-        border-radius: 8px;
-        font-size: 13px;
-        color: #5a4a30;
-        text-align: center;
-        letter-spacing: 0.5px;
-        min-height: 20px;
-      }
+    }
+    .pedal {
+        width: 90px; height: 150px; border-radius: 8px;
+        position: relative; cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+        padding: 10px 6px; border: 2px solid rgba(255,255,255,0.06);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+        user-select: none;
+    }
+    .pedal:hover { transform: translateY(-5px) scale(1.04); box-shadow: 0 10px 24px rgba(0,0,0,0.6), 0 0 16px rgba(255,255,255,0.04); }
+    .pedal.on { border-color: rgba(255,255,255,0.2); box-shadow: 0 0 16px rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08); }
+    .pedal.on .p-led { animation: ledPulse 1.5s ease-in-out infinite; background: #ff4444; border-color: #ff6666; }
+    .pedal.pressed { animation: pedalPress 0.15s ease-out; }
+    .p-led { width: 7px; height: 7px; border-radius: 50%; background: #333; border: 1px solid #555; transition: all 0.3s; }
+    .p-knobs { display: flex; gap: 3px; margin: 6px 0; }
+    .p-knob { width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #555, #222); border: 1px solid #666; position: relative; }
+    .p-knob::after { content: ""; position: absolute; top: 2px; left: 50%; width: 2px; height: 5px; background: #aaa; transform: translateX(-50%); border-radius: 1px; }
+    .p-name { font-size: 8px; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.55); text-align: center; line-height: 1.2; }
+    .p-sw { width: 28px; height: 28px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #444, #1a1a1a); border: 2px solid #555; box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 9px; color: #888; transition: all 0.1s; }
+    .pedal.on .p-sw { background: radial-gradient(circle at 35% 35%, #555, #222); box-shadow: 0 1px 3px rgba(0,0,0,0.5), inset 0 2px 4px rgba(0,0,0,0.3); }
+    @keyframes ledPulse { 0%,100%{opacity:0.6;box-shadow:0 0 4px currentColor} 50%{opacity:1;box-shadow:0 0 10px currentColor,0 0 20px currentColor} }
+    @keyframes pedalPress { 0%{transform:translateY(0)} 50%{transform:translateY(3px)} 100%{transform:translateY(0)} }
     </style>
-    <div class="amp-wrapper">
-      <div class="cabinet">
-        <div class="control-panel">
-          <div class="panel-label">Fender Bassman</div>
-          <div class="warm-glow" id="warmGlow"></div>
-          <div class="knobs-row" id="knobsRow"></div>
-          <div class="vu-section">
-            <div class="pilot-light" id="pilotLight"></div>
-            <div class="vu-container">
-              <svg width="120" height="60" viewBox="0 0 120 60">
-                <path d="M 10 55 A 50 50 0 0 1 110 55" fill="none" stroke="#333" stroke-width="8" stroke-linecap="round"/>
-                <path d="M 15 55 A 45 45 0 0 1 45 20" fill="none" stroke="#2d5a27" stroke-width="6" stroke-linecap="round"/>
-                <path d="M 45 20 A 45 45 0 0 1 75 20" fill="none" stroke="#8a7a20" stroke-width="6" stroke-linecap="round"/>
-                <path d="M 75 20 A 45 45 0 0 1 105 55" fill="none" stroke="#5a1a1a" stroke-width="6" stroke-linecap="round"/>
-                <g stroke="#555" stroke-width="1">
-                  <line x1="10" y1="55" x2="14" y2="55"/>
-                  <line x1="60" y1="5" x2="60" y2="9"/>
-                  <line x1="110" y1="55" x2="106" y2="55"/>
-                </g>
-                <g id="needleGroup" transform="rotate(-45, 60, 55)">
-                  <line x1="60" y1="55" x2="60" y2="15" stroke="#e8d5b5" stroke-width="1.5" stroke-linecap="round"/>
-                  <circle cx="60" cy="55" r="3" fill="#888"/>
-                </g>
-                <ellipse cx="60" cy="35" rx="35" ry="15" fill="url(#glare)" opacity="0.1"/>
-                <defs>
-                  <linearGradient id="glare" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stop-color="white" stop-opacity="0.3"/>
-                    <stop offset="100%" stop-color="white" stop-opacity="0"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <div class="power-switch" id="powerSwitch" onclick="togglePower()">
-              <div class="switch-track" id="switchTrack"><div class="switch-thumb"></div></div>
-              <span class="switch-label" id="switchLabel">Off</span>
-            </div>
-          </div>
+    <div class="pb-wrapper">
+      <div class="pb-row" id="pbRow">
+        <div class="pedal" style="background:linear-gradient(180deg,#2a1a1a,#1a0a0a);" onclick="togglePedal(this)">
+          <div class="p-led"></div>
+          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div><div class="p-knob"></div></div>
+          <div class="p-name">Overdrive</div>
+          <div class="p-sw">BYPASS</div>
         </div>
-        <div class="amp-badge">
-          <h3>Bassman</h3>
-          <p>Tube Amplifier · 5F6-A Circuit</p>
+        <div class="pedal" style="background:linear-gradient(180deg,#1a2a1a,#0a1a0a);" onclick="togglePedal(this)">
+          <div class="p-led"></div>
+          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div></div>
+          <div class="p-name">Chorus</div>
+          <div class="p-sw">BYPASS</div>
+        </div>
+        <div class="pedal" style="background:linear-gradient(180deg,#1a1a2a,#0a0a1a);" onclick="togglePedal(this)">
+          <div class="p-led"></div>
+          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div><div class="p-knob"></div><div class="p-knob"></div></div>
+          <div class="p-name">Delay</div>
+          <div class="p-sw">BYPASS</div>
+        </div>
+        <div class="pedal" style="background:linear-gradient(180deg,#2a2a1a,#1a1a0a);" onclick="togglePedal(this)">
+          <div class="p-led"></div>
+          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div></div>
+          <div class="p-name">Fuzz</div>
+          <div class="p-sw">BYPASS</div>
+        </div>
+        <div class="pedal" style="background:linear-gradient(180deg,#1a2a2a,#0a1a1a);" onclick="togglePedal(this)">
+          <div class="p-led"></div>
+          <div class="p-knobs"><div class="p-knob"></div></div>
+          <div class="p-name">Boost</div>
+          <div class="p-sw">BYPASS</div>
+        </div>
+        <div class="pedal" style="background:linear-gradient(180deg,#2a1a2a,#1a0a1a);" onclick="togglePedal(this)">
+          <div class="p-led"></div>
+          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div><div class="p-knob"></div></div>
+          <div class="p-name">Reverb</div>
+          <div class="p-sw">BYPASS</div>
+        </div>
+        <div class="pedal" style="background:linear-gradient(180deg,#2a2520,#1a1510);" onclick="togglePedal(this)">
+          <div class="p-led"></div>
+          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div></div>
+          <div class="p-name">Wah</div>
+          <div class="p-sw">BYPASS</div>
         </div>
       </div>
-      <div class="tone-readout" id="toneReadout">Amp is off. Flip the switch to warm up the tubes.</div>
     </div>
     <script>
-      const knobs = [
-        { name: 'volume', label: 'Volume', value: 5, min: 0, max: 10 },
-        { name: 'treble', label: 'Treble', value: 5, min: 0, max: 10 },
-        { name: 'bass', label: 'Bass', value: 5, min: 0, max: 10 },
-        { name: 'middle', label: 'Middle', value: 5, min: 0, max: 10 },
-        { name: 'presence', label: 'Presence', value: 3, min: 0, max: 10 },
-        { name: 'master', label: 'Master', value: 6, min: 0, max: 10 },
-      ];
-      let isOn = false;
-      let vuInterval = null;
-      let needleAngle = -45;
-      let targetAngle = -45;
+    function togglePedal(el) {
+      el.classList.toggle('on');
+      el.classList.add('pressed');
+      setTimeout(() => el.classList.remove('pressed'), 150);
+      const sw = el.querySelector('.p-sw');
+      sw.textContent = el.classList.contains('on') ? 'ACTIVE' : 'BYPASS';
+      updateChain();
+    }
+    function updateChain() {
+      const active = document.querySelectorAll('.pedal.on').length;
+      const readout = document.getElementById('chainReadout');
+      if (readout) readout.textContent = active + ' pedali attivi nella catena';
+    }
+    </script>
+    <div id="chainReadout" style="text-align:center; margin-top:10px; color:#707070; font-family:Oswald,sans-serif; font-size:0.8rem; letter-spacing:1px;">0 pedali attivi nella catena</div>
+    """
+    components.html(pedalboard_html, height=260, scrolling=False)
 
-      function createKnob(k, index) {
-        const group = document.createElement('div');
-        group.className = 'knob-group';
-        const angle = -135 + (k.value / k.max) * 270;
-        let ticks = '';
-        for (let i = 0; i <= 10; i++) {
-          const a = -135 + (i / 10) * 270;
-          const rad = a * Math.PI / 180;
-          const x1 = 24 + Math.cos(rad) * 16;
-          const y1 = 24 + Math.sin(rad) * 16;
-          const x2 = 24 + Math.cos(rad) * 19;
-          const y2 = 24 + Math.sin(rad) * 19;
-          ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#666" stroke-width="${i % 5 === 0 ? 1.5 : 0.8}"/>`;
-        }
-        group.innerHTML = `
-          <svg class="knob-svg" width="48" height="48" viewBox="0 0 48 48" 
-               onmousedown="startDrag(event, ${index})" ontouchstart="startDrag(event, ${index})">
-            <defs>
-              <radialGradient id="knobGrad${index}" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#444"/>
-                <stop offset="80%" stop-color="#222"/>
-                <stop offset="100%" stop-color="#111"/>
-              </radialGradient>
-            </defs>
-            <circle cx="24" cy="24" r="22" fill="url(#knobGrad${index})" stroke="#555" stroke-width="1"/>
-            <circle cx="24" cy="24" r="18" fill="none" stroke="#333" stroke-width="0.5"/>
-            ${ticks}
-            <g id="knobPointer${index}" transform="rotate(${angle}, 24, 24)">
-              <line x1="24" y1="24" x2="24" y2="8" stroke="#e8d5b5" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="24" cy="24" r="3" fill="#e8d5b5"/>
+    st.divider()
+
+    # ── SEZIONE 2: AMP HEAD VIRTUALE ──
+    st.markdown("#### 🔥 Amp Head Virtuale")
+    st.caption("Gira i knob, accendi l'amplificatore e guarda il VU meter")
+
+    amp_html = """
+    <style>
+    .amp-wrap { font-family: 'Oswald', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .amp-box {
+      width: 480px; max-width: 100%; background: linear-gradient(180deg, #1e1e1e 0%, #0f0f0f 100%);
+      border-radius: 12px; padding: 20px; border: 2px solid rgba(192,192,192,0.1);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+      position: relative; overflow: hidden;
+    }
+    .amp-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(192,192,192,0.25), transparent); }
+    .amp-grille {
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.25) 3px, rgba(0,0,0,0.25) 4px),
+                  repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.25) 3px, rgba(0,0,0,0.25) 4px),
+                  linear-gradient(180deg, #2a2a2a, #1a1a1a);
+      border-radius: 4px; padding: 14px; margin: 8px 0; border: 1px solid rgba(192,192,192,0.06);
+      display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;
+    }
+    .ak { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .ak-dial {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #444, #1a1a1a);
+      border: 2px solid #555; box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+      position: relative; cursor: grab; transition: all 0.2s;
+    }
+    .ak-dial:hover { box-shadow: 0 0 12px rgba(192,192,192,0.08), 0 4px 8px rgba(0,0,0,0.5); }
+    .ak-dial::after { content: ""; position: absolute; top: 5px; left: 50%; width: 2.5px; height: 14px; background: #aaa; transform: translateX(-50%); border-radius: 2px; box-shadow: 0 0 3px rgba(255,255,255,0.15); }
+    .ak-lbl { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #888; }
+    .ak-val { font-family: 'Roboto Mono', monospace; font-size: 10px; color: #C0C0C0; }
+    .amp-vu { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 8px; padding-top: 10px; border-top: 1px solid #333; }
+    .amp-led { width: 10px; height: 10px; border-radius: 50%; background: #331111; border: 1px solid #553333; transition: all 0.5s; }
+    .amp-led.on { background: #ff4422; border-color: #ff6644; box-shadow: 0 0 8px #ff4422, 0 0 16px #ff4422aa; animation: ledPulse 2s ease-in-out infinite; }
+    .amp-sw { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 3px 8px; border-radius: 6px; transition: background 0.2s; user-select: none; }
+    .amp-sw:hover { background: rgba(255,255,255,0.04); }
+    .sw-track { width: 32px; height: 16px; background: #333; border-radius: 8px; position: relative; transition: background 0.3s; border: 1px solid #444; }
+    .sw-track.on { background: #4a7c3f; }
+    .sw-thumb { width: 12px; height: 12px; background: #ccc; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+    .sw-track.on .sw-thumb { left: 17px; background: #fff; }
+    .sw-lbl { font-size: 10px; color: #888; letter-spacing: 1px; text-transform: uppercase; font-weight: 500; transition: color 0.3s; }
+    .sw-lbl.on { color: #7cb87c; }
+    .warm { position: absolute; inset: 0; border-radius: 12px; pointer-events: none; opacity: 0; transition: opacity 0.6s ease; background: radial-gradient(ellipse at 50% 30%, rgba(255,140,50,0.05) 0%, transparent 70%); }
+    .warm.on { opacity: 1; }
+    .amp-badge { text-align: center; margin-top: 6px; }
+    .amp-badge h4 { font-size: 16px; font-weight: 600; color: #C0C0C0; letter-spacing: 4px; text-transform: uppercase; margin: 0; }
+    .amp-badge p { font-size: 10px; color: #707070; letter-spacing: 2px; margin: 2px 0 0; text-transform: uppercase; }
+    .tone-desc { margin-top: 10px; padding: 8px 12px; background: rgba(0,0,0,0.15); border-radius: 6px; font-size: 12px; color: #707070; text-align: center; letter-spacing: 0.5px; min-height: 18px; font-family: 'Inter', sans-serif; }
+    @keyframes ledPulse { 0%,100%{opacity:0.8} 50%{opacity:1} }
+    </style>
+    <div class="amp-wrap">
+      <div class="amp-box">
+        <div class="warm" id="warm"></div>
+        <div class="amp-grille">
+          <div class="ak"><div class="ak-dial" id="k0" style="transform:rotate(0deg);" onmousedown="startKnob(event,0)"></div><div class="ak-lbl">Gain</div><div class="ak-val" id="v0">5</div></div>
+          <div class="ak"><div class="ak-dial" id="k1" style="transform:rotate(0deg);" onmousedown="startKnob(event,1)"></div><div class="ak-lbl">Bass</div><div class="ak-val" id="v1">5</div></div>
+          <div class="ak"><div class="ak-dial" id="k2" style="transform:rotate(0deg);" onmousedown="startKnob(event,2)"></div><div class="ak-lbl">Mid</div><div class="ak-val" id="v2">5</div></div>
+          <div class="ak"><div class="ak-dial" id="k3" style="transform:rotate(0deg);" onmousedown="startKnob(event,3)"></div><div class="ak-lbl">Treble</div><div class="ak-val" id="v3">5</div></div>
+          <div class="ak"><div class="ak-dial" id="k4" style="transform:rotate(0deg);" onmousedown="startKnob(event,4)"></div><div class="ak-lbl">Presence</div><div class="ak-val" id="v4">3</div></div>
+          <div class="ak"><div class="ak-dial" id="k5" style="transform:rotate(0deg);" onmousedown="startKnob(event,5)"></div><div class="ak-lbl">Master</div><div class="ak-val" id="v5">6</div></div>
+        </div>
+        <div class="amp-vu">
+          <div class="amp-led" id="pilot"></div>
+          <svg width="100" height="50" viewBox="0 0 100 50">
+            <path d="M 8 46 A 38 38 0 0 1 92 46" fill="none" stroke="#333" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 12 46 A 34 34 0 0 1 36 18" fill="none" stroke="#2d5a27" stroke-width="4.5" stroke-linecap="round"/>
+            <path d="M 36 18 A 34 34 0 0 1 64 18" fill="none" stroke="#8a7a20" stroke-width="4.5" stroke-linecap="round"/>
+            <path d="M 64 18 A 34 34 0 0 1 88 46" fill="none" stroke="#5a1a1a" stroke-width="4.5" stroke-linecap="round"/>
+            <g id="needle" transform="rotate(-45, 50, 46)">
+              <line x1="50" y1="46" x2="50" y2="14" stroke="#e8d5b5" stroke-width="1.2" stroke-linecap="round"/>
+              <circle cx="50" cy="46" r="2.5" fill="#888"/>
             </g>
           </svg>
-          <span class="knob-label">${k.label}</span>
-          <span class="knob-value" id="knobVal${index}">${k.value}</span>
-        `;
-        return group;
-      }
-
-      const row = document.getElementById('knobsRow');
-      knobs.forEach((k, i) => row.appendChild(createKnob(k, i)));
-
-      let dragging = null;
-      let dragStartY = 0;
-      let dragStartVal = 0;
-
-      function startDrag(e, index) {
-        e.preventDefault();
-        dragging = index;
-        dragStartY = e.clientY || e.touches[0].clientY;
-        dragStartVal = knobs[index].value;
-        document.addEventListener('mousemove', onDrag);
-        document.addEventListener('mouseup', endDrag);
-        document.addEventListener('touchmove', onDrag);
-        document.addEventListener('touchend', endDrag);
-      }
-      function onDrag(e) {
-        if (dragging === null) return;
-        const y = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-        const delta = (dragStartY - y) * 0.08;
-        let newVal = Math.round(Math.max(knobs[dragging].min, Math.min(knobs[dragging].max, dragStartVal + delta)));
-        knobs[dragging].value = newVal;
-        const angle = -135 + (newVal / knobs[dragging].max) * 270;
-        document.getElementById(`knobPointer${dragging}`).setAttribute('transform', `rotate(${angle}, 24, 24)`);
-        document.getElementById(`knobVal${dragging}`).textContent = newVal;
-        updateToneReadout();
-      }
-      function endDrag() {
-        dragging = null;
-        document.removeEventListener('mousemove', onDrag);
-        document.removeEventListener('mouseup', endDrag);
-        document.removeEventListener('touchmove', onDrag);
-        document.removeEventListener('touchend', endDrag);
-      }
-
-      function togglePower() {
-        isOn = !isOn;
-        document.getElementById('switchTrack').classList.toggle('on', isOn);
-        document.getElementById('switchLabel').classList.toggle('on', isOn);
-        document.getElementById('switchLabel').textContent = isOn ? 'On' : 'Off';
-        document.getElementById('pilotLight').classList.toggle('on', isOn);
-        document.getElementById('warmGlow').classList.toggle('on', isOn);
-        if (isOn) {
-          vuInterval = setInterval(() => {
-            const vol = knobs.find(k => k.name === 'volume').value;
-            const master = knobs.find(k => k.name === 'master').value;
-            const intensity = (vol + master) / 20;
-            targetAngle = -45 + Math.random() * 90 * intensity;
-          }, 80);
-          updateToneReadout();
-        } else {
-          clearInterval(vuInterval);
-          targetAngle = -45;
-          document.getElementById('toneReadout').textContent = 'Amp is off. Flip the switch to warm up the tubes.';
-        }
-      }
-
-      function animateNeedle() {
-        needleAngle += (targetAngle - needleAngle) * 0.15;
-        document.getElementById('needleGroup').setAttribute('transform', `rotate(${needleAngle}, 60, 55)`);
-        requestAnimationFrame(animateNeedle);
-      }
-      animateNeedle();
-
-      function updateToneReadout() {
-        if (!isOn) return;
-        const vol = knobs.find(k => k.name === 'volume').value;
-        const treble = knobs.find(k => k.name === 'treble').value;
-        const bass = knobs.find(k => k.name === 'bass').value;
-        const mid = knobs.find(k => k.name === 'middle').value;
-        const presence = knobs.find(k => k.name === 'presence').value;
-        let desc = [];
-        if (vol >= 7) desc.push('crunchy');
-        else if (vol >= 4) desc.push('clean');
-        else desc.push('mellow');
-        if (treble >= 7) desc.push('bright');
-        if (bass >= 7) desc.push('thumpy');
-        if (mid >= 7) desc.push('punchy');
-        if (presence >= 6) desc.push('airy');
-        document.getElementById('toneReadout').textContent = 
-          `Tone: ${desc.join(' · ')} — Volume ${vol} · Master ${knobs.find(k => k.name === 'master').value}`;
-      }
+          <div class="amp-sw" id="pwrSw" onclick="toggleAmp()">
+            <div class="sw-track" id="swTrk"><div class="sw-thumb"></div></div>
+            <span class="sw-lbl" id="swLbl">Off</span>
+          </div>
+        </div>
+        <div class="amp-badge"><h4>Vault Head</h4><p>Tube Amplifier · All-Tube Preamp</p></div>
+      </div>
+      <div class="tone-desc" id="toneDesc">Amp is off. Flip the switch to warm up the tubes.</div>
+    </div>
+    <script>
+    const knobs = [
+      {name:'gain', val:5, min:0, max:10},
+      {name:'bass', val:5, min:0, max:10},
+      {name:'mid', val:5, min:0, max:10},
+      {name:'treble', val:5, min:0, max:10},
+      {name:'presence', val:3, min:0, max:10},
+      {name:'master', val:6, min:0, max:10}
+    ];
+    let ampOn = false; let vuInt = null; let nAng = -45; let tAng = -45; let dragIdx = null, dragY0 = 0, dragV0 = 0;
+    function setKnob(i, v) {
+      knobs[i].val = v;
+      const ang = -135 + (v / knobs[i].max) * 270;
+      document.getElementById('k'+i).style.transform = 'rotate('+ang+'deg)';
+      document.getElementById('v'+i).textContent = v;
+      updateTone();
+    }
+    function startKnob(e, i) { e.preventDefault(); dragIdx = i; dragY0 = e.clientY; dragV0 = knobs[i].val; document.addEventListener('mousemove', onKnob); document.addEventListener('mouseup', endKnob); }
+    function onKnob(e) { if(dragIdx===null) return; const dy = (dragY0 - e.clientY) * 0.06; let nv = Math.round(Math.max(knobs[dragIdx].min, Math.min(knobs[dragIdx].max, dragV0 + dy))); setKnob(dragIdx, nv); }
+    function endKnob() { dragIdx = null; document.removeEventListener('mousemove', onKnob); document.removeEventListener('mouseup', endKnob); }
+    function toggleAmp() {
+      ampOn = !ampOn;
+      document.getElementById('swTrk').classList.toggle('on', ampOn);
+      document.getElementById('swLbl').classList.toggle('on', ampOn);
+      document.getElementById('swLbl').textContent = ampOn ? 'On' : 'Off';
+      document.getElementById('pilot').classList.toggle('on', ampOn);
+      document.getElementById('warm').classList.toggle('on', ampOn);
+      if (ampOn) {
+        vuInt = setInterval(() => { const intensity = (knobs[0].val + knobs[5].val) / 20; tAng = -45 + Math.random() * 85 * intensity; }, 90);
+        updateTone();
+      } else { clearInterval(vuInt); tAng = -45; document.getElementById('toneDesc').textContent = 'Amp is off. Flip the switch to warm up the tubes.'; }
+    }
+    function animNeedle() { nAng += (tAng - nAng) * 0.12; document.getElementById('needle').setAttribute('transform', 'rotate('+nAng+', 50, 46)'); requestAnimationFrame(animNeedle); }
+    animNeedle();
+    function updateTone() {
+      if(!ampOn) return;
+      const g = knobs[0].val, b = knobs[1].val, m = knobs[2].val, t = knobs[3].val, p = knobs[4].val, ma = knobs[5].val;
+      let d = [];
+      if(g >= 7) d.push('crunchy'); else if(g >= 4) d.push('clean'); else d.push('mellow');
+      if(t >= 7) d.push('bright'); if(b >= 7) d.push('thumpy'); if(m >= 7) d.push('punchy'); if(p >= 6) d.push('airy');
+      document.getElementById('toneDesc').textContent = 'Tone: ' + d.join(' · ') + ' — Gain ' + g + ' · Master ' + ma;
+    }
+    knobs.forEach((k,i) => setKnob(i, k.val));
     </script>
     """
+    components.html(amp_html, height=340, scrolling=False)
 
-    components.html(bassman_html, height=420, scrolling=False)
+    st.divider()
 
-    st.markdown("""
-    <div style="text-align:center; margin-top:12px; color:#707070; font-size:0.8rem; font-family:Inter;">
-        <span style="color:#B8860B;">⚡</span> Drag knobs to dial in your tone · Flip the switch to power up
+    # ── SEZIONE 3: VISUALIZZATORE CORDE ──
+    st.markdown("#### 🎸 Visualizzatore Corde")
+    st.caption("Clicca sulle corde per farle vibrare")
+
+    strings_html = """
+    <style>
+    .str-wrap { font-family: 'Oswald', sans-serif; background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%); border-radius: 8px; padding: 20px; border: 1px solid rgba(192,192,192,0.08); position: relative; overflow: hidden; }
+    .str-wrap::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0px, transparent 29px, rgba(192,192,192,0.015) 29px, rgba(192,192,192,0.015) 30px); pointer-events: none; }
+    .gstr { height: 32px; display: flex; align-items: center; position: relative; cursor: pointer; transition: all 0.2s; border-radius: 4px; }
+    .gstr:hover { background: rgba(255,255,255,0.02); }
+    .gstr.vib { animation: stringVibrate 0.5s ease-out; }
+    .snote { font-family: 'Roboto Mono', monospace; font-size: 13px; color: #C0C0C0; width: 32px; text-align: center; letter-spacing: 1px; font-weight: 500; }
+    .sline { flex: 1; height: 2px; background: linear-gradient(90deg, #888, #aaa, #888); border-radius: 1px; position: relative; transition: all 0.3s; margin: 0 12px; }
+    .gstr:hover .sline { height: 3px; box-shadow: 0 0 8px rgba(255,255,255,0.25); }
+    .sfret { position: absolute; right: 0; top: 0; bottom: 0; display: flex; align-items: center; gap: 40px; padding-right: 20px; }
+    .fdot { width: 7px; height: 7px; border-radius: 50%; background: rgba(192,192,192,0.12); transition: all 0.3s; }
+    .gstr:hover .fdot { background: rgba(192,192,192,0.35); box-shadow: 0 0 6px rgba(192,192,192,0.15); }
+    .sgauge { font-family: 'Roboto Mono', monospace; font-size: 9px; color: #505050; width: 50px; text-align: right; }
+    @keyframes stringVibrate { 0%{transform:translateX(0)} 10%{transform:translateX(-2px)} 20%{transform:translateX(2px)} 30%{transform:translateX(-1.5px)} 40%{transform:translateX(1.5px)} 50%{transform:translateX(-1px)} 60%{transform:translateX(1px)} 70%{transform:translateX(-0.5px)} 80%{transform:translateX(0.5px)} 90%{transform:translateX(-0.3px)} 100%{transform:translateX(0)} }
+    </style>
+    <div class="str-wrap">
+      <div class="gstr" onclick="pluck(this)"><span class="snote">E</span><div class="sline" style="height:3px;"></div><span class="sgauge">.046</span><div class="sfret"><div class="fdot"></div><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div><div class="fdot"></div><div class="fdot"></div></div></div>
+      <div class="gstr" onclick="pluck(this)"><span class="snote">A</span><div class="sline" style="height:2.5px;"></div><span class="sgauge">.036</span><div class="sfret"><div class="fdot"></div><div class="fdot"></div><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div><div class="fdot"></div></div></div>
+      <div class="gstr" onclick="pluck(this)"><span class="snote">D</span><div class="sline" style="height:2px;"></div><span class="sgauge">.026</span><div class="sfret"><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div><div class="fdot"></div><div class="fdot"></div><div class="fdot"></div></div></div>
+      <div class="gstr" onclick="pluck(this)"><span class="snote">G</span><div class="sline" style="height:1.8px;"></div><span class="sgauge">.017</span><div class="sfret"><div class="fdot"></div><div class="fdot"></div><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div><div class="fdot"></div></div></div>
+      <div class="gstr" onclick="pluck(this)"><span class="snote">B</span><div class="sline" style="height:1.5px;"></div><span class="sgauge">.013</span><div class="sfret"><div class="fdot"></div><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div><div class="fdot"></div><div class="fdot"></div></div></div>
+      <div class="gstr" onclick="pluck(this)"><span class="snote">e</span><div class="sline" style="height:1.2px;"></div><span class="sgauge">.010</span><div class="sfret"><div class="fdot"></div><div class="fdot"></div><div class="fdot"></div><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div></div></div>
     </div>
-    """, unsafe_allow_html=True)
+    <script>
+    function pluck(el) {
+      el.classList.remove('vib');
+      void el.offsetWidth;
+      el.classList.add('vib');
+      setTimeout(() => el.classList.remove('vib'), 500);
+    }
+    </script>
+    """
+    components.html(strings_html, height=240, scrolling=False)
 
+    st.divider()
 
-# ═══════════════════════════════════════════════════════════
-#  TAB 6: CARD ANIMATE E LUCCICANTI
-# ═══════════════════════════════════════════════════════════
-with tab_cards:
-    import random
-    st.subheader("✨ Card Animate e Luccicanti")
-    st.markdown("<p style='color:#707070; font-size:0.9rem; margin-bottom:1.5rem;'>Bordo shimmer rotante · Spotlight tracking · Sparkle particles</p>", unsafe_allow_html=True)
+    # ── SEZIONE 4: EQUALIZZATORE ANIMATO ──
+    st.markdown("#### 📊 Equalizzatore Animato")
+    st.caption("Equalizzatore grafico a 9 bande con animazione reattiva e preset")
 
-    c1, c2, c3 = st.columns(3)
+    eq_html = """
+    <style>
+    .eq-wrap { font-family: 'Oswald', sans-serif; background: linear-gradient(180deg, #1a1a1a, #0f0f0f); border-radius: 8px; padding: 20px; border: 1px solid rgba(192,192,192,0.08); }
+    .eq-row { display: flex; align-items: flex-end; justify-content: center; gap: 8px; height: 140px; padding: 16px 12px 0; }
+    .eq-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .eq-bar-track { width: 18px; height: 100px; background: rgba(0,0,0,0.3); border-radius: 3px; position: relative; overflow: hidden; }
+    .eq-bar-fill { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, #C0C0C0, #707070); border-radius: 0 0 3px 3px; transition: height 0.4s cubic-bezier(0.4,0,0.2,1); }
+    .eq-bar-fill::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: rgba(255,255,255,0.35); border-radius: 2px; }
+    .eq-lbl { font-family: 'Roboto Mono', monospace; font-size: 8px; color: #707070; text-align: center; letter-spacing: 1px; }
+    .eq-ctrl { display: flex; justify-content: center; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(192,192,192,0.06); }
+    .eq-btn { padding: 6px 16px; background: linear-gradient(145deg, #1a1a1a, #0f0f0f); border: 1px solid rgba(192,192,192,0.12); border-radius: 3px; color: #C0C0C0; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+    .eq-btn:hover { border-color: rgba(192,192,192,0.3); box-shadow: 0 0 12px rgba(192,192,192,0.06); }
+    .eq-btn.on { border-color: rgba(192,192,192,0.25); background: linear-gradient(145deg, #222, #151515); }
+    </style>
+    <div class="eq-wrap">
+      <div class="eq-row" id="eqRow">
+        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b0" style="height:30%"></div></div><div class="eq-lbl">63Hz</div></div>
+        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b1" style="height:45%"></div></div><div class="eq-lbl">125</div></div>
+        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b2" style="height:60%"></div></div><div class="eq-lbl">250</div></div>
+        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b3" style="height:50%"></div></div><div class="eq-lbl">500</div></div>
+        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b4" style="height:70%"></div></div><div class="eq-lbl">1k</div></div>
+        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b5" style="height:55%"></div></div><div class="eq-lbl">2k</div></div>
+        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b6" style="height:40%"></div></div><div class="eq-lbl">4k</div></div>
+        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b7" style="height:35%"></div></div><div class="eq-lbl">8k</div></div>
+        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b8" style="height:25%"></div></div><div class="eq-lbl">16k</div></div>
+      </div>
+      <div class="eq-ctrl">
+        <div class="eq-btn on" id="btnPlay" onclick="toggleEQ()">▶ Play</div>
+        <div class="eq-btn" onclick="resetEQ()">↺ Reset</div>
+        <div class="eq-btn" onclick="presetRock()">🎸 Rock</div>
+        <div class="eq-btn" onclick="presetJazz()">🎷 Jazz</div>
+      </div>
+    </div>
+    <script>
+    let eqPlaying = true; let eqInt = null;
+    const base = [30,45,60,50,70,55,40,35,25];
+    function setBars(vals) { vals.forEach((v,i) => { document.getElementById('b'+i).style.height = v+'%'; }); }
+    function animateEQ() {
+      const nv = base.map(v => Math.max(8, Math.min(95, v + (Math.random()-0.5)*40)));
+      setBars(nv);
+    }
+    function toggleEQ() {
+      eqPlaying = !eqPlaying;
+      document.getElementById('btnPlay').classList.toggle('on', eqPlaying);
+      document.getElementById('btnPlay').textContent = eqPlaying ? '▶ Play' : '⏸ Pause';
+      if(eqPlaying) { eqInt = setInterval(animateEQ, 180); } else { clearInterval(eqInt); }
+    }
+    function resetEQ() { clearInterval(eqInt); setBars(base); eqPlaying = false; document.getElementById('btnPlay').classList.remove('on'); document.getElementById('btnPlay').textContent = '▶ Play'; }
+    function presetRock() { clearInterval(eqInt); setBars([55,50,45,40,65,70,60,45,30]); eqPlaying = false; document.getElementById('btnPlay').classList.remove('on'); document.getElementById('btnPlay').textContent = '▶ Play'; }
+    function presetJazz() { clearInterval(eqInt); setBars([25,30,40,55,60,50,35,25,20]); eqPlaying = false; document.getElementById('btnPlay').classList.remove('on'); document.getElementById('btnPlay').textContent = '▶ Play'; }
+    eqInt = setInterval(animateEQ, 180);
+    </script>
+    """
+    components.html(eq_html, height=240, scrolling=False)
 
-    with c1:
-        st.markdown('''
-        <div class="shimmer-card">
-            <div class="shimmer-card-inner">
-                <h3 style="color:#FFFFF0; font-family:Oswald,sans-serif; letter-spacing:2px; text-transform:uppercase; font-size:1.1rem; margin:0 0 12px;">Bordo Shimmer Rotante</h3>
-                <p style="color:#707070; font-size:0.85rem; line-height:1.6;">Un riflesso dorato e argentato ruota lungo il perimetro della card al passaggio del mouse.</p>
-            </div>
-        </div>
-        ''', unsafe_allow_html=True)
-
-    with c2:
-        st.markdown('''
-        <div class="spotlight-card" onmousemove="this.style.setProperty('--mx', event.offsetX+'px'); this.style.setProperty('--my', event.offsetY+'px');">
-            <h3 style="color:#FFFFF0; font-family:Oswald,sans-serif; letter-spacing:2px; text-transform:uppercase; font-size:1.1rem; margin:0 0 12px;">Spotlight Tracking</h3>
-            <p style="color:#707070; font-size:0.85rem; line-height:1.6;">Una luce radiale morbida segue il movimento del cursore sulla superficie della card.</p>
-        </div>
-        ''', unsafe_allow_html=True)
-
-    with c3:
-        sparks = ""
-        for i in range(18):
-            left = random.uniform(4, 96)
-            top = random.uniform(8, 92)
-            size = random.uniform(2, 6)
-            delay = random.uniform(0, 2.6)
-            dur = random.uniform(1.6, 3.2)
-            sparks += f'<span class="sparkle-particle" style="left:{left:.2f}%; top:{top:.2f}%; width:{size:.2f}px; height:{size:.2f}px; animation-delay:{delay:.2f}s; animation-duration:{dur:.2f}s;"></span>'
-        st.markdown(f'''
-        <div class="sparkle-card">
-            {sparks}
-            <div style="position:relative;">
-                <h3 style="color:#FFFFF0; font-family:Oswald,sans-serif; letter-spacing:2px; text-transform:uppercase; font-size:1.1rem; margin:0 0 12px;">Sparkle Particles</h3>
-                <p style="color:#707070; font-size:0.85rem; line-height:1.6;">Piccole scintille dorate compaiono e svaniscono in punti casuali della card.</p>
-            </div>
-        </div>
-        ''', unsafe_allow_html=True)
-
-    st.markdown("<br/><p style='text-align:center; color:#505050; font-size:0.8rem;'>Passa il mouse sulle card per attivare gli effetti.</p>", unsafe_allow_html=True)
+    st.markdown("<br/><p style='text-align:center; color:#505050; font-size:0.8rem; font-family:Inter;'>Tutti i controlli sono interattivi. Clicca, trascina e sperimenta!</p>", unsafe_allow_html=True)

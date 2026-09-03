@@ -27,21 +27,24 @@ if not os.path.exists(UPLOAD_DIR):
 #  TEMA — CARATTERE VINTAGE / ROCK MIGLIORATO
 # ═══════════════════════════════════════════════════════════
 def set_rock_theme(bg_image_path=None):
-    # Palette
-    SILVER = "#C0C0C0"
+    # Palette — elegante dark premium
+    SILVER = "#C8C8C8"
     SILVER_LIGHT = "#E8E8E8"
     SILVER_DARK = "#707070"
-    GOLD = "#B8860B"
-    BLACK = "#0a0a0a"
-    CRIMSON = "#8B0000"
-    IVORY = "#FFFFF0"
+    GOLD = "#C9A96E"
+    IVORY = "#F5F0E8"
+    CHARCOAL = "#0F0F0F"
+    SURFACE = "#1A1A1A"
+    SURFACE_ELEV = "#222222"
+    ACCENT = "#C9A96E"
+    ACCENT_DIM = "#8B7355"
 
     base_css = f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
     .stApp {{
-        background: linear-gradient(160deg, #0a0a0a 0%, #111111 40%, #181818 70%, #0f0f0f 100%);
+        background: {CHARCOAL};
         background-attachment: fixed;
     }}
     """
@@ -57,299 +60,277 @@ def set_rock_theme(bg_image_path=None):
         background-image: url("data:image/jpeg;base64,{encoded}");
         background-size: cover;
         background-position: center;
-        opacity: 0.10;
+        opacity: 0.06;
         z-index: -1;
         pointer-events: none;
-        filter: grayscale(50%) contrast(1.1) brightness(0.8);
+        filter: grayscale(60%) contrast(1.2) brightness(0.6);
     }}
     """
 
     base_css += f"""
-    /* SCANLINE OVERLAY — look vintage amplificatore */
+    /* Subtle grain texture overlay */
     .stApp::after {{
         content: "";
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: repeating-linear-gradient(
-            0deg,
-            rgba(0, 0, 0, 0.08),
-            rgba(0, 0, 0, 0.08) 1px,
-            transparent 1px,
-            transparent 2px
-        );
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
         pointer-events: none;
         z-index: 9999;
-        opacity: 0.35;
     }}
-    
-    /* Keyframes */
+
+    @keyframes fadeIn {{
+        from {{ opacity: 0; }}
+        to {{ opacity: 1; }}
+    }}
     @keyframes fadeInUp {{
-        from {{ opacity: 0; transform: translateY(30px); }}
+        from {{ opacity: 0; transform: translateY(20px); }}
         to {{ opacity: 1; transform: translateY(0); }}
     }}
-    @keyframes slideInLeft {{
-        from {{ opacity: 0; transform: translateX(-30px); }}
+    @keyframes slideIn {{
+        from {{ opacity: 0; transform: translateX(-15px); }}
         to {{ opacity: 1; transform: translateX(0); }}
-    }}
-    @keyframes pulseRed {{
-        0%, 100% {{ box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }}
-        50% {{ box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }}
     }}
     @keyframes shimmer {{
         0% {{ background-position: -200% 0; }}
         100% {{ background-position: 200% 0; }}
     }}
-    @keyframes glowPulse {{
-        0%, 100% {{ text-shadow: 0 0 10px rgba(192,192,192,0.3), 0 0 20px rgba(192,192,192,0.1); }}
-        50% {{ text-shadow: 0 0 20px rgba(192,192,192,0.6), 0 0 40px rgba(192,192,192,0.2); }}
+    @keyframes gentlePulse {{
+        0%, 100% {{ opacity: 0.8; }}
+        50% {{ opacity: 1; }}
+    }}
+    @keyframes borderGlow {{
+        0%, 100% {{ border-color: rgba(201,169,110,0.15); }}
+        50% {{ border-color: rgba(201,169,110,0.35); }}
     }}
 
     [data-testid="stHeader"] {{
-        background: linear-gradient(90deg, #0a0a0a, #151515, #0a0a0a) !important;
-        border-bottom: 1px solid {SILVER_DARK}40 !important;
+        background: {CHARCOAL} !important;
+        border-bottom: 1px solid rgba(201,169,110,0.08) !important;
     }}
-    
-    /* TITOLI — Oswald bold, uppercase, spaziatura ampia, glow animato */
+
+    /* TITOLI — Playfair Display elegante */
     h1 {{
-        font-family: 'Oswald', sans-serif !important;
+        font-family: 'Playfair Display', serif !important;
         color: {IVORY} !important;
-        text-shadow: 0 2px 12px rgba(255,255,240,0.25), 0 0 50px rgba(255,255,240,0.08) !important;
-        letter-spacing: 8px !important;
-        font-size: 2.8rem !important;
+        letter-spacing: 4px !important;
+        font-size: 2.4rem !important;
         text-align: center !important;
-        margin-bottom: 0.2rem !important;
-        font-weight: 700 !important;
+        margin-bottom: 0.3rem !important;
+        font-weight: 600 !important;
         text-transform: uppercase !important;
-        animation: glowPulse 3s ease-in-out infinite !important;
+        line-height: 1.2 !important;
     }}
     h2 {{
-        font-family: 'Oswald', sans-serif !important;
+        font-family: 'Playfair Display', serif !important;
         color: {SILVER} !important;
-        letter-spacing: 4px !important;
+        letter-spacing: 3px !important;
         font-weight: 500 !important;
         text-transform: uppercase !important;
-        font-size: 1.4rem !important;
-        animation: fadeInUp 0.6s ease-out !important;
+        font-size: 1.3rem !important;
+        margin-bottom: 1rem !important;
+        border-bottom: 1px solid rgba(201,169,110,0.12);
+        padding-bottom: 8px;
+        animation: fadeInUp 0.5s ease-out !important;
     }}
     h3 {{
-        font-family: 'Oswald', sans-serif !important;
+        font-family: 'Playfair Display', serif !important;
         color: {SILVER_DARK} !important;
-        letter-spacing: 3px !important;
+        letter-spacing: 2px !important;
         font-weight: 400 !important;
         text-transform: uppercase !important;
-        font-size: 1.1rem !important;
+        font-size: 1rem !important;
     }}
-    
-    /* Pennellata dietro i nomi */
-    div[data-testid="stVerticalBlock"] h3::before,
-    div[data-testid="stVerticalBlock"] h4::before {{
-        content: "";
-        position: absolute;
-        left: 0; right: 0; top: 50%;
-        height: 70%;
-        background: linear-gradient(90deg, transparent 0%, rgba(192,192,192,0.12) 15%, rgba(192,192,192,0.22) 50%, rgba(192,192,192,0.12) 85%, transparent 100%);
-        transform: translateY(-50%) skewX(-8deg);
-        border-radius: 2px;
-        z-index: -1;
-        filter: blur(1px);
-    }}
-    
+
     /* Testo generale — Inter pulito */
     p, label, .stMarkdown {{
         color: {SILVER_DARK} !important;
         font-family: 'Inter', sans-serif !important;
         font-weight: 300 !important;
         letter-spacing: 0.3px !important;
-        line-height: 1.6 !important;
+        line-height: 1.65 !important;
     }}
-    
-    /* Metriche — Roboto Mono per look tecnico */
+
+    /* Metriche — JetBrains Mono per look tecnico */
     div[data-testid="stMetricValue"] {{
         color: {SILVER_LIGHT} !important;
-        font-family: 'Roboto Mono', monospace !important;
+        font-family: 'JetBrains Mono', monospace !important;
         font-weight: 500 !important;
-        text-shadow: 0 0 15px rgba(192,192,192,0.2) !important;
-        font-size: 1.8rem !important;
-        letter-spacing: -1px !important;
+        font-size: 1.7rem !important;
+        letter-spacing: -0.5px !important;
     }}
     div[data-testid="stMetricLabel"] {{
         color: {SILVER_DARK} !important;
-        font-family: 'Oswald', sans-serif !important;
+        font-family: 'Playfair Display', serif !important;
         font-weight: 400 !important;
         letter-spacing: 2px !important;
         text-transform: uppercase !important;
-        font-size: 0.75rem !important;
+        font-size: 0.7rem !important;
     }}
-    
-    /* Bottoni — stile vintage/rock con effetto pressione */
+
+    /* Bottoni — stile premium dark */
     .stButton > button {{
-        background: linear-gradient(145deg, #141414, #0a0a0a) !important;
+        background: {SURFACE} !important;
         color: {SILVER} !important;
-        border: 1px solid {SILVER_DARK}80 !important;
-        border-radius: 2px !important;
-        font-family: 'Oswald', sans-serif !important;
-        letter-spacing: 3px !important;
+        border: 1px solid rgba(201,169,110,0.15) !important;
+        border-radius: 4px !important;
+        font-family: 'Inter', sans-serif !important;
+        letter-spacing: 2px !important;
         text-transform: uppercase !important;
-        font-size: 0.8rem !important;
+        font-size: 0.75rem !important;
         font-weight: 500 !important;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05) !important;
-        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
         position: relative;
         overflow: hidden;
     }}
-    .stButton > button::after {{
+    .stButton > button::before {{
         content: "";
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
-        transform: rotate(30deg);
-        transition: all 0.5s;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(201,169,110,0.06), transparent);
+        transition: left 0.5s ease;
     }}
-    .stButton > button:hover::after {{
+    .stButton > button:hover::before {{
         left: 100%;
     }}
     .stButton > button:hover {{
-        border-color: {SILVER_LIGHT} !important;
-        box-shadow: 0 0 25px rgba(192,192,192,0.15), 0 6px 16px rgba(0,0,0,0.7) !important;
+        border-color: rgba(201,169,110,0.4) !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.5), 0 0 20px rgba(201,169,110,0.06) !important;
         color: {IVORY} !important;
-        transform: translateY(-2px) !important;
+        transform: translateY(-1px) !important;
     }}
     .stButton > button:active {{
-        transform: translateY(1px) !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.6) !important;
+        transform: translateY(0px) !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
     }}
     .stButton > button[kind="primary"] {{
-        background: linear-gradient(145deg, #1a1a1a, #0f0f0f) !important;
-        border: 1px solid {SILVER}60 !important;
-        box-shadow: 0 0 15px rgba(192,192,192,0.08) !important;
+        background: linear-gradient(145deg, {SURFACE_ELEV}, {SURFACE}) !important;
+        border: 1px solid rgba(201,169,110,0.25) !important;
+        box-shadow: 0 0 12px rgba(201,169,110,0.05) !important;
     }}
     .stButton > button[kind="primary"]:hover {{
-        box-shadow: 0 0 25px rgba(192,192,192,0.2), 0 6px 16px rgba(0,0,0,0.7) !important;
-        border-color: {SILVER_LIGHT} !important;
+        box-shadow: 0 0 20px rgba(201,169,110,0.1), 0 4px 16px rgba(0,0,0,0.5) !important;
+        border-color: rgba(201,169,110,0.5) !important;
     }}
-    
-    /* Card / Container — vetro scuro con animazione ingresso */
+
+    /* Card / Container — vetro scuro elegante */
     div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"] {{
-        background: rgba(15, 15, 15, 0.88) !important;
-        backdrop-filter: blur(20px) saturate(1.2) !important;
-        border: 1px solid rgba(192,192,192,0.10) !important;
-        border-radius: 4px !important;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02) !important;
+        background: {SURFACE} !important;
+        border: 1px solid rgba(201,169,110,0.08) !important;
+        border-radius: 6px !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
         animation: fadeInUp 0.5s ease-out !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }}
     div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
-        transform: translateY(-4px) !important;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 20px rgba(192,192,192,0.05), inset 0 1px 0 rgba(255,255,255,0.03) !important;
-        border-color: rgba(192,192,192,0.18) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 8px 28px rgba(0,0,0,0.5), 0 0 16px rgba(201,169,110,0.04) !important;
+        border-color: rgba(201,169,110,0.15) !important;
     }}
-    
+
     /* Sidebar */
     section[data-testid="stSidebar"] {{
-        background: linear-gradient(180deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%) !important;
-        border-right: 1px solid rgba(192,192,192,0.08) !important;
+        background: {CHARCOAL} !important;
+        border-right: 1px solid rgba(201,169,110,0.06) !important;
     }}
     section[data-testid="stSidebar"] .stMarkdown h1,
     section[data-testid="stSidebar"] .stMarkdown h2,
     section[data-testid="stSidebar"] .stMarkdown h3 {{
         color: {SILVER} !important;
-        font-family: 'Oswald', sans-serif !important;
-        letter-spacing: 4px !important;
+        font-family: 'Playfair Display', serif !important;
+        letter-spacing: 3px !important;
         text-transform: uppercase !important;
     }}
-    
+
     /* Input */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div {{
-        background: rgba(10, 10, 10, 0.9) !important;
-        border: 1px solid rgba(192,192,192,0.12) !important;
+        background: {CHARCOAL} !important;
+        border: 1px solid rgba(201,169,110,0.1) !important;
         color: {SILVER_LIGHT} !important;
-        border-radius: 2px !important;
+        border-radius: 4px !important;
         font-family: 'Inter', sans-serif !important;
         transition: all 0.3s ease !important;
     }}
     .stTextInput > div > div > input:focus,
     .stNumberInput > div > div > input:focus {{
-        border-color: {SILVER}60 !important;
-        box-shadow: 0 0 10px rgba(192,192,192,0.1) !important;
+        border-color: rgba(201,169,110,0.3) !important;
+        box-shadow: 0 0 8px rgba(201,169,110,0.06) !important;
     }}
     .stFileUploader > div {{
-        background: rgba(15, 15, 15, 0.8) !important;
-        border: 1px dashed rgba(192,192,192,0.18) !important;
+        background: {SURFACE} !important;
+        border: 1px dashed rgba(201,169,110,0.15) !important;
         border-radius: 4px !important;
         transition: all 0.3s ease !important;
     }}
     .stFileUploader > div:hover {{
-        border-color: {SILVER}40 !important;
-        background: rgba(20, 20, 20, 0.9) !important;
+        border-color: rgba(201,169,110,0.3) !important;
+        background: {SURFACE_ELEV} !important;
     }}
-    
+
     /* Scrollbar */
-    ::-webkit-scrollbar {{ width: 6px; }}
-    ::-webkit-scrollbar-track {{ background: #0a0a0a; }}
-    ::-webkit-scrollbar-thumb {{ background: linear-gradient(180deg, {SILVER_DARK}, {SILVER}40, {SILVER_DARK}); border-radius: 3px; }}
-    
+    ::-webkit-scrollbar {{ width: 5px; }}
+    ::-webkit-scrollbar-track {{ background: {CHARCOAL}; }}
+    ::-webkit-scrollbar-thumb {{ background: linear-gradient(180deg, {SILVER_DARK}, {SILVER}30, {SILVER_DARK}); border-radius: 3px; }}
+
     hr {{
         border: none !important; height: 1px !important;
-        background: linear-gradient(90deg, transparent, rgba(192,192,192,0.25), transparent) !important;
-        margin: 2rem 0 !important;
+        background: linear-gradient(90deg, transparent, rgba(201,169,110,0.15), transparent) !important;
+        margin: 1.5rem 0 !important;
     }}
-    
+
     /* Tabs */
     button[data-baseweb="tab"] {{ 
         color: {SILVER_DARK} !important; 
-        font-family: 'Oswald', sans-serif !important; 
+        font-family: 'Playfair Display', serif !important; 
         letter-spacing: 2px !important; 
         text-transform: uppercase !important; 
-        font-size: 0.85rem !important;
+        font-size: 0.8rem !important;
         transition: all 0.3s ease !important;
         position: relative;
+        font-weight: 500 !important;
     }}
     button[data-baseweb="tab"]:hover {{
         color: {SILVER} !important;
     }}
     button[data-baseweb="tab"][aria-selected="true"] {{ 
-        color: {SILVER_LIGHT} !important; 
-        border-bottom: 2px solid {SILVER} !important;
-        text-shadow: 0 0 10px rgba(192,192,192,0.3) !important;
+        color: {IVORY} !important; 
+        border-bottom: 2px solid {ACCENT} !important;
     }}
-    
+
     /* Immagini */
     img {{ 
-        border-radius: 2px !important; 
-        border: 1px solid rgba(192,192,192,0.08) !important;
+        border-radius: 4px !important; 
+        border: 1px solid rgba(201,169,110,0.06) !important;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }}
     img:hover {{
-        transform: scale(1.02);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
-        border-color: rgba(192,192,192,0.15) !important;
+        transform: scale(1.01);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4) !important;
+        border-color: rgba(201,169,110,0.12) !important;
     }}
-    
-    /* Badge categorie migliorati */
+
+    /* Badge categorie */
     .cat-badge {{
         display: inline-block;
         padding: 3px 10px;
         border-radius: 12px;
-        font-size: 0.75rem;
-        font-family: 'Oswald', sans-serif;
+        font-size: 0.7rem;
+        font-family: 'Inter', sans-serif;
         letter-spacing: 1.5px;
         text-transform: uppercase;
         font-weight: 500;
         border: 1px solid;
-        backdrop-filter: blur(4px);
         animation: fadeInUp 0.4s ease-out;
     }}
-    
-    /* Progress bar animata */
+
+    /* Progress bar */
     .setup-bar-container {{
         width: 100%;
-        height: 4px;
-        background: #1a1a1a;
+        height: 3px;
+        background: {CHARCOAL};
         border-radius: 2px;
         overflow: hidden;
         position: relative;
@@ -364,84 +345,76 @@ def set_rock_theme(bg_image_path=None):
     .setup-bar-fill::after {{
         content: "";
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
         background-size: 200% 100%;
         animation: shimmer 2s infinite;
     }}
-    
+
     /* Alert metriche */
     .metric-urgent {{
-        animation: pulseRed 2s infinite;
+        animation: gentlePulse 2s infinite;
         border-radius: 4px;
         padding: 4px 8px;
     }}
-    
-    /* Galleria effetto Polaroid */
+
+    /* Galleria Polaroid */
     .polaroid {{
-        background: #141414;
+        background: {SURFACE};
         padding: 8px 8px 20px 8px;
-        border-radius: 2px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid rgba(192,192,192,0.05);
+        border: 1px solid rgba(201,169,110,0.05);
     }}
     .polaroid:hover {{
-        transform: translateY(-6px) rotate(0.5deg);
-        box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 20px rgba(192,192,192,0.05);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.4), 0 0 16px rgba(201,169,110,0.04);
     }}
-    
-    /* Wishlist card priority glow */
-    .priority-high {{ box-shadow: 0 0 15px rgba(244, 67, 54, 0.15) !important; border-color: rgba(244, 67, 54, 0.3) !important; }}
-    .priority-medium {{ box-shadow: 0 0 15px rgba(255, 193, 7, 0.1) !important; border-color: rgba(255, 193, 7, 0.2) !important; }}
-    .priority-low {{ box-shadow: 0 0 15px rgba(76, 175, 80, 0.1) !important; border-color: rgba(76, 175, 80, 0.2) !important; }}
-    
-    /* Stagger animation per liste */
+
+    /* Wishlist priority glow */
+    .priority-high {{ box-shadow: 0 0 12px rgba(244, 67, 54, 0.1) !important; border-color: rgba(244, 67, 54, 0.25) !important; }}
+    .priority-medium {{ box-shadow: 0 0 12px rgba(255, 193, 7, 0.08) !important; border-color: rgba(255, 193, 7, 0.18) !important; }}
+    .priority-low {{ box-shadow: 0 0 12px rgba(76, 175, 80, 0.08) !important; border-color: rgba(76, 175, 80, 0.18) !important; }}
+
+    /* Stagger animation */
     .stagger-1 {{ animation-delay: 0.05s !important; }}
     .stagger-2 {{ animation-delay: 0.1s !important; }}
     .stagger-3 {{ animation-delay: 0.15s !important; }}
     .stagger-4 {{ animation-delay: 0.2s !important; }}
     .stagger-5 {{ animation-delay: 0.25s !important; }}
     .stagger-6 {{ animation-delay: 0.3s !important; }}
-    
+
     /* Form container */
     div[data-testid="stForm"] {{
-        background: rgba(10, 10, 10, 0.6) !important;
-        border: 1px solid rgba(192,192,192,0.08) !important;
-        border-radius: 4px !important;
+        background: {SURFACE} !important;
+        border: 1px solid rgba(201,169,110,0.06) !important;
+        border-radius: 6px !important;
         padding: 1rem !important;
     }}
-    
+
     /* Expander */
     details {{
-        background: rgba(15, 15, 15, 0.5) !important;
-        border: 1px solid rgba(192,192,192,0.06) !important;
-        border-radius: 2px !important;
+        background: {SURFACE} !important;
+        border: 1px solid rgba(201,169,110,0.05) !important;
+        border-radius: 4px !important;
     }}
 
-    /* === CARD ANIMATE E LUCCICANTI === */
-    @keyframes shimmerSpin {{ to {{ transform: rotate(360deg); }} }}
-    .shimmer-card {{ position: relative; border-radius: 16px; padding: 2px; overflow: hidden; background: rgba(15,15,15,0.9); }}
-    .shimmer-card::before {{ content: ""; position: absolute; inset: -100%; background: conic-gradient(from 0deg, transparent 0%, #f5d78e 12%, #fffbe8 20%, #c8c8d0 32%, transparent 45%, transparent 100%); opacity: 0; transition: opacity 0.5s; animation: shimmerSpin 3.5s linear infinite; }}
+    /* Premium card styles */
+    .shimmer-card {{ position: relative; border-radius: 12px; padding: 2px; overflow: hidden; background: {SURFACE}; }}
+    .shimmer-card::before {{ content: ""; position: absolute; inset: -100%; background: conic-gradient(from 0deg, transparent 0%, {ACCENT} 12%, #fffbe8 20%, {SILVER} 32%, transparent 45%, transparent 100%); opacity: 0; transition: opacity 0.5s; animation: shimmerSpin 3.5s linear infinite; }}
     .shimmer-card:hover::before {{ opacity: 1; }}
-    .shimmer-card-inner {{ position: relative; border-radius: 14px; background: rgba(10,10,10,0.95); padding: 32px; border: 1px solid rgba(192,192,192,0.1); }}
-    .spotlight-card {{ position: relative; overflow: hidden; border-radius: 16px; border: 1px solid rgba(192,192,192,0.1); background: rgba(10,10,10,0.95); padding: 32px; transition: border-color 0.5s; }}
-    .spotlight-card:hover {{ border-color: rgba(255,255,255,0.25); }}
-    .spotlight-card::before {{ content: ""; position: absolute; inset: 0; background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 50%), rgba(245,215,142,0.18), rgba(255,255,255,0.06) 40%, transparent 70%); opacity: 0; transition: opacity 0.3s; pointer-events: none; }}
+    .shimmer-card-inner {{ position: relative; border-radius: 10px; background: {CHARCOAL}; padding: 28px; border: 1px solid rgba(201,169,110,0.08); }}
+    .spotlight-card {{ position: relative; overflow: hidden; border-radius: 12px; border: 1px solid rgba(201,169,110,0.08); background: {CHARCOAL}; padding: 28px; transition: border-color 0.5s; }}
+    .spotlight-card:hover {{ border-color: rgba(201,169,110,0.2); }}
+    .spotlight-card::before {{ content: ""; position: absolute; inset: 0; background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 50%), rgba(201,169,110,0.12), rgba(255,255,255,0.04) 40%, transparent 70%); opacity: 0; transition: opacity 0.3s; pointer-events: none; }}
     .spotlight-card:hover::before {{ opacity: 1; }}
-    @keyframes sparklePulse {{ 0%, 100% {{ opacity: 0; transform: scale(0.4); }} 50% {{ opacity: 1; transform: scale(1.2); }} }}
-    .sparkle-card {{ position: relative; overflow: hidden; border-radius: 16px; border: 1px solid rgba(192,192,192,0.1); background: rgba(10,10,10,0.95); padding: 32px; transition: border-color 0.5s; }}
-    .sparkle-card:hover {{ border-color: rgba(255,255,255,0.25); }}
-    .sparkle-particle {{ position: absolute; border-radius: 50%; background: #f5d78e; box-shadow: 0 0 8px 2px rgba(245,215,142,0.7); animation: sparklePulse 2s ease-in-out infinite paused; }}
-    .sparkle-card:hover .sparkle-particle {{ animation-play-state: running; }}
     </style>
     """
     st.markdown(base_css, unsafe_allow_html=True)
 
 set_rock_theme(BG_IMAGE_PATH)
+
 
 # ═══════════════════════════════════════════════════════════
 #  DATI DEFAULT & MIGRAZIONE
@@ -637,13 +610,13 @@ with st.sidebar:
             pct = count / total_c * 100
             col = CATEGORY_COLORS.get(cat, "#808080")
             chart_html += f"""
-            <div style="margin-bottom:8px; animation: fadeInUp 0.5s ease-out;">
-                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:3px; font-family:Oswald,sans-serif; letter-spacing:1px;">
+            <div style="margin-bottom:10px; animation: fadeInUp 0.5s ease-out;">
+                <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#C0C0C0; margin-bottom:4px; font-family:'Inter',sans-serif; letter-spacing:1px;">
                     <span>{CATEGORY_EMOJI.get(cat, '🎸')} {cat.upper()}</span>
-                    <span>{count} ({pct:.0f}%)</span>
+                    <span style="font-family:'JetBrains Mono',monospace;">{count} ({pct:.0f}%)</span>
                 </div>
-                <div style="width:100%; height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);">
-                    <div style="width:{pct}%; height:100%; background:linear-gradient(90deg, {col}88, {col}); border-radius:3px; transition: width 1s ease-out;"></div>
+                <div style="width:100%; height:4px; background:#0F0F0F; border-radius:2px; overflow:hidden;">
+                    <div style="width:{pct}%; height:100%; background:linear-gradient(90deg, {col}60, {col}); border-radius:2px; transition: width 1s ease-out;"></div>
                 </div>
             </div>
             """
@@ -661,13 +634,13 @@ with st.sidebar:
         for i, (brand, val) in enumerate(sorted(brands.items(), key=lambda x: -x[1])):
             pct = val / max_val * 100
             bchart_html += f"""
-            <div style="margin-bottom:8px; animation: fadeInUp 0.5s ease-out; animation-delay: {round(i*0.1, 1)}s;">
-                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#C0C0C0; margin-bottom:3px; font-family:Oswald,sans-serif; letter-spacing:1px;">
+            <div style="margin-bottom:10px; animation: fadeInUp 0.5s ease-out; animation-delay: {round(i*0.1, 1)}s;">
+                <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#C0C0C0; margin-bottom:4px; font-family:'Inter',sans-serif; letter-spacing:1px;">
                     <span>{brand.upper()}</span>
-                    <span>{fmt_currency(val)}</span>
+                    <span style="font-family:'JetBrains Mono',monospace;">{fmt_currency(val)}</span>
                 </div>
-                <div style="width:100%; height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);">
-                    <div style="width:{pct}%; height:100%; background:linear-gradient(90deg, #707070, #C0C0C0, #E8E8E8); border-radius:3px; transition: width 1s ease-out;"></div>
+                <div style="width:100%; height:4px; background:#0F0F0F; border-radius:2px; overflow:hidden;">
+                    <div style="width:{pct}%; height:100%; background:linear-gradient(90deg, #505050, #C9A96E, #E8D5B5); border-radius:2px; transition: width 1s ease-out;"></div>
                 </div>
             </div>
             """
@@ -736,13 +709,14 @@ with st.sidebar:
 #  HEADER
 # ═══════════════════════════════════════════════════════════
 st.markdown("<h1 style='text-align:center;'>🎸 Guitar Rack & Vault Pro 🎸</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#707070; font-family:Inter; font-size:0.95rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:2rem;'>Collezione · Inventario · Manutenzione · Wishlist</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#707070; font-family:Inter; font-size:0.85rem; letter-spacing:3px; text-transform:uppercase; margin-bottom:2.5rem;'>Collezione · Inventario · Manutenzione · Wishlist</p>", unsafe_allow_html=True)
+st.markdown("<div style='width:60px; height:1px; background:linear-gradient(90deg,transparent,#C9A96E,transparent); margin:0 auto 2.5rem;'></div>", unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
 #  TABS PRINCIPALI
 # ═══════════════════════════════════════════════════════════
-tab_rack, tab_gallery, tab_wishlist, tab_compare, tab_chicche = st.tabs([
-    "🎸 Rack & Manutenzione", "🖼️ Galleria", "💭 Wishlist", "⚖️ Confronto", "✨ Chicche"
+tab_rack, tab_gallery, tab_wishlist, tab_compare = st.tabs([
+    "🎸 Rack & Manutenzione", "🖼️ Galleria", "💭 Wishlist", "⚖️ Confronto"
 ])
 
 with tab_rack:
@@ -902,18 +876,16 @@ with tab_rack:
 
             with cinfo:
                 st.markdown(f"""
-                <div style="margin-bottom:10px;">
-                    <span class="cat-badge" style="background:{cat_color}15; color:{cat_color}; border-color:{cat_color}50;">
+                <div style="margin-bottom:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <span class="cat-badge" style="background:{cat_color}12; color:{cat_color}; border-color:{cat_color}40;">
                         {cat_emoji} {cat}
                     </span>
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:#505050; letter-spacing:1px;">{g.get('year','N/D')}</span>
                 </div>
-                <div style="margin-bottom:12px;">
-                    <span style="font-family:'Oswald',sans-serif; font-size:1.2rem; color:#FFFFF0; letter-spacing:2px; text-transform:uppercase;">{g['brand']}</span>
-                    <span style="position:relative; display:inline-block; padding:2px 12px; margin:0 6px; font-family:'Oswald',sans-serif; font-size:1.3rem; color:#0a0a0a; font-weight:700; letter-spacing:1px; text-transform:uppercase;">
-                        <span style="position:absolute; left:-4px; right:-4px; top:15%; bottom:15%; background:linear-gradient(90deg, rgba(218,165,32,0.85), rgba(255,215,0,0.9), rgba(218,165,32,0.85)); transform:skewX(-10deg); border-radius:2px; z-index:0; filter:blur(0.5px);"></span>
-                        <span style="position:relative; z-index:1;">{g['model']}</span>
-                    </span>
-                    <span style="font-family:'Roboto Mono',monospace; font-size:0.85rem; color:#707070;">({g.get('year','N/D')})</span>
+                <div style="margin-bottom:14px;">
+                    <span style="font-family:'Playfair Display',serif; font-size:1.15rem; color:#F5F0E8; letter-spacing:1px; text-transform:uppercase; font-weight:500;">{g['brand']}</span>
+                    <span style="margin:0 8px; color:#C9A96E; font-size:0.9rem;">·</span>
+                    <span style="font-family:'Playfair Display',serif; font-size:1.25rem; color:#C9A96E; font-weight:600; letter-spacing:0.5px;">{g['model']}</span>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -921,10 +893,10 @@ with tab_rack:
                 bar_color = "#4CAF50" if status == "ok" else ("#FFC107" if status == "warning" else "#F44336")
                 
                 st.markdown(f"""
-                <div style="margin-bottom:12px;">
-                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#707070; margin-bottom:4px; font-family:'Roboto Mono',monospace;">
+                <div style="margin-bottom:14px; padding:10px 14px; background:rgba(201,169,110,0.03); border-radius:4px; border:1px solid rgba(201,169,110,0.06);">
+                    <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#707070; margin-bottom:6px; font-family:'JetBrains Mono',monospace; letter-spacing:0.5px;">
                         <span>SETUP: {g.get('lastSetup','MAI')}</span>
-                        <span style="color:{bar_color}; font-weight:600;">{days} GIORNI FA</span>
+                        <span style="color:{bar_color}; font-weight:500;">{days} GIORNI FA</span>
                     </div>
                     <div class="setup-bar-container">
                         <div class="setup-bar-fill" style="width:{progress*100}%; background:{bar_color};"></div>
@@ -950,10 +922,10 @@ with tab_rack:
                     if log:
                         for entry in sorted(log, key=lambda x: x.get("date",""), reverse=True):
                             st.markdown(f"""
-                            <div style="border-left:2px solid #707070; padding-left:10px; margin-bottom:8px; animation: slideInLeft 0.4s ease-out;">
-                                <span style="color:#FFFFF0; font-family:'Oswald',sans-serif; font-size:0.85rem; letter-spacing:1px;"><b>{entry.get('date')}</b> — {entry.get('type','Intervento').upper()}</span><br/>
-                                <span style="color:#707070; font-size:0.8rem;">{entry.get('notes','')}</span>
-                                {f'<br/><span style="color:#B8860B; font-family:Roboto Mono,monospace; font-size:0.8rem;">€ {entry.get("cost",0)}</span>' if entry.get('cost') else ''}
+                            <div style="border-left:2px solid rgba(201,169,110,0.25); padding-left:12px; margin-bottom:10px; animation: slideIn 0.4s ease-out;">
+                                <span style="color:#F5F0E8; font-family:'Playfair Display',serif; font-size:0.8rem; letter-spacing:1px;"><b>{entry.get('date')}</b> — {entry.get('type','Intervento').upper()}</span><br/>
+                                <span style="color:#707070; font-size:0.78rem; font-family:'Inter',sans-serif;">{entry.get('notes','')}</span>
+                                {f'<br/><span style="color:#C9A96E; font-family:JetBrains Mono,monospace; font-size:0.75rem;">€ {entry.get("cost",0)}</span>' if entry.get('cost') else ''}
                             </div>
                             """, unsafe_allow_html=True)
                     else:
@@ -1044,10 +1016,10 @@ with tab_gallery:
                         </div>""", unsafe_allow_html=True)
                     
                     st.markdown(f"""
-                    <center style="margin-top:8px;">
-                        <b style='color:#FFFFF0; font-family:Oswald,sans-serif; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase;'>{g['brand']}</b><br/>
-                        <span style='color:#707070; font-size:0.8rem; font-family:Inter;'>{g['model']}</span><br/>
-                        <span class="cat-badge" style="background:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}15; color:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}; border-color:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}50; margin-top:4px; display:inline-block;">
+                    <center style="margin-top:10px;">
+                        <b style='color:#F5F0E8; font-family:"Playfair Display",serif; font-size:0.8rem; letter-spacing:1px; text-transform:uppercase; font-weight:500;'>{g['brand']}</b><br/>
+                        <span style='color:#707070; font-size:0.75rem; font-family:Inter;'>{g['model']}</span><br/>
+                        <span class="cat-badge" style="background:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}10; color:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}; border-color:{CATEGORY_COLORS.get(g.get('category','Elettrica'), '#808080')}35; margin-top:6px; display:inline-block;">
                             {CATEGORY_EMOJI.get(g.get('category','Elettrica'), '🎸')} {g.get('category','Elettrica')}
                         </span>
                     </center>
@@ -1152,11 +1124,11 @@ with tab_wishlist:
 
                 with cinfo:
                     st.markdown(f"""
-                    <b style="color:#FFFFF0; font-family:Oswald,sans-serif; font-size:1.1rem; letter-spacing:2px; text-transform:uppercase;">{w['brand']} {w['model']}</b>
-                    <span class="cat-badge" style="background:{pcol}22; color:{pcol}; border-color:{pcol}66; margin-left:8px;">
+                    <b style="color:#F5F0E8; font-family:'Playfair Display',serif; font-size:1.05rem; letter-spacing:1.5px; text-transform:uppercase; font-weight:500;">{w['brand']} {w['model']}</b>
+                    <span class="cat-badge" style="background:{pcol}18; color:{pcol}; border-color:{pcol}50; margin-left:8px;">
                         {w.get('priority','MEDIA')}
                     </span>
-                    <br/><span style="color:#707070; font-size:0.8rem; font-family:Inter;">{w.get('category','Elettrica')} · Budget {fmt_currency(w.get('budget',0))} · Anno {w.get('year','N/D')}</span>
+                    <br/><span style="color:#707070; font-size:0.78rem; font-family:Inter; letter-spacing:0.3px;">{w.get('category','Elettrica')} · Budget {fmt_currency(w.get('budget',0))} · Anno {w.get('year','N/D')}</span>
                     """, unsafe_allow_html=True)
                     if w.get("notes"):
                         st.caption(w["notes"])
@@ -1251,9 +1223,9 @@ with tab_compare:
                     v1 = fmt_currency(v1) if v1 else "N/D"
                     v2 = fmt_currency(v2) if v2 else "N/D"
                 col_l, col_v1, col_v2 = st.columns([1,2,2])
-                col_l.markdown(f"<span style='color:#707070; font-size:0.85rem; font-family:Oswald,sans-serif; letter-spacing:1px; text-transform:uppercase;'>{label}</span>", unsafe_allow_html=True)
-                col_v1.markdown(f"<span style='color:#FFFFF0; font-size:0.9rem;'>{v1}</span>", unsafe_allow_html=True)
-                col_v2.markdown(f"<span style='color:#FFFFF0; font-size:0.9rem;'>{v2}</span>", unsafe_allow_html=True)
+                col_l.markdown(f"<span style='color:#707070; font-size:0.8rem; font-family:Playfair Display,serif; letter-spacing:1.5px; text-transform:uppercase;'>{label}</span>", unsafe_allow_html=True)
+                col_v1.markdown(f"<span style='color:#F5F0E8; font-size:0.88rem; font-family:Inter,sans-serif;'>{v1}</span>", unsafe_allow_html=True)
+                col_v2.markdown(f"<span style='color:#F5F0E8; font-size:0.88rem; font-family:Inter,sans-serif;'>{v2}</span>", unsafe_allow_html=True)
                 st.markdown("<hr style='margin:4px 0; border:none; height:1px; background:linear-gradient(90deg,transparent,rgba(192,192,192,0.1),transparent);'>", unsafe_allow_html=True)
         else:
             st.warning("Seleziona due strumenti diversi.")
@@ -1262,353 +1234,3 @@ with tab_compare:
 # ═══════════════════════════════════════════════════════════
 #  TAB 5: BASSMAN VINTAGE AMP
 # ═══════════════════════════════════════════════════════════
-
-
-# ═══════════════════════════════════════════════════════════
-#  TAB 5: CHICCHE GRAFICHE INTERATTIVE
-# ═══════════════════════════════════════════════════════════
-with tab_chicche:
-    st.subheader("✨ Chicche Grafiche")
-    st.markdown("<p style='color:#707070; font-size:0.9rem; margin-bottom:1.5rem;'>Pedalboard virtuale, amp head interattivo, visualizzatore corde e equalizzatore animato.</p>", unsafe_allow_html=True)
-
-    # ── SEZIONE 1: PEDALBOARD VIRTUALE ──
-    st.markdown("#### 🎛️ Pedalboard Virtuale")
-    st.caption("Clicca sui pedali per attivarli/disattivarli")
-
-    pedalboard_html = """
-    <style>
-    .pb-wrapper { font-family: 'Oswald', sans-serif; }
-    .pb-row {
-        display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
-        padding: 24px 16px; background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
-        border-radius: 8px; border: 1px solid rgba(192,192,192,0.08);
-        position: relative; overflow: hidden;
-    }
-    .pb-row::before {
-        content: ""; position: absolute; inset: 0;
-        background: repeating-linear-gradient(90deg, transparent 0px, transparent 39px, rgba(192,192,192,0.02) 39px, rgba(192,192,192,0.02) 40px);
-        pointer-events: none;
-    }
-    .pedal {
-        width: 90px; height: 150px; border-radius: 8px;
-        position: relative; cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-        padding: 10px 6px; border: 2px solid rgba(255,255,255,0.06);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
-        user-select: none;
-    }
-    .pedal:hover { transform: translateY(-5px) scale(1.04); box-shadow: 0 10px 24px rgba(0,0,0,0.6), 0 0 16px rgba(255,255,255,0.04); }
-    .pedal.on { border-color: rgba(255,255,255,0.2); box-shadow: 0 0 16px rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08); }
-    .pedal.on .p-led { animation: ledPulse 1.5s ease-in-out infinite; background: #ff4444; border-color: #ff6666; }
-    .pedal.pressed { animation: pedalPress 0.15s ease-out; }
-    .p-led { width: 7px; height: 7px; border-radius: 50%; background: #333; border: 1px solid #555; transition: all 0.3s; }
-    .p-knobs { display: flex; gap: 3px; margin: 6px 0; }
-    .p-knob { width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #555, #222); border: 1px solid #666; position: relative; }
-    .p-knob::after { content: ""; position: absolute; top: 2px; left: 50%; width: 2px; height: 5px; background: #aaa; transform: translateX(-50%); border-radius: 1px; }
-    .p-name { font-size: 8px; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.55); text-align: center; line-height: 1.2; }
-    .p-sw { width: 28px; height: 28px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #444, #1a1a1a); border: 2px solid #555; box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 9px; color: #888; transition: all 0.1s; }
-    .pedal.on .p-sw { background: radial-gradient(circle at 35% 35%, #555, #222); box-shadow: 0 1px 3px rgba(0,0,0,0.5), inset 0 2px 4px rgba(0,0,0,0.3); }
-    @keyframes ledPulse { 0%,100%{opacity:0.6;box-shadow:0 0 4px currentColor} 50%{opacity:1;box-shadow:0 0 10px currentColor,0 0 20px currentColor} }
-    @keyframes pedalPress { 0%{transform:translateY(0)} 50%{transform:translateY(3px)} 100%{transform:translateY(0)} }
-    </style>
-    <div class="pb-wrapper">
-      <div class="pb-row" id="pbRow">
-        <div class="pedal" style="background:linear-gradient(180deg,#2a1a1a,#1a0a0a);" onclick="togglePedal(this)">
-          <div class="p-led"></div>
-          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div><div class="p-knob"></div></div>
-          <div class="p-name">Overdrive</div>
-          <div class="p-sw">BYPASS</div>
-        </div>
-        <div class="pedal" style="background:linear-gradient(180deg,#1a2a1a,#0a1a0a);" onclick="togglePedal(this)">
-          <div class="p-led"></div>
-          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div></div>
-          <div class="p-name">Chorus</div>
-          <div class="p-sw">BYPASS</div>
-        </div>
-        <div class="pedal" style="background:linear-gradient(180deg,#1a1a2a,#0a0a1a);" onclick="togglePedal(this)">
-          <div class="p-led"></div>
-          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div><div class="p-knob"></div><div class="p-knob"></div></div>
-          <div class="p-name">Delay</div>
-          <div class="p-sw">BYPASS</div>
-        </div>
-        <div class="pedal" style="background:linear-gradient(180deg,#2a2a1a,#1a1a0a);" onclick="togglePedal(this)">
-          <div class="p-led"></div>
-          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div></div>
-          <div class="p-name">Fuzz</div>
-          <div class="p-sw">BYPASS</div>
-        </div>
-        <div class="pedal" style="background:linear-gradient(180deg,#1a2a2a,#0a1a1a);" onclick="togglePedal(this)">
-          <div class="p-led"></div>
-          <div class="p-knobs"><div class="p-knob"></div></div>
-          <div class="p-name">Boost</div>
-          <div class="p-sw">BYPASS</div>
-        </div>
-        <div class="pedal" style="background:linear-gradient(180deg,#2a1a2a,#1a0a1a);" onclick="togglePedal(this)">
-          <div class="p-led"></div>
-          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div><div class="p-knob"></div></div>
-          <div class="p-name">Reverb</div>
-          <div class="p-sw">BYPASS</div>
-        </div>
-        <div class="pedal" style="background:linear-gradient(180deg,#2a2520,#1a1510);" onclick="togglePedal(this)">
-          <div class="p-led"></div>
-          <div class="p-knobs"><div class="p-knob"></div><div class="p-knob"></div></div>
-          <div class="p-name">Wah</div>
-          <div class="p-sw">BYPASS</div>
-        </div>
-      </div>
-    </div>
-    <script>
-    function togglePedal(el) {
-      el.classList.toggle('on');
-      el.classList.add('pressed');
-      setTimeout(() => el.classList.remove('pressed'), 150);
-      const sw = el.querySelector('.p-sw');
-      sw.textContent = el.classList.contains('on') ? 'ACTIVE' : 'BYPASS';
-      updateChain();
-    }
-    function updateChain() {
-      const active = document.querySelectorAll('.pedal.on').length;
-      const readout = document.getElementById('chainReadout');
-      if (readout) readout.textContent = active + ' pedali attivi nella catena';
-    }
-    </script>
-    <div id="chainReadout" style="text-align:center; margin-top:10px; color:#707070; font-family:Oswald,sans-serif; font-size:0.8rem; letter-spacing:1px;">0 pedali attivi nella catena</div>
-    """
-    components.html(pedalboard_html, height=260, scrolling=False)
-
-    st.divider()
-
-    # ── SEZIONE 2: AMP HEAD VIRTUALE ──
-    st.markdown("#### 🔥 Amp Head Virtuale")
-    st.caption("Gira i knob, accendi l'amplificatore e guarda il VU meter")
-
-    amp_html = """
-    <style>
-    .amp-wrap { font-family: 'Oswald', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-    .amp-box {
-      width: 480px; max-width: 100%; background: linear-gradient(180deg, #1e1e1e 0%, #0f0f0f 100%);
-      border-radius: 12px; padding: 20px; border: 2px solid rgba(192,192,192,0.1);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
-      position: relative; overflow: hidden;
-    }
-    .amp-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(192,192,192,0.25), transparent); }
-    .amp-grille {
-      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.25) 3px, rgba(0,0,0,0.25) 4px),
-                  repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.25) 3px, rgba(0,0,0,0.25) 4px),
-                  linear-gradient(180deg, #2a2a2a, #1a1a1a);
-      border-radius: 4px; padding: 14px; margin: 8px 0; border: 1px solid rgba(192,192,192,0.06);
-      display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;
-    }
-    .ak { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-    .ak-dial {
-      width: 48px; height: 48px; border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #444, #1a1a1a);
-      border: 2px solid #555; box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
-      position: relative; cursor: grab; transition: all 0.2s;
-    }
-    .ak-dial:hover { box-shadow: 0 0 12px rgba(192,192,192,0.08), 0 4px 8px rgba(0,0,0,0.5); }
-    .ak-dial::after { content: ""; position: absolute; top: 5px; left: 50%; width: 2.5px; height: 14px; background: #aaa; transform: translateX(-50%); border-radius: 2px; box-shadow: 0 0 3px rgba(255,255,255,0.15); }
-    .ak-lbl { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #888; }
-    .ak-val { font-family: 'Roboto Mono', monospace; font-size: 10px; color: #C0C0C0; }
-    .amp-vu { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 8px; padding-top: 10px; border-top: 1px solid #333; }
-    .amp-led { width: 10px; height: 10px; border-radius: 50%; background: #331111; border: 1px solid #553333; transition: all 0.5s; }
-    .amp-led.on { background: #ff4422; border-color: #ff6644; box-shadow: 0 0 8px #ff4422, 0 0 16px #ff4422aa; animation: ledPulse 2s ease-in-out infinite; }
-    .amp-sw { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 3px 8px; border-radius: 6px; transition: background 0.2s; user-select: none; }
-    .amp-sw:hover { background: rgba(255,255,255,0.04); }
-    .sw-track { width: 32px; height: 16px; background: #333; border-radius: 8px; position: relative; transition: background 0.3s; border: 1px solid #444; }
-    .sw-track.on { background: #4a7c3f; }
-    .sw-thumb { width: 12px; height: 12px; background: #ccc; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
-    .sw-track.on .sw-thumb { left: 17px; background: #fff; }
-    .sw-lbl { font-size: 10px; color: #888; letter-spacing: 1px; text-transform: uppercase; font-weight: 500; transition: color 0.3s; }
-    .sw-lbl.on { color: #7cb87c; }
-    .warm { position: absolute; inset: 0; border-radius: 12px; pointer-events: none; opacity: 0; transition: opacity 0.6s ease; background: radial-gradient(ellipse at 50% 30%, rgba(255,140,50,0.05) 0%, transparent 70%); }
-    .warm.on { opacity: 1; }
-    .amp-badge { text-align: center; margin-top: 6px; }
-    .amp-badge h4 { font-size: 16px; font-weight: 600; color: #C0C0C0; letter-spacing: 4px; text-transform: uppercase; margin: 0; }
-    .amp-badge p { font-size: 10px; color: #707070; letter-spacing: 2px; margin: 2px 0 0; text-transform: uppercase; }
-    .tone-desc { margin-top: 10px; padding: 8px 12px; background: rgba(0,0,0,0.15); border-radius: 6px; font-size: 12px; color: #707070; text-align: center; letter-spacing: 0.5px; min-height: 18px; font-family: 'Inter', sans-serif; }
-    @keyframes ledPulse { 0%,100%{opacity:0.8} 50%{opacity:1} }
-    </style>
-    <div class="amp-wrap">
-      <div class="amp-box">
-        <div class="warm" id="warm"></div>
-        <div class="amp-grille">
-          <div class="ak"><div class="ak-dial" id="k0" style="transform:rotate(0deg);" onmousedown="startKnob(event,0)"></div><div class="ak-lbl">Gain</div><div class="ak-val" id="v0">5</div></div>
-          <div class="ak"><div class="ak-dial" id="k1" style="transform:rotate(0deg);" onmousedown="startKnob(event,1)"></div><div class="ak-lbl">Bass</div><div class="ak-val" id="v1">5</div></div>
-          <div class="ak"><div class="ak-dial" id="k2" style="transform:rotate(0deg);" onmousedown="startKnob(event,2)"></div><div class="ak-lbl">Mid</div><div class="ak-val" id="v2">5</div></div>
-          <div class="ak"><div class="ak-dial" id="k3" style="transform:rotate(0deg);" onmousedown="startKnob(event,3)"></div><div class="ak-lbl">Treble</div><div class="ak-val" id="v3">5</div></div>
-          <div class="ak"><div class="ak-dial" id="k4" style="transform:rotate(0deg);" onmousedown="startKnob(event,4)"></div><div class="ak-lbl">Presence</div><div class="ak-val" id="v4">3</div></div>
-          <div class="ak"><div class="ak-dial" id="k5" style="transform:rotate(0deg);" onmousedown="startKnob(event,5)"></div><div class="ak-lbl">Master</div><div class="ak-val" id="v5">6</div></div>
-        </div>
-        <div class="amp-vu">
-          <div class="amp-led" id="pilot"></div>
-          <svg width="100" height="50" viewBox="0 0 100 50">
-            <path d="M 8 46 A 38 38 0 0 1 92 46" fill="none" stroke="#333" stroke-width="6" stroke-linecap="round"/>
-            <path d="M 12 46 A 34 34 0 0 1 36 18" fill="none" stroke="#2d5a27" stroke-width="4.5" stroke-linecap="round"/>
-            <path d="M 36 18 A 34 34 0 0 1 64 18" fill="none" stroke="#8a7a20" stroke-width="4.5" stroke-linecap="round"/>
-            <path d="M 64 18 A 34 34 0 0 1 88 46" fill="none" stroke="#5a1a1a" stroke-width="4.5" stroke-linecap="round"/>
-            <g id="needle" transform="rotate(-45, 50, 46)">
-              <line x1="50" y1="46" x2="50" y2="14" stroke="#e8d5b5" stroke-width="1.2" stroke-linecap="round"/>
-              <circle cx="50" cy="46" r="2.5" fill="#888"/>
-            </g>
-          </svg>
-          <div class="amp-sw" id="pwrSw" onclick="toggleAmp()">
-            <div class="sw-track" id="swTrk"><div class="sw-thumb"></div></div>
-            <span class="sw-lbl" id="swLbl">Off</span>
-          </div>
-        </div>
-        <div class="amp-badge"><h4>Vault Head</h4><p>Tube Amplifier · All-Tube Preamp</p></div>
-      </div>
-      <div class="tone-desc" id="toneDesc">Amp is off. Flip the switch to warm up the tubes.</div>
-    </div>
-    <script>
-    const knobs = [
-      {name:'gain', val:5, min:0, max:10},
-      {name:'bass', val:5, min:0, max:10},
-      {name:'mid', val:5, min:0, max:10},
-      {name:'treble', val:5, min:0, max:10},
-      {name:'presence', val:3, min:0, max:10},
-      {name:'master', val:6, min:0, max:10}
-    ];
-    let ampOn = false; let vuInt = null; let nAng = -45; let tAng = -45; let dragIdx = null, dragY0 = 0, dragV0 = 0;
-    function setKnob(i, v) {
-      knobs[i].val = v;
-      const ang = -135 + (v / knobs[i].max) * 270;
-      document.getElementById('k'+i).style.transform = 'rotate('+ang+'deg)';
-      document.getElementById('v'+i).textContent = v;
-      updateTone();
-    }
-    function startKnob(e, i) { e.preventDefault(); dragIdx = i; dragY0 = e.clientY; dragV0 = knobs[i].val; document.addEventListener('mousemove', onKnob); document.addEventListener('mouseup', endKnob); }
-    function onKnob(e) { if(dragIdx===null) return; const dy = (dragY0 - e.clientY) * 0.06; let nv = Math.round(Math.max(knobs[dragIdx].min, Math.min(knobs[dragIdx].max, dragV0 + dy))); setKnob(dragIdx, nv); }
-    function endKnob() { dragIdx = null; document.removeEventListener('mousemove', onKnob); document.removeEventListener('mouseup', endKnob); }
-    function toggleAmp() {
-      ampOn = !ampOn;
-      document.getElementById('swTrk').classList.toggle('on', ampOn);
-      document.getElementById('swLbl').classList.toggle('on', ampOn);
-      document.getElementById('swLbl').textContent = ampOn ? 'On' : 'Off';
-      document.getElementById('pilot').classList.toggle('on', ampOn);
-      document.getElementById('warm').classList.toggle('on', ampOn);
-      if (ampOn) {
-        vuInt = setInterval(() => { const intensity = (knobs[0].val + knobs[5].val) / 20; tAng = -45 + Math.random() * 85 * intensity; }, 90);
-        updateTone();
-      } else { clearInterval(vuInt); tAng = -45; document.getElementById('toneDesc').textContent = 'Amp is off. Flip the switch to warm up the tubes.'; }
-    }
-    function animNeedle() { nAng += (tAng - nAng) * 0.12; document.getElementById('needle').setAttribute('transform', 'rotate('+nAng+', 50, 46)'); requestAnimationFrame(animNeedle); }
-    animNeedle();
-    function updateTone() {
-      if(!ampOn) return;
-      const g = knobs[0].val, b = knobs[1].val, m = knobs[2].val, t = knobs[3].val, p = knobs[4].val, ma = knobs[5].val;
-      let d = [];
-      if(g >= 7) d.push('crunchy'); else if(g >= 4) d.push('clean'); else d.push('mellow');
-      if(t >= 7) d.push('bright'); if(b >= 7) d.push('thumpy'); if(m >= 7) d.push('punchy'); if(p >= 6) d.push('airy');
-      document.getElementById('toneDesc').textContent = 'Tone: ' + d.join(' · ') + ' — Gain ' + g + ' · Master ' + ma;
-    }
-    knobs.forEach((k,i) => setKnob(i, k.val));
-    </script>
-    """
-    components.html(amp_html, height=340, scrolling=False)
-
-    st.divider()
-
-    # ── SEZIONE 3: VISUALIZZATORE CORDE ──
-    st.markdown("#### 🎸 Visualizzatore Corde")
-    st.caption("Clicca sulle corde per farle vibrare")
-
-    strings_html = """
-    <style>
-    .str-wrap { font-family: 'Oswald', sans-serif; background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%); border-radius: 8px; padding: 20px; border: 1px solid rgba(192,192,192,0.08); position: relative; overflow: hidden; }
-    .str-wrap::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0px, transparent 29px, rgba(192,192,192,0.015) 29px, rgba(192,192,192,0.015) 30px); pointer-events: none; }
-    .gstr { height: 32px; display: flex; align-items: center; position: relative; cursor: pointer; transition: all 0.2s; border-radius: 4px; }
-    .gstr:hover { background: rgba(255,255,255,0.02); }
-    .gstr.vib { animation: stringVibrate 0.5s ease-out; }
-    .snote { font-family: 'Roboto Mono', monospace; font-size: 13px; color: #C0C0C0; width: 32px; text-align: center; letter-spacing: 1px; font-weight: 500; }
-    .sline { flex: 1; height: 2px; background: linear-gradient(90deg, #888, #aaa, #888); border-radius: 1px; position: relative; transition: all 0.3s; margin: 0 12px; }
-    .gstr:hover .sline { height: 3px; box-shadow: 0 0 8px rgba(255,255,255,0.25); }
-    .sfret { position: absolute; right: 0; top: 0; bottom: 0; display: flex; align-items: center; gap: 40px; padding-right: 20px; }
-    .fdot { width: 7px; height: 7px; border-radius: 50%; background: rgba(192,192,192,0.12); transition: all 0.3s; }
-    .gstr:hover .fdot { background: rgba(192,192,192,0.35); box-shadow: 0 0 6px rgba(192,192,192,0.15); }
-    .sgauge { font-family: 'Roboto Mono', monospace; font-size: 9px; color: #505050; width: 50px; text-align: right; }
-    @keyframes stringVibrate { 0%{transform:translateX(0)} 10%{transform:translateX(-2px)} 20%{transform:translateX(2px)} 30%{transform:translateX(-1.5px)} 40%{transform:translateX(1.5px)} 50%{transform:translateX(-1px)} 60%{transform:translateX(1px)} 70%{transform:translateX(-0.5px)} 80%{transform:translateX(0.5px)} 90%{transform:translateX(-0.3px)} 100%{transform:translateX(0)} }
-    </style>
-    <div class="str-wrap">
-      <div class="gstr" onclick="pluck(this)"><span class="snote">E</span><div class="sline" style="height:3px;"></div><span class="sgauge">.046</span><div class="sfret"><div class="fdot"></div><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div><div class="fdot"></div><div class="fdot"></div></div></div>
-      <div class="gstr" onclick="pluck(this)"><span class="snote">A</span><div class="sline" style="height:2.5px;"></div><span class="sgauge">.036</span><div class="sfret"><div class="fdot"></div><div class="fdot"></div><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div><div class="fdot"></div></div></div>
-      <div class="gstr" onclick="pluck(this)"><span class="snote">D</span><div class="sline" style="height:2px;"></div><span class="sgauge">.026</span><div class="sfret"><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div><div class="fdot"></div><div class="fdot"></div><div class="fdot"></div></div></div>
-      <div class="gstr" onclick="pluck(this)"><span class="snote">G</span><div class="sline" style="height:1.8px;"></div><span class="sgauge">.017</span><div class="sfret"><div class="fdot"></div><div class="fdot"></div><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div><div class="fdot"></div></div></div>
-      <div class="gstr" onclick="pluck(this)"><span class="snote">B</span><div class="sline" style="height:1.5px;"></div><span class="sgauge">.013</span><div class="sfret"><div class="fdot"></div><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div><div class="fdot"></div><div class="fdot"></div></div></div>
-      <div class="gstr" onclick="pluck(this)"><span class="snote">e</span><div class="sline" style="height:1.2px;"></div><span class="sgauge">.010</span><div class="sfret"><div class="fdot"></div><div class="fdot"></div><div class="fdot"></div><div class="fdot"></div><div class="fdot" style="background:rgba(192,192,192,0.25);"></div></div></div>
-    </div>
-    <script>
-    function pluck(el) {
-      el.classList.remove('vib');
-      void el.offsetWidth;
-      el.classList.add('vib');
-      setTimeout(() => el.classList.remove('vib'), 500);
-    }
-    </script>
-    """
-    components.html(strings_html, height=240, scrolling=False)
-
-    st.divider()
-
-    # ── SEZIONE 4: EQUALIZZATORE ANIMATO ──
-    st.markdown("#### 📊 Equalizzatore Animato")
-    st.caption("Equalizzatore grafico a 9 bande con animazione reattiva e preset")
-
-    eq_html = """
-    <style>
-    .eq-wrap { font-family: 'Oswald', sans-serif; background: linear-gradient(180deg, #1a1a1a, #0f0f0f); border-radius: 8px; padding: 20px; border: 1px solid rgba(192,192,192,0.08); }
-    .eq-row { display: flex; align-items: flex-end; justify-content: center; gap: 8px; height: 140px; padding: 16px 12px 0; }
-    .eq-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-    .eq-bar-track { width: 18px; height: 100px; background: rgba(0,0,0,0.3); border-radius: 3px; position: relative; overflow: hidden; }
-    .eq-bar-fill { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, #C0C0C0, #707070); border-radius: 0 0 3px 3px; transition: height 0.4s cubic-bezier(0.4,0,0.2,1); }
-    .eq-bar-fill::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: rgba(255,255,255,0.35); border-radius: 2px; }
-    .eq-lbl { font-family: 'Roboto Mono', monospace; font-size: 8px; color: #707070; text-align: center; letter-spacing: 1px; }
-    .eq-ctrl { display: flex; justify-content: center; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(192,192,192,0.06); }
-    .eq-btn { padding: 6px 16px; background: linear-gradient(145deg, #1a1a1a, #0f0f0f); border: 1px solid rgba(192,192,192,0.12); border-radius: 3px; color: #C0C0C0; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
-    .eq-btn:hover { border-color: rgba(192,192,192,0.3); box-shadow: 0 0 12px rgba(192,192,192,0.06); }
-    .eq-btn.on { border-color: rgba(192,192,192,0.25); background: linear-gradient(145deg, #222, #151515); }
-    </style>
-    <div class="eq-wrap">
-      <div class="eq-row" id="eqRow">
-        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b0" style="height:30%"></div></div><div class="eq-lbl">63Hz</div></div>
-        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b1" style="height:45%"></div></div><div class="eq-lbl">125</div></div>
-        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b2" style="height:60%"></div></div><div class="eq-lbl">250</div></div>
-        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b3" style="height:50%"></div></div><div class="eq-lbl">500</div></div>
-        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b4" style="height:70%"></div></div><div class="eq-lbl">1k</div></div>
-        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b5" style="height:55%"></div></div><div class="eq-lbl">2k</div></div>
-        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b6" style="height:40%"></div></div><div class="eq-lbl">4k</div></div>
-        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b7" style="height:35%"></div></div><div class="eq-lbl">8k</div></div>
-        <div class="eq-col"><div class="eq-bar-track"><div class="eq-bar-fill" id="b8" style="height:25%"></div></div><div class="eq-lbl">16k</div></div>
-      </div>
-      <div class="eq-ctrl">
-        <div class="eq-btn on" id="btnPlay" onclick="toggleEQ()">▶ Play</div>
-        <div class="eq-btn" onclick="resetEQ()">↺ Reset</div>
-        <div class="eq-btn" onclick="presetRock()">🎸 Rock</div>
-        <div class="eq-btn" onclick="presetJazz()">🎷 Jazz</div>
-      </div>
-    </div>
-    <script>
-    let eqPlaying = true; let eqInt = null;
-    const base = [30,45,60,50,70,55,40,35,25];
-    function setBars(vals) { vals.forEach((v,i) => { document.getElementById('b'+i).style.height = v+'%'; }); }
-    function animateEQ() {
-      const nv = base.map(v => Math.max(8, Math.min(95, v + (Math.random()-0.5)*40)));
-      setBars(nv);
-    }
-    function toggleEQ() {
-      eqPlaying = !eqPlaying;
-      document.getElementById('btnPlay').classList.toggle('on', eqPlaying);
-      document.getElementById('btnPlay').textContent = eqPlaying ? '▶ Play' : '⏸ Pause';
-      if(eqPlaying) { eqInt = setInterval(animateEQ, 180); } else { clearInterval(eqInt); }
-    }
-    function resetEQ() { clearInterval(eqInt); setBars(base); eqPlaying = false; document.getElementById('btnPlay').classList.remove('on'); document.getElementById('btnPlay').textContent = '▶ Play'; }
-    function presetRock() { clearInterval(eqInt); setBars([55,50,45,40,65,70,60,45,30]); eqPlaying = false; document.getElementById('btnPlay').classList.remove('on'); document.getElementById('btnPlay').textContent = '▶ Play'; }
-    function presetJazz() { clearInterval(eqInt); setBars([25,30,40,55,60,50,35,25,20]); eqPlaying = false; document.getElementById('btnPlay').classList.remove('on'); document.getElementById('btnPlay').textContent = '▶ Play'; }
-    eqInt = setInterval(animateEQ, 180);
-    </script>
-    """
-    components.html(eq_html, height=240, scrolling=False)
-
-    st.markdown("<br/><p style='text-align:center; color:#505050; font-size:0.8rem; font-family:Inter;'>Tutti i controlli sono interattivi. Clicca, trascina e sperimenta!</p>", unsafe_allow_html=True)
